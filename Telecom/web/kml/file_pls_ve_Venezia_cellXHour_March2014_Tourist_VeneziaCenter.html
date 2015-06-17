@@ -1,0 +1,123 @@
+<html>
+<head>
+<style type="text/css">
+html { height: 100% }
+body { height: 100%; margin: 0; padding: 0 }
+#map-canvas { height: 100% }
+p { margin: 0; padding: 0; background-color: #000000; color: #ffffff
+}
+</style>
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>
+<script type="text/javascript">
+var map;
+var heatMapData = [
+{location: new google.maps.LatLng(45.41857914568141, 12.41584455416185), weight: 745.0399931930006},
+{location: new google.maps.LatLng(45.468941114138495, 12.344071697594682), weight: 2161.2155302073807},
+{location: new google.maps.LatLng(45.468941114138495, 12.362014911736475), weight: 2303.8609125465155},
+{location: new google.maps.LatLng(45.468941114138495, 12.379958125878268), weight: 1794.7894769459963},
+{location: new google.maps.LatLng(45.468941114138495, 12.39790134002006), weight: 451.43937338143587},
+{location: new google.maps.LatLng(45.468941114138495, 12.41584455416185), weight: 1090.918060131371},
+{location: new google.maps.LatLng(45.40598865356714, 12.254355626885722), weight: 25.488298535346985},
+{location: new google.maps.LatLng(45.40598865356714, 12.272298841027514), weight: 0.7311865985393524},
+{location: new google.maps.LatLng(45.40598865356714, 12.308185269311098), weight: 353.5723869074136},
+{location: new google.maps.LatLng(45.40598865356714, 12.32612848345289), weight: 2769.512950740638},
+{location: new google.maps.LatLng(45.456350622024225, 12.254355626885722), weight: 1543.7614205572754},
+{location: new google.maps.LatLng(45.40598865356714, 12.344071697594682), weight: 1551.4136999910697},
+{location: new google.maps.LatLng(45.456350622024225, 12.272298841027514), weight: 831.4969274327159},
+{location: new google.maps.LatLng(45.40598865356714, 12.362014911736475), weight: 5177.11110934685},
+{location: new google.maps.LatLng(45.456350622024225, 12.290242055169305), weight: 578.8985960483551},
+{location: new google.maps.LatLng(45.40598865356714, 12.379958125878268), weight: 4286.405555516481},
+{location: new google.maps.LatLng(45.456350622024225, 12.308185269311098), weight: 424.93291963869706},
+{location: new google.maps.LatLng(45.40598865356714, 12.39790134002006), weight: 425.65234321542084},
+{location: new google.maps.LatLng(45.456350622024225, 12.32612848345289), weight: 5969.029383884161},
+{location: new google.maps.LatLng(45.40598865356714, 12.41584455416185), weight: 439.09386567771435},
+{location: new google.maps.LatLng(45.456350622024225, 12.344071697594682), weight: 11758.764048025012},
+{location: new google.maps.LatLng(45.456350622024225, 12.362014911736475), weight: 3330.08088622801},
+{location: new google.maps.LatLng(45.456350622024225, 12.379958125878268), weight: 534.1132466457784},
+{location: new google.maps.LatLng(45.456350622024225, 12.39790134002006), weight: 417.81933948397636},
+{location: new google.maps.LatLng(45.456350622024225, 12.41584455416185), weight: 1735.4336279165},
+{location: new google.maps.LatLng(45.39339816145287, 12.32612848345289), weight: 535.2547410968691},
+{location: new google.maps.LatLng(45.443760129909954, 12.254355626885722), weight: 1484.0319749712944},
+{location: new google.maps.LatLng(45.39339816145287, 12.344071697594682), weight: 2513.679405659437},
+{location: new google.maps.LatLng(45.443760129909954, 12.272298841027514), weight: 370.03913862258196},
+{location: new google.maps.LatLng(45.39339816145287, 12.362014911736475), weight: 2331.4283703416586},
+{location: new google.maps.LatLng(45.39339816145287, 12.379958125878268), weight: 666.240936011076},
+{location: new google.maps.LatLng(45.443760129909954, 12.308185269311098), weight: 10441.277765978593},
+{location: new google.maps.LatLng(45.443760129909954, 12.32612848345289), weight: 171204.92547536036},
+{location: new google.maps.LatLng(45.494122098367036, 12.254355626885722), weight: 22137.295155487955},
+{location: new google.maps.LatLng(45.39339816145287, 12.41584455416185), weight: 1.2021323236695025},
+{location: new google.maps.LatLng(45.443760129909954, 12.344071697594682), weight: 74059.49301033746},
+{location: new google.maps.LatLng(45.494122098367036, 12.272298841027514), weight: 7124.384976559784},
+{location: new google.maps.LatLng(45.443760129909954, 12.362014911736475), weight: 4528.062907315587},
+{location: new google.maps.LatLng(45.494122098367036, 12.290242055169305), weight: 6283.25948527921},
+{location: new google.maps.LatLng(45.443760129909954, 12.379958125878268), weight: 660.848137550056},
+{location: new google.maps.LatLng(45.494122098367036, 12.308185269311098), weight: 4576.6964184343815},
+{location: new google.maps.LatLng(45.443760129909954, 12.39790134002006), weight: 722.232005495578},
+{location: new google.maps.LatLng(45.494122098367036, 12.32612848345289), weight: 5313.20072105783},
+{location: new google.maps.LatLng(45.443760129909954, 12.41584455416185), weight: 383.9422639675904},
+{location: new google.maps.LatLng(45.494122098367036, 12.344071697594682), weight: 3059.7198325354257},
+{location: new google.maps.LatLng(45.494122098367036, 12.362014911736475), weight: 1580.2657787059434},
+{location: new google.maps.LatLng(45.494122098367036, 12.379958125878268), weight: 4675.223662525415},
+{location: new google.maps.LatLng(45.494122098367036, 12.39790134002006), weight: 5898.716635681689},
+{location: new google.maps.LatLng(45.494122098367036, 12.41584455416185), weight: 5488.05305080954},
+{location: new google.maps.LatLng(45.3808076693386, 12.308185269311098), weight: 797.6149059087038},
+{location: new google.maps.LatLng(45.3808076693386, 12.32612848345289), weight: 2791.2403953783214},
+{location: new google.maps.LatLng(45.43116963779568, 12.254355626885722), weight: 795.4206359162927},
+{location: new google.maps.LatLng(45.3808076693386, 12.344071697594682), weight: 3221.020469635725},
+{location: new google.maps.LatLng(45.43116963779568, 12.272298841027514), weight: 202.3557548597455},
+{location: new google.maps.LatLng(45.3808076693386, 12.362014911736475), weight: 2270.3080964684486},
+{location: new google.maps.LatLng(45.3808076693386, 12.379958125878268), weight: 364.62493047118187},
+{location: new google.maps.LatLng(45.43116963779568, 12.308185269311098), weight: 20653.85091361776},
+{location: new google.maps.LatLng(45.43116963779568, 12.32612848345289), weight: 128913.01797770942},
+{location: new google.maps.LatLng(45.481531606252766, 12.254355626885722), weight: 13553.03276091718},
+{location: new google.maps.LatLng(45.43116963779568, 12.344071697594682), weight: 230144.08245769888},
+{location: new google.maps.LatLng(45.481531606252766, 12.272298841027514), weight: 5128.4231728464365},
+{location: new google.maps.LatLng(45.43116963779568, 12.362014911736475), weight: 8193.507591458037},
+{location: new google.maps.LatLng(45.481531606252766, 12.290242055169305), weight: 3367.353172183037},
+{location: new google.maps.LatLng(45.43116963779568, 12.379958125878268), weight: 2986.491120706778},
+{location: new google.maps.LatLng(45.481531606252766, 12.308185269311098), weight: 1780.2477587782778},
+{location: new google.maps.LatLng(45.43116963779568, 12.39790134002006), weight: 1714.5706497579813},
+{location: new google.maps.LatLng(45.481531606252766, 12.32612848345289), weight: 2566.2355346232653},
+{location: new google.maps.LatLng(45.43116963779568, 12.41584455416185), weight: 926.2210810594261},
+{location: new google.maps.LatLng(45.481531606252766, 12.344071697594682), weight: 2384.8601557426155},
+{location: new google.maps.LatLng(45.481531606252766, 12.362014911736475), weight: 2285.1473385430872},
+{location: new google.maps.LatLng(45.481531606252766, 12.379958125878268), weight: 2371.3673604913056},
+{location: new google.maps.LatLng(45.481531606252766, 12.39790134002006), weight: 2661.3576602488756},
+{location: new google.maps.LatLng(45.481531606252766, 12.41584455416185), weight: 1924.725247129798},
+{location: new google.maps.LatLng(45.41857914568141, 12.254355626885722), weight: 162.75689995661378},
+{location: new google.maps.LatLng(45.41857914568141, 12.272298841027514), weight: 9.226554363965988},
+{location: new google.maps.LatLng(45.41857914568141, 12.308185269311098), weight: 2877.0374796539545},
+{location: new google.maps.LatLng(45.41857914568141, 12.32612848345289), weight: 7293.533947238699},
+{location: new google.maps.LatLng(45.468941114138495, 12.254355626885722), weight: 5278.873752637766},
+{location: new google.maps.LatLng(45.41857914568141, 12.344071697594682), weight: 4628.602439375914},
+{location: new google.maps.LatLng(45.468941114138495, 12.272298841027514), weight: 1247.2870203808416},
+{location: new google.maps.LatLng(45.41857914568141, 12.362014911736475), weight: 6735.156414039433},
+{location: new google.maps.LatLng(45.468941114138495, 12.290242055169305), weight: 1338.3015606483095},
+{location: new google.maps.LatLng(45.41857914568141, 12.379958125878268), weight: 7234.810068740509},
+{location: new google.maps.LatLng(45.468941114138495, 12.308185269311098), weight: 1809.1130364760756},
+{location: new google.maps.LatLng(45.41857914568141, 12.39790134002006), weight: 1736.5258454829454},
+{location: new google.maps.LatLng(45.468941114138495, 12.32612848345289), weight: 1853.6450921818614}
+];
+var cp = new google.maps.LatLng(45.4439065309811, 12.33948157304678);
+function initialize() {
+var mapstyle = [{"featureType":"water","elementType":"all","stylers":[{"hue":"#e9ebed"},{"saturation":-78},{"lightness":67},{"visibility":"simplified"}]},{"featureType":"landscape","elementType":"all","stylers":[{"hue":"#ffffff"},{"saturation":-100},{"lightness":100},{"visibility":"simplified"}]},{"featureType":"road","elementType":"geometry","stylers":[{"hue":"#bbc0c4"},{"saturation":-93},{"lightness":31},{"visibility":"simplified"}]},{"featureType":"poi","elementType":"all","stylers":[{"hue":"#ffffff"},{"saturation":-100},{"lightness":100},{"visibility":"off"}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"hue":"#e9ebed"},{"saturation":-90},{"lightness":-8},{"visibility":"simplified"}]},{"featureType":"transit","elementType":"all","stylers":[{"hue":"#e9ebed"},{"saturation":10},{"lightness":69},{"visibility":"on"}]},{"featureType":"administrative.locality","elementType":"all","stylers":[{"hue":"#2c2e33"},{"saturation":7},{"lightness":19},{"visibility":"on"}]},{"featureType":"road","elementType":"labels","stylers":[{"hue":"#bbc0c4"},{"saturation":-93},{"lightness":31},{"visibility":"on"}]},{"featureType":"road.arterial","elementType":"labels","stylers":[{"hue":"#bbc0c4"},{"saturation":-93},{"lightness":-2},{"visibility":"simplified"}]}]
+map = new google.maps.Map(document.getElementById('map-canvas'), {
+center: cp,
+zoom: 13,
+mapTypeId: google.maps.MapTypeId.NORMAL,
+styles: mapstyle
+});
+var heatmap = new google.maps.visualization.HeatmapLayer({
+data: heatMapData,
+radius: 100.0,
+opacity: 0.6
+});
+heatmap.setMap(map);
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+<body>
+<p>file_pls_ve_Venezia_cellXHour_March2014_Tourist</p>
+<div id="map-canvas"/>
+</body>
+</html>

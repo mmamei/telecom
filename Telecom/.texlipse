@@ -1,0 +1,14 @@
+#TeXlipse project settings
+#Mon Mar 23 17:11:53 CET 2015
+markTmpDer=true
+builderNum=0
+outputDir=src/analysis/tourist/
+makeIndSty=
+bibrefDir=
+outputFormat=dvi
+tempDir=src/analysis/tourist
+mainTexFile=GroundTruthAnalysisCorr.flt
+outputFile=GroundTruthAnalysisCorr.dvi
+langSpell=en
+markDer=true
+srcDir=src/analysis/tourist/

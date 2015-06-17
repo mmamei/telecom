@@ -1,0 +1,38 @@
+// Configuration File
+
+// This is the configuration file for the application. You can edit it to change the configuration.
+// You can also insert comments like these lines writing // at the start of the line.
+// It is important that you don't change the names of the variables, or the application will not work.
+// If you need to insert a path to a file or a folder you must use the slash / separator inside the path, according to Unix-like systems, instead of backslash \,
+// according to Windows-like systems, to avoid errors.
+
+
+web_kml_folder = G:/CODE/Telecom/Telecom2/web/kml
+
+paper_folder = C:/Users/marco/Desktop/TELECOM3-D2
+
+// File Telecom
+network_map_dir = G:/DATASET/PLS/file_rete
+pls_folder = G:/DATASET/PLS/file_pls
+base_folder = C:/BASE
+
+// File Ivory Coast SET2
+//network_map_dir = G:/DATASET/D4D1/file_rete
+//pls_folder = G:/DATASET/D4D1/file_pls
+//base_folder = C:/BASE_D4D1
+
+// File Ivory Coast SET3
+//network_map_dir = G:/DATASET/D4D2/file_rete
+//pls_folder = G:/DATASET/D4D2/file_pls
+//base_folder = C:/BASE_D4D2
+
+// Filter events on the basis of time
+pls_start_time = 1/08/2011 00:00
+pls_end_time = 31/07/2016 00:00
+
+
+// File with the placemarks
+placemarks_file = config/placemarks.csv
+
+// File with the events happening in the city
+events_file = config/cityevents.csv
