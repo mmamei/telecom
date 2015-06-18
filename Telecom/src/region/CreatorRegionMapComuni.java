@@ -21,8 +21,9 @@ import utils.Logger;
 /*
  * This parser parses the kml files describing the italian comuni taken from:
  * http://localmapping.wordpress.com/2008/11/20/i-confini-amministrativi-degli-8101-comuni-ditalia-al-2001/
+ * 
+ * Should be intergated with CreatorRegionMapFromGIS
  */
-
 public class CreatorRegionMapComuni {
 	
 	public static final String xpath_name = "kml/Document/Folder[1]/Placemark/name";

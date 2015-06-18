@@ -103,7 +103,7 @@ public class TouristsSpaceDensity {
 		for(String profile: profile_space_density.keySet()) {
 			Map<String,Double> density = profile_space_density.get(profile);
 			//pd.plotSpaceDensity(name+"_"+profile+(in_out_only ? "_inout" : ""), density, rm, 0);
-			RPlotter.dawHeatMap(dir+"/"+name+"_"+profile+(in_out_only ? "_inout" : "")+".pdf", density, rm, LOG_PLOT,profile+(in_out_only ? " (in/out)" : ""));
+			RPlotter.drawHeatMap(dir+"/"+name+"_"+profile+(in_out_only ? "_inout" : "")+".pdf", density, rm, LOG_PLOT,profile+(in_out_only ? " (in/out)" : ""));
 				
 		}
 		

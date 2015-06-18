@@ -310,7 +310,7 @@ public class RPlotter {
 	/************************************************************************************************************/
 	
 	
-	public static void dawHeatMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text) {
+	public static void drawHeatMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text) {
 		List<double[]> points = new ArrayList<double[]>();
 		
 		double max = 0;

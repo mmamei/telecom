@@ -22,11 +22,19 @@ import utils.Logger;
 
 
 
-public class CreatorRegionMapCircoscrizioni {
+public class CreatorRegionMapFromGIS {
 	
 
 	
 	public static void main(String[] args) throws Exception {
+		
+		String[] cities = new String[]{"venezia","milano","torino","napoli","roma","palermo","bari"};
+		for(String city: cities) {
+			String name = "tic-"+city+"-gird";
+			String input_file = "G:/DATASET/GEO/ti-challenge/"+name+".csv";
+			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
+			processWTK(name,input_file,output_obj_file);
+		}
 		/*
 		String name = "torino_circoscrizioni_geo";
 		String input_file = "G:/DATASET/GEO/"+name+".csv";
@@ -34,6 +42,7 @@ public class CreatorRegionMapCircoscrizioni {
 		processWTK(name,input_file,output_obj_file);
 		*/
 		
+		/*
 		String[] cities = new String[]{"Venezia","Firenze","Torino","Lecce"};
 		for(String city: cities) {
 			System.out.println("Processing "+city+" ...");
@@ -42,6 +51,8 @@ public class CreatorRegionMapCircoscrizioni {
 			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+outputname+".ser";
 			processKML(outputname,input_file,output_obj_file);
 		}
+		*/
+		
 		
 		Logger.logln("Done!");
 	}
