@@ -13,7 +13,7 @@ import org.gps.utils.LatLonUtils;
 
 import region.RegionI;
 import dataset.NetworkMapFactoryI;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 public class RadiusOfGyrationFlickrTwitter {
 	

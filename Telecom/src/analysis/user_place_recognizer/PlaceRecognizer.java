@@ -23,7 +23,7 @@ import analysis.user_place_recognizer.weight_functions.WeightOnTime;
 import analysis.user_place_recognizer.weight_functions.Weights;
 import dataset.DataFactory;
 import dataset.EventFilesFinderI;
-import dataset.file.UsersCSVCreator;
+import dataset.impl.UsersCSVCreator;
 
 public class PlaceRecognizer {
 	

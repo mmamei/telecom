@@ -13,7 +13,7 @@ import org.gps.utils.LatLonUtils;
 import region.RegionI;
 import region.RegionMap;
 import analysis.PLSEvent;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 
 public class Cluster implements Serializable {

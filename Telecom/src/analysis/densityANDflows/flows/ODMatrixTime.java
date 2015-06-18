@@ -20,8 +20,8 @@ import utils.CopyAndSerializationUtils;
 import analysis.Constraints;
 import analysis.PLSSpaceDensity;
 import dataset.EventFilesFinderI;
-import dataset.file.DataFactory;
-import dataset.file.LocationsXUserAroundAnEvent;
+import dataset.impl.DataFactory;
+import dataset.impl.LocationsXUserAroundAnEvent;
 
 public class ODMatrixTime {
 	public static void main(String[] args) throws Exception {

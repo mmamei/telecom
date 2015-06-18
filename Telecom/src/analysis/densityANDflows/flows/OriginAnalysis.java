@@ -23,7 +23,7 @@ import utils.Logger;
 import utils.Sort;
 import visual.kml.KMLHeatMap;
 import analysis.PLSEvent;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 /*
  * This class analyzes data produced by the dataset.file.UsersAroundMultipleEvents class

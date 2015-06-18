@@ -19,7 +19,7 @@ import utils.Colors;
 import utils.Config;
 import utils.Logger;
 import analysis.PLSEvent;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 public class KMLPath {
 	public static final boolean JITTER = false;

@@ -10,7 +10,7 @@ import org.gps.utils.LatLonUtils;
 import region.RegionI;
 import utils.Config;
 import dataset.NetworkMapFactoryI;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 public class RadiusOfGyration {
 	

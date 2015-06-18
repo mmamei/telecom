@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import dataset.EventFilesFinderI;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 import region.CreatorRegionMapGrid;
 import region.RegionI;
 import region.RegionMap;

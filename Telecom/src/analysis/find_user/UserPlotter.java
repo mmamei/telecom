@@ -7,7 +7,7 @@ import visual.kml.KMLPath;
 import analysis.UserTrace;
 import dataset.DataFactory;
 import dataset.EventFilesFinderI;
-import dataset.file.UsersCSVCreator;
+import dataset.impl.UsersCSVCreator;
 
 public class UserPlotter {
 

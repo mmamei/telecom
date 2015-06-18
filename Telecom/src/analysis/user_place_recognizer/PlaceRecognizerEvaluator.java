@@ -12,7 +12,7 @@ import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
 import region.RegionMap;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 public class PlaceRecognizerEvaluator {
 	

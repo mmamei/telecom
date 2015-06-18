@@ -25,7 +25,7 @@ import analysis.Constraints;
 import analysis.PLSSpaceDensity;
 import dataset.DataFactory;
 import dataset.EventFilesFinderI;
-import dataset.file.UserEventCounterCellacXHour;
+import dataset.impl.UserEventCounterCellacXHour;
 
 public class PopulationDensity {
 	

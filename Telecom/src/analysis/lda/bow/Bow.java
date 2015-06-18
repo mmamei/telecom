@@ -16,7 +16,7 @@ import org.gps.utils.LatLonUtils;
 
 import region.RegionI;
 import region.RegionMap;
-import dataset.file.DataFactory;
+import dataset.impl.DataFactory;
 
 public abstract class Bow {
 	
