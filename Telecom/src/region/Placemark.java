@@ -268,11 +268,14 @@ public class Placemark extends RegionI {
 		//initPlacemaks();
 		//NetworkMap nm = NetworkMapFactory.getNetworkMap();
 		
-		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.AUGUST,1,0,0,0);
-		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.AUGUST,31,23,59,59);
-		Placemark p = getPlacemark("LecceBigBig");
+		//Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.AUGUST,1,0,0,0);
+		//Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.AUGUST,31,23,59,59);
+		Placemark p = getPlacemark("Stadio Olimpico (TO)");
 		
-		//System.out.println(p.getNumCells());
+		System.out.println("Num Cells = "+p.getNumCells());
+		System.out.println("Avg. Radius = "+p.getSumRadii()/p.getNumCells());
+		
+		
 		//System.out.println(p.contains("4018584023"));
 		//System.out.println(nm.get(Long.parseLong("4018584023")));
 		File dir =new File(Config.getInstance().base_folder+"/Placemark");

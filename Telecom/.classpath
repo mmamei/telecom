@@ -20,5 +20,6 @@
 	<classpathentry kind="lib" path="C:/Program Files/R/R-3.1.2/library/Rserve/java/Rserve.jar"/>
 	<classpathentry kind="lib" path="lib/wekaclassalgos.jar"/>
 	<classpathentry kind="lib" path="lib/freemarker.jar"/>
+	<classpathentry kind="lib" path="lib/commons-compress-1.8.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
