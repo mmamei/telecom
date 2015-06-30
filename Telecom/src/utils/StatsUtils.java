@@ -180,4 +180,16 @@ public class StatsUtils {
 		return z;
 	}
 	
+	public static double[] getZ(double[] x) {
+		DescriptiveStatistics stat = new DescriptiveStatistics();
+		for(int i=0; i<x.length;i++)
+			stat.addValue(x[i]);
+		double m = stat.getMean();
+		double sd = stat.getStandardDeviation();
+		double[] z = new double[x.length];
+		for(int i=0; i<z.length;i++)
+			z[i] = (x[i]-m)/sd;
+		return z;
+	}
+	
 }

@@ -68,5 +68,44 @@ public class KMLHeatMap {
 		out.close();
 	}
 	
+	// same method as before, but with a specific description for each region
+	public static void drawHeatMap(String file, Map<String,Double> den, RegionMap rm , Map<String,String> desc, boolean logscale) throws Exception {
+		
+		Map<String,Double> density = new HashMap<String,Double>();
+		for(String r: den.keySet())
+			density.put(r.toLowerCase(), den.get(r).doubleValue());
+		
+		// convert to the log scale,
+		if(logscale) 
+			for(String name: density.keySet()) 
+				density.put(name, Math.max(0, Math.log10(density.get(name))));	
+		
+		
+		
+		//compute the maximum value in density
+		double max = 0;
+		for(double v: density.values()) 
+			max = Math.max(max, v);
+		
+		
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+		KML kml = new KML();
+		kml.printHeaderFolder(out, rm.getName());
+		
+		for(RegionI r: rm.getRegions()) {
+			double val = density.get(r.getName().toLowerCase())==null? 0 : density.get(r.getName().toLowerCase());
+			//System.out.println(val);
+			
+			if(val > 0) {
+				r.setDescription(desc.get(r.getName().toLowerCase()));
+				out.println(r.toKml(Colors.val01_to_color(val/max),"44aaaaaa"));
+			}
+		}
+	
+		
+		kml.printFooterFolder(out);
+		out.close();
+	}
+	
 	
 }
