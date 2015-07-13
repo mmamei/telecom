@@ -11,6 +11,8 @@ public class AddMap extends HashMap<String,Double> {
 		else 
 			this.put(key, v+value);
 	}
+
+	
 	
 	public static void main(String[] args) {
 		

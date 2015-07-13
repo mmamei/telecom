@@ -2,17 +2,22 @@ package analysis;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import utils.Config;
 import utils.fastdtw.dtw.DTW;
@@ -29,45 +34,56 @@ public class TimeDensityFromAggregatedData {
 	private String city;
 	private String type;
 	
-	private TimeConverter tc = null;
+	public TimeConverter tc = null;
 	public Map<String,double[]> map = new HashMap<String,double[]>();
 	
 	
-	public TimeDensityFromAggregatedData(String city, String type) {
-		
-		
-		
+	public TimeDensityFromAggregatedData(String city, String type, String file, int[] readIndexes, Set<String> okMeta) {
 		this.city = city;
 		this.type = type;
-		String line = null;
 		try {
 			tc = TimeConverter.getInstance();
-			String file = "G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz";
-			TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
-			TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
-			BufferedReader br = null;
-			while (currentEntry != null) {
-			    br = new BufferedReader(new InputStreamReader(tarInput)); // Read directly from tarInput
-			    //System.out.println("Reading File = " + currentEntry.getName());
-			   
-			    while ((line = br.readLine()) != null) {
-			       String[] x = line.split("\t");
-			       long time = Long.parseLong(x[0]) * 1000;
-			       String cell = x[1];
-			       double ncall = Double.parseDouble(x[2]);
-			       String mcc = x[3];
-			       //double calltime = Double.parseDouble(x[4]);
-			       double[] v = map.get(cell);
-			       if(v == null) {
-			       	   v = new double[tc.getTimeSize()];
-			       	   map.put(cell, v);
-			       }
-			       //System.out.println(time+" --> "+new Date(time));
-			       v[tc.time2index(time)]+= ncall;
-			    }
-			    currentEntry = tarInput.getNextTarEntry(); 
+			if(file.endsWith(".tar.gz")) {
+				TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
+				TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
+				
+				while (currentEntry != null) {
+					processFile(new BufferedReader(new InputStreamReader(tarInput)),readIndexes,okMeta); // Read directly from tarInput
+				    //System.out.println("Reading File = " + currentEntry.getName()); 
+				    currentEntry = tarInput.getNextTarEntry(); 
+				}
+				tarInput.close();
 			}
-			tarInput.close();
+			else {
+				processFile(new BufferedReader(new FileReader(file)),readIndexes,okMeta);
+			}
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	private void processFile(BufferedReader br,int[] readIndexes,Set<String> okMeta) {
+		String line = null;
+		try {
+			while ((line = br.readLine()) != null) {
+			       String[] x = line.split("\t");
+			       long time = Long.parseLong(x[readIndexes[0]]) * 1000;
+			       String cell = x[readIndexes[1]];
+			       double value = Double.parseDouble(x[readIndexes[2]]);
+			       String meta = x[readIndexes[3]];
+			       if(okMeta == null || okMeta.contains(meta)) {
+			       //double calltime = Double.parseDouble(x[4]);
+				       double[] v = map.get(cell);
+				       if(v == null) {
+				       	   v = new double[tc.getTimeSize()];
+				       	   map.put(cell, v);
+				       }
+				       //System.out.println(time+" --> "+new Date(time));
+				       v[tc.time2index(time)]+= value;
+			       }
+			}
+			//br.close();
 		}catch(Exception e) {
 			System.err.println(line);
 			e.printStackTrace();
@@ -96,15 +112,116 @@ public class TimeDensityFromAggregatedData {
 	}
 	
 	
+	
+	
+	public double pearson(double[] a, double[] b) {
+		SimpleRegression r = new SimpleRegression();
+		Calendar cal = Calendar.getInstance();
+		for(int i=0;i<a.length;i++) {
+			cal.setTimeInMillis(tc.index2time(i));
+			int hour = cal.get(Calendar.HOUR_OF_DAY);
+			int day_of_week = cal.get(Calendar.DAY_OF_WEEK);
+			if(hour>7 && hour<18 && day_of_week != Calendar.SATURDAY && day_of_week != Calendar.SUNDAY)
+			r.addData(a[i], b[i]);
+		}
+		return r.getR();
+	}
+	
+	
+	public double maxxCorr(double[] a, double[] b) {
+		double[] xcorr = xcorr(a,b);
+		double max = xcorr[0];
+		for(int i=1; i<xcorr.length;i++)
+			if(max < xcorr[i])
+				max = xcorr[i];
+		return max;
+	}
+	
+	
+	 /**
+     * Computes the cross correlation between sequences a and b.
+     */
+    public double[] xcorr(double[] a, double[] b)
+    {
+        int len = a.length;
+        if(b.length > a.length)
+            len = b.length;
+
+        return xcorr(a, b, len-1);
+
+        // // reverse b in time
+        // double[] brev = new double[b.length];
+        // for(int x = 0; x < b.length; x++)
+        //     brev[x] = b[b.length-x-1];
+        // 
+        // return conv(a, brev);
+    }
+
+    /**
+     * Computes the auto correlation of a.
+     */
+    public double[] xcorr(double[] a)
+    {
+        return xcorr(a, a);
+    }
+
+    /**
+     * Computes the cross correlation between sequences a and b.
+     * maxlag is the maximum lag to
+     */
+    public double[] xcorr(double[] a, double[] b, int maxlag)
+    {
+        double[] y = new double[2*maxlag+1];
+        Arrays.fill(y, 0);
+        
+        for(int lag = b.length-1, idx = maxlag-b.length+1; 
+            lag > -a.length; lag--, idx++)
+        {
+            if(idx < 0)
+                continue;
+            
+            if(idx >= y.length)
+                break;
+
+            // where do the two signals overlap?
+            int start = 0;
+            // we can't start past the left end of b
+            if(lag < 0) 
+            {
+                //System.out.println("b");
+                start = -lag;
+            }
+
+            int end = a.length-1;
+            // we can't go past the right end of b
+            if(end > b.length-lag-1)
+            {
+                end = b.length-lag-1;
+                //System.out.println("a "+end);
+            }
+
+            //System.out.println("lag = " + lag +": "+ start+" to " + end+"   idx = "+idx);
+            for(int n = start; n <= end; n++)
+            {
+                //System.out.println("  bi = " + (lag+n) + ", ai = " + n); 
+                y[idx] += a[n]*b[lag+n];
+            }
+            //System.out.println(y[idx]);
+        }
+
+        return(y);
+    }
+	
+	
 	// euclidean distance
-	private double ed(double[] x, double[] y) {
+	public double ed(double[] x, double[] y) {
 		double d = 0;
 		for(int i=0; i<x.length;i++)
 			d+= Math.pow(x[i]-y[i], 2);
 		return Math.sqrt(d);
 	}
 	
-	private double dtw(double[] x, double[] y) {
+	public double dtw(double[] x, double[] y) {
 		TimeSeries tsI = new TimeSeries(1);
 		for(int i=0; i<x.length;i++)
 			tsI.addLast(i, new TimeSeriesPoint(new double[] {x[i]}));
@@ -116,7 +233,7 @@ public class TimeDensityFromAggregatedData {
 		return DTW.getWarpDistBetween(tsI, tsJ, DistanceFunctionFactory.EUCLIDEAN_DIST_FN);
 	}
 	
-	private double fdtw(double[] x, double[] y) {
+	public double fdtw(double[] x, double[] y) {
 		TimeSeries tsI = new TimeSeries(1);
 		for(int i=0; i<x.length;i++)
 			tsI.addLast(i, new TimeSeriesPoint(new double[] {x[i]}));
@@ -160,7 +277,9 @@ public class TimeDensityFromAggregatedData {
 	}
 	
 	public static void main(String[] args) {
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData("venezia","CallOut");
+		String city = "venezia";
+		String type = "CallOut";
+		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,"G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz",new int[]{0,1,2,3},null);
 		//td.plot("3693_3_1_3_1");
 		
 		double fdtw = td.fdtw(td.map.get("3693_3_1_3_1"), td.map.get("3693_3_1_2_1"));

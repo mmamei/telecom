@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
@@ -41,7 +42,7 @@ public class RegionMap implements Serializable {
 	
 	public RegionMap(String name) {
 		this.name = name;
-		rm = new HashMap<String,RegionI>();
+		rm = new TreeMap<String,RegionI>();
 		cache_intersection = new HashMap<Long,float[]>();
 		cache_closest = new HashMap<String,RegionI>();
 	}

@@ -27,7 +27,7 @@ public class CreatorRegionMapFromGIS {
 
 	
 	public static void main(String[] args) throws Exception {
-		
+		/*
 		String[] cities = new String[]{"venezia","milano","torino","napoli","roma","palermo","bari"};
 		for(String city: cities) {
 			String name = "tic-"+city+"-gird";
@@ -35,6 +35,13 @@ public class CreatorRegionMapFromGIS {
 			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
 			processWTK(name,input_file,output_obj_file);
 		}
+		*/
+		
+		String input_file = "G:/DATASET/TI-CHALLENGE-2015/ZIP/CAPS.csv";
+		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
+		processWTK("CAPS",input_file,output_obj_file);
+		
+		
 		/*
 		String name = "torino_circoscrizioni_geo";
 		String input_file = "G:/DATASET/GEO/"+name+".csv";
@@ -71,7 +78,16 @@ public class CreatorRegionMapFromGIS {
 			wtk_shape = wtk_shape.replaceAll("\"MULTIPOLYGON \\(\\(\\(", "");
 			wtk_shape = wtk_shape.replaceAll("\\)\\)\\)\"", "");
 			String n = e[1];
-			rm.add(new Region(n,GeomUtils.openGis2Geom(wtk_shape)));
+			
+			String[] polys = wtk_shape.split("\\)\\),\\(\\(");
+			
+			if(n.equals("57034")) {
+				System.out.println("57034");
+				System.out.println(wtk_shape);
+			}
+			
+			for(int i=0; i<polys.length;i++)
+				rm.add(new Region(polys.length > 1 ? n+"_"+i : n,GeomUtils.openGis2Geom(polys[i])));
 		}
 		
 		br.close();

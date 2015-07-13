@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,25 +34,43 @@ public class LoadDensityFromAggregatedData {
 	 * This class load density from aggregated data file, like those used in the Telecom Data Challenge
 	 */
 	
+	
 	public static void main(String[] args) throws Exception {
+		String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
+		for(String c: city)
+			process(c,new String[]{"01-32","grande",""});
+		System.out.println("Done");
+	}	
+	
+	public static void process(String city, String[] constraints) throws Exception {
 		
-		String city = "venezia";
-		Calendar start_time = new GregorianCalendar(2015,Calendar.MARCH,28,0,0,0);
-		Calendar end_time = new GregorianCalendar(2015,Calendar.MARCH,28,23,59,59);
+		System.out.println("Processing "+city);
+		
+		//Calendar start_time = new GregorianCalendar(2015,Calendar.MARCH,28,0,0,0);
+		//Calendar end_time = new GregorianCalendar(2015,Calendar.MARCH,28,23,59,59);
 		
 		//AddMap density = loadFromPresenceFile(city,start_time,end_time);
-		AddMap density = loadFromTelecomDataFile(city,"SmsIn",start_time,end_time);
+		//AddMap density = loadFromTelecomDataFile(city,"CallIn",start_time,end_time);
+		
+		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,constraints);
+		Map<String,Double> density = new HashMap<String,Double>();
+		int c = 0;
+		for(String k: company_map.keySet()) {
+			if(company_map.get(k)==null) continue;
+			density.put(k, company_map.get(k));
+			c++;
+			if(c > 10) break;
+		}
 		
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
 		
 		//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+".kml",density,rm,"presence",false);
 		//RPlotter.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+".pdf", density, rm, false, "presence");
 		
-		
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData("venezia","CallIn");
-		td.add(new TimeDensityFromAggregatedData(td.getCity(),"CallOut"));
-		td.add(new TimeDensityFromAggregatedData(td.getCity(),"SmsIn"));
-		td.add(new TimeDensityFromAggregatedData(td.getCity(),"SmsOut"));
+		String[] types = new String[]{"CallIn","CallOut","SmsIn","SmsOut"};
+		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,types[0],"G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+types[0]+".tar.gz",new int[]{0,1,2,3},null);
+		for(int i=1; i<types.length;i++)
+			td.add(new TimeDensityFromAggregatedData(td.getCity(),types[i],"G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+types[i]+".tar.gz",new int[]{0,1,2,3},null));
 		
 		// compute z-score
 		for(String k: td.map.keySet())
@@ -73,8 +92,8 @@ public class LoadDensityFromAggregatedData {
 	
 			desc.put(r, td.map.get(r)==null ? "not available" : GoogleChartGraph.getGraph(x, y, names, "data", td.getType()));
 		}
-		
-		KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+td.getType()+".kml",density,rm,desc,false);
+		String suffix = (constraints == null) ? "" :  "-"+constraints[0]+"-"+constraints[1]+"-"+constraints[2];
+		KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+suffix+"-"+td.getType()+".kml",density,rm,desc,false);
 		
 	}
 	

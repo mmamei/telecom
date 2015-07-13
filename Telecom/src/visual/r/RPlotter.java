@@ -461,7 +461,55 @@ public class RPlotter {
 	
 	
 	
+	/************************************************************************************************************/
+	/************************************************************************************************************/
+	/* 												BOX PLOT									 				*/
+	/************************************************************************************************************/
+	/************************************************************************************************************/
 	
+	public static void drawBoxplot(List<double []> y, List<String> names, String xlab, String ylab, String file, String opts) {
+		try {
+			file = file.replaceAll("_", "-");
+            c = new RConnection();// make a new local connection on default port (6311)
+            
+            for(int i=0; i<y.size();i++)
+            	c.assign("y"+i, y.get(i));
+            
+                      
+            String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
+            String code = 
+            		   "library(ggplot2);"
+            		 + "library(reshape2);";
+            
+            for(int i=0;i<y.size();i++) {
+            		code += "yy"+i+" <- data.frame(y"+i+");";
+            		code += "names(yy"+i+") <- c('"+names.get(i)+"');";
+            		code += "yy"+i+" <- melt(yy"+i+",id.vars=c());";
+            }
+            
+            StringBuffer sby= new StringBuffer();
+            for(int i=0; i<y.size();i++)
+            	sby.append(",yy"+i);
+            
+            	     code += "z <- rbind("+sby.substring(1)+");"   
+            	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot() + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"')"+end
+            	          + "ggsave('"+file+"',width=10);"
+            	          + "dev.off();";
+            
+            System.out.println(code.replaceAll(";", ";\n"));
+            c.eval(code);
+            c.close();
+            if(VIEW) Desktop.getDesktop().open(new File(file));
+        } catch (Exception e) {
+        	c.close();
+        	if(e.getMessage().startsWith("Cannot connect")) {
+             	System.err.println("You must launch the following code in R");
+             	System.err.println("library(Rserve)");
+             	System.err.println("Rserve()");
+            }
+            else e.printStackTrace();
+        }      
+	}
 	
 	
 	public static void main(String[] args) {
@@ -471,19 +519,19 @@ public class RPlotter {
 //		drawScatter(new double[]{1,2,9},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 
 		
-//		List<double[]> l = new ArrayList<double[]>();
-//		l.add(new double[]{5,6,7,8});
-//		l.add(new double[]{1,2,7,9});
-//		l.add(new double[]{5,-1,4,10});
-//		
-//		List<String> names = new ArrayList<String>();
-//		names.add("ok1");
-//		names.add("ok2");
-//		names.add("ok3");
-//		
-//		drawBar(new String[]{"a","b","c","d"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-//		drawLine(new String[]{"3","2","1","0"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		List<double[]> l = new ArrayList<double[]>();
+		l.add(new double[]{5,6,7,8});
+		l.add(new double[]{1,2,9});
+		l.add(new double[]{5,-1,4,10});
 		
+		List<String> names = new ArrayList<String>();
+		names.add("ok1");
+		names.add("ok2");
+		names.add("ok3");
+		
+		//drawBar(new String[]{"a","b","c","d"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		//drawLine(new String[]{"3","2","1","0"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		drawBoxplot(l,names,"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		
 		
 //		List<double[]> lx = new ArrayList<double[]>();
@@ -527,14 +575,14 @@ public class RPlotter {
 //		drawHeatMap(lat,lon,lonlatBBox,Config.getInstance().base_folder+"/Images/map.pdf","Excursionist (in/out)");
 		
 		
-		double[][] m = new double[GTExtractor.PROFILES.length][GTExtractor.PROFILES.length];
-		for(int i=0; i<m.length;i++)
-		for(int j=0; j<m[i].length;j++)
-			m[i][j] = Math.random();
-		
-		String[] headers = GTExtractor.PROFILES;
-		
-		drawCorr(Config.getInstance().base_folder+"/Images/corr.pdf",headers,m,"");
+//		double[][] m = new double[GTExtractor.PROFILES.length][GTExtractor.PROFILES.length];
+//		for(int i=0; i<m.length;i++)
+//		for(int j=0; j<m[i].length;j++)
+//			m[i][j] = Math.random();
+//
+//		String[] headers = GTExtractor.PROFILES;
+//		
+//		drawCorr(Config.getInstance().base_folder+"/Images/corr.pdf",headers,m,"");
 		
 	}
 }

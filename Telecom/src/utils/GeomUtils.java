@@ -114,8 +114,7 @@ public class GeomUtils {
 		kml = kml + ",0";
 		return kml;
 	}
-	
-	
+
 	
 	public static Geometry openGis2Geom(String opengis) {
 		Geometry g = null;
