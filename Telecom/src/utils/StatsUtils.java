@@ -1,12 +1,21 @@
 package utils;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Random;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.inference.TestUtils;
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
 
+import utils.fastdtw.dtw.DTW;
+import utils.fastdtw.dtw.FastDTW;
+import utils.fastdtw.timeseries.TimeSeries;
+import utils.fastdtw.timeseries.TimeSeriesPoint;
+import utils.fastdtw.util.DistanceFunctionFactory;
+import utils.time.TimeConverter;
 import visual.java.GraphPlotter;
 
 public class StatsUtils {
@@ -180,6 +189,39 @@ public class StatsUtils {
 		return z;
 	}
 	
+	
+	
+	public static double[] getZH(double[] x, TimeConverter tc) {
+		
+		DescriptiveStatistics[] stat = new DescriptiveStatistics[24];
+		for(int i=0; i<stat.length;i++)
+			stat[i] = new DescriptiveStatistics();
+		
+		Calendar cal = Calendar.getInstance();
+		for(int i=0; i<x.length;i++) {
+				cal.setTimeInMillis(tc.index2time(i));
+				int h = cal.get(Calendar.HOUR_OF_DAY);
+				stat[h].addValue(x[i]);
+		}
+			
+		double[] mean = new double[24];
+		double[] sd = new double[24];
+		for(int i=0; i<24;i++) {
+			mean[i] = stat[i].getMean();
+			sd[i] = stat[i].getStandardDeviation();
+		}
+		
+		double[] z = new double[x.length];
+		for(int i=0; i<x.length;i++) {
+			cal.setTimeInMillis(tc.index2time(i));
+			int h = cal.get(Calendar.HOUR_OF_DAY);
+			z[i] = sd[h] > 0 ? (x[i] - mean[h])/sd[h] : 0;
+		}
+		return z;
+		
+	}
+	
+	
 	public static double[] getZ(double[] x) {
 		DescriptiveStatistics stat = new DescriptiveStatistics();
 		for(int i=0; i<x.length;i++)
@@ -190,6 +232,144 @@ public class StatsUtils {
 		for(int i=0; i<z.length;i++)
 			z[i] = (x[i]-m)/sd;
 		return z;
+	}
+	
+	public static  double r2(double[] a, double[] b) {
+		
+		SimpleRegression r = new SimpleRegression();
+		for(int i=0;i<a.length;i++) 
+				r.addData(a[i], b[i]);
+		
+		double r2 = r.getRSquare();
+		return Double.isNaN(r2) ? 0: r2;
+		
+		/*
+		OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
+		double[][] x = new double[b.length][1];
+		for(int i=0; i<b.length;i++)
+			x[i][0] = b[i];
+		
+		h0.newSampleData(a, x);
+		return h0.calculateRSquared();
+		*/
+	}
+	
+	
+	public static double maxxCorr(double[] a, double[] b) {
+		double[] xcorr = xcorr(a,b);
+		double max = xcorr[0];
+		for(int i=1; i<xcorr.length;i++)
+			if(max < xcorr[i])
+				max = xcorr[i];
+		return max;
+	}
+	
+	
+	 /**
+     * Computes the cross correlation between sequences a and b.
+     */
+    public static  double[] xcorr(double[] a, double[] b)
+    {
+        int len = a.length;
+        if(b.length > a.length)
+            len = b.length;
+
+        return xcorr(a, b, len-1);
+
+        // // reverse b in time
+        // double[] brev = new double[b.length];
+        // for(int x = 0; x < b.length; x++)
+        //     brev[x] = b[b.length-x-1];
+        // 
+        // return conv(a, brev);
+    }
+
+    /**
+     * Computes the auto correlation of a.
+     */
+    public static double[] xcorr(double[] a)
+    {
+        return xcorr(a, a);
+    }
+
+    /**
+     * Computes the cross correlation between sequences a and b.
+     * maxlag is the maximum lag to
+     */
+    public static double[] xcorr(double[] a, double[] b, int maxlag)
+    {
+        double[] y = new double[2*maxlag+1];
+        Arrays.fill(y, 0);
+        
+        for(int lag = b.length-1, idx = maxlag-b.length+1; 
+            lag > -a.length; lag--, idx++)
+        {
+            if(idx < 0)
+                continue;
+            
+            if(idx >= y.length)
+                break;
+
+            // where do the two signals overlap?
+            int start = 0;
+            // we can't start past the left end of b
+            if(lag < 0) 
+            {
+                //System.out.println("b");
+                start = -lag;
+            }
+
+            int end = a.length-1;
+            // we can't go past the right end of b
+            if(end > b.length-lag-1)
+            {
+                end = b.length-lag-1;
+                //System.out.println("a "+end);
+            }
+
+            //System.out.println("lag = " + lag +": "+ start+" to " + end+"   idx = "+idx);
+            for(int n = start; n <= end; n++)
+            {
+                //System.out.println("  bi = " + (lag+n) + ", ai = " + n); 
+                y[idx] += a[n]*b[lag+n];
+            }
+            //System.out.println(y[idx]);
+        }
+
+        return(y);
+    }
+	
+	
+	// euclidean distance
+	public static double ed(double[] x, double[] y) {
+		double d = 0;
+		for(int i=0; i<x.length;i++)
+			d+= Math.pow(x[i]-y[i], 2);
+		return Math.sqrt(d);
+	}
+	
+	public static double dtw(double[] x, double[] y) {
+		TimeSeries tsI = new TimeSeries(1);
+		for(int i=0; i<x.length;i++)
+			tsI.addLast(i, new TimeSeriesPoint(new double[] {x[i]}));
+		
+		TimeSeries tsJ = new TimeSeries(1);
+		for(int i=0; i<y.length;i++)
+			tsJ.addLast(i, new TimeSeriesPoint(new double[] {y[i]}));
+		
+		return DTW.getWarpDistBetween(tsI, tsJ, DistanceFunctionFactory.EUCLIDEAN_DIST_FN);
+	}
+	
+	public static  double fdtw(double[] x, double[] y) {
+		TimeSeries tsI = new TimeSeries(1);
+		for(int i=0; i<x.length;i++)
+			tsI.addLast(i, new TimeSeriesPoint(new double[] {x[i]}));
+		
+		TimeSeries tsJ = new TimeSeries(1);
+		for(int i=0; i<y.length;i++)
+			tsJ.addLast(i, new TimeSeriesPoint(new double[] {y[i]}));
+		
+		return FastDTW.getWarpDistBetween(tsI, tsJ, DistanceFunctionFactory.EUCLIDEAN_DIST_FN);
 	}
 	
 }

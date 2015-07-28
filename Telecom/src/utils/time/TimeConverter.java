@@ -23,8 +23,9 @@ public abstract class TimeConverter implements Serializable {
 	
 	public static TimeConverter getInstance() throws Exception { 
 		if(tc == null)
-			tc = new TimeConverter15Mins(start_date, end_date);
-			//tc = new TimeConverterHour(start_date, end_date);
+			//tc = new TimeConverter15Mins(start_date, end_date);
+			tc = new TimeConverterHour(start_date, end_date);
+			//tc = new TimeConverterHour1Day(start_date, end_date);
 		    //tc = new TimeConverterDay(start_date, end_date);
 		
 		return tc;

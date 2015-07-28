@@ -29,25 +29,24 @@ public class LoadDensityFromCompanyData {
 	public static void main(String[] args) throws Exception {
 		String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
 		for(String c: city)
-			process(c, new String[]{"01-32","grande",""});
+			process(c, new String[]{"01-32","grande",""},10);
 		System.out.println("Done");
 	}	
 		
-	public static void process(String city, String[] constraints) throws Exception {
+	public static void process(String city, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
 		System.out.println("Process "+city);
-		LinkedHashMap<String, Double> map = getInstance(city,constraints);
+		LinkedHashMap<String, Double> map = getInstance(city,COMPANY_CONSTRAINTS);
 		
 		Map<String,Double> limited_map = new HashMap<String,Double>();
 		int c = 0;
 		for(String k: map.keySet()) {
 			limited_map.put(k, map.get(k));
 			c++;
-			if(c > 10) break;
+			if(c > LIMIT) break;
 		}
 		
-		
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
-		String suffix = (constraints == null) ? "" :  "-"+constraints[0]+"-"+constraints[1]+"-"+constraints[2];
+		String suffix = (COMPANY_CONSTRAINTS == null) ? "" :  "-"+COMPANY_CONSTRAINTS[0]+"-"+COMPANY_CONSTRAINTS[1]+"-"+COMPANY_CONSTRAINTS[2];
 		KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+suffix+"-company.kml",limited_map,rm,"company",false);
 		
 	}

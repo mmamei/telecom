@@ -21,7 +21,7 @@ import com.vividsolutions.jts.geom.Envelope;
 public class RPlotter {
 	
 	public static boolean VIEW = true;
-	private static int FONT_SIZE = 20;
+	private static int FONT_SIZE = 40;
 	
 	private static RConnection c = null;
 	
@@ -438,7 +438,7 @@ public class RPlotter {
          		 "names(m)<-headers;"+
          		 "row.names(m)<-headers;"+
          		 "pdf('"+file+"',width=10, height=10);"+
-         		 "corrplot(as.matrix(m),method='number',tl.col='black', addCoef.col='black', tl.srt=0, is.corr = FALSE, addCoefasPercent = TRUE);"+
+         		 "corrplot(as.matrix(m),method='color');"+
          		 "dev.off();";
             
             System.out.println(code);
@@ -501,13 +501,14 @@ public class RPlotter {
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
         } catch (Exception e) {
-        	c.close();
+        	
         	if(e.getMessage().startsWith("Cannot connect")) {
              	System.err.println("You must launch the following code in R");
              	System.err.println("library(Rserve)");
              	System.err.println("Rserve()");
             }
             else e.printStackTrace();
+        	c.close();
         }      
 	}
 	
@@ -519,39 +520,39 @@ public class RPlotter {
 //		drawScatter(new double[]{1,2,9},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 
 		
-		List<double[]> l = new ArrayList<double[]>();
-		l.add(new double[]{5,6,7,8});
-		l.add(new double[]{1,2,9});
-		l.add(new double[]{5,-1,4,10});
-		
-		List<String> names = new ArrayList<String>();
-		names.add("ok1");
-		names.add("ok2");
-		names.add("ok3");
+//		List<double[]> l = new ArrayList<double[]>();
+//		l.add(new double[]{5,6,7,8});
+//		l.add(new double[]{1,2,9});
+//		l.add(new double[]{5,-1,4,10});
+//		
+//		List<String> names = new ArrayList<String>();
+//		names.add("ok1");
+//		names.add("ok2");
+//		names.add("ok3");
 		
 		//drawBar(new String[]{"a","b","c","d"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		//drawLine(new String[]{"3","2","1","0"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-		drawBoxplot(l,names,"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		//drawBoxplot(l,names,"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		
 		
-//		List<double[]> lx = new ArrayList<double[]>();
-//		lx.add(new double[]{5,6,7});
-//		lx.add(new double[]{1,2,7});
-//		lx.add(new double[]{5,-1,4});
-//		
-//		
-//		List<double[]> ly = new ArrayList<double[]>();
-//		ly.add(new double[]{5,6,7});
-//		ly.add(new double[]{1,2,7});
-//		ly.add(new double[]{5,-1,4});
-//		
-//		List<String> names = new ArrayList<String>();
-//		names.add("stadium1");
-//		names.add("stadium2");
-//		names.add("stadium3");
-//		
-//		drawScatter(lx,ly,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-//		
+		List<double[]> lx = new ArrayList<double[]>();
+		lx.add(new double[]{5,6,7});
+		lx.add(new double[]{1,2,7});
+		lx.add(new double[]{5,-1,4});
+		
+		
+		List<double[]> ly = new ArrayList<double[]>();
+		ly.add(new double[]{5,6,7});
+		ly.add(new double[]{1,2,7});
+		ly.add(new double[]{5,-1,4});
+		
+		List<String> names = new ArrayList<String>();
+		names.add("stadium1");
+		names.add("stadium2");
+		names.add("stadium3");
+		
+		drawScatter(lx,ly,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		
 		
 //		double[] lat = new double[]{29.775,30.240,29.803};
 //		double[] lon = new double[]{-93.649,-94.270,-94.418};
@@ -574,15 +575,17 @@ public class RPlotter {
 //		
 //		drawHeatMap(lat,lon,lonlatBBox,Config.getInstance().base_folder+"/Images/map.pdf","Excursionist (in/out)");
 		
+/*		
+		double[][] m = new double[20][20];
+		for(int i=0; i<m.length;i++)
+		for(int j=0; j<m[i].length;j++)
+			m[i][j] = -1+2*Math.random();
+
+		String[] headers = new String[m.length];
+		for(int i=0; i<headers.length;i++)
+			headers[i] = ""+i;
 		
-//		double[][] m = new double[GTExtractor.PROFILES.length][GTExtractor.PROFILES.length];
-//		for(int i=0; i<m.length;i++)
-//		for(int j=0; j<m[i].length;j++)
-//			m[i][j] = Math.random();
-//
-//		String[] headers = GTExtractor.PROFILES;
-//		
-//		drawCorr(Config.getInstance().base_folder+"/Images/corr.pdf",headers,m,"");
-		
+		drawCorr(Config.getInstance().base_folder+"/Images/corr.pdf",headers,m,"");
+*/	
 	}
 }

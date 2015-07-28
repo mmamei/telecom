@@ -37,9 +37,15 @@ public class CreatorRegionMapFromGIS {
 		}
 		*/
 		
+		/*
 		String input_file = "G:/DATASET/TI-CHALLENGE-2015/ZIP/CAPS.csv";
 		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
 		processWTK("CAPS",input_file,output_obj_file);
+		*/
+		
+		String input_file = "G:/DATASET/GEO/census-sections/veneto-census-sections.csv";
+		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/veneto-census-sections.ser";
+		processWTK("veneto-census-sections",input_file,output_obj_file);
 		
 		
 		/*
