@@ -35,8 +35,8 @@ public class GrangerTest {
         h1.setNoIntercept(true);
 
         
-        //h0.newSampleData(strip(L, y), laggedY);
-        //h1.newSampleData(strip(L, y), laggedXY);
+        h0.newSampleData(strip(L, y), laggedY);
+        h1.newSampleData(strip(L, y), laggedXY);
         
         
         //System.out.println("R^2 = "+h0.calculateRSquared());
@@ -53,13 +53,16 @@ public class GrangerTest {
 
         //System.out.println("RSS0 = "+RSS0 + "\nRSS1 = " + RSS1);
         //System.out.println("F-test " + ftest);
-        
-        double pValue = 0;
-        if(L > 0) {
-        	FDistribution fDist = new FDistribution(L, n-2*L-1);
-        	pValue = 1.0 - fDist.cumulativeProbability(ftest);
+
+        FDistribution fDist = new FDistribution(L, n-2*L-1);
+        try {
+            double pValue = 1.0 - fDist.cumulativeProbability(ftest);
+            //System.out.println("P-value " + pValue);
+            return  new double[]{pValue,ftest,h0.calculateRSquared(),h1.calculateRSquared()};
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return  new double[]{pValue,ftest,h0.calculateRSquared(),h1.calculateRSquared()};
+
     }
 
 

@@ -117,12 +117,17 @@ public class GeomUtils {
 
 	
 	public static Geometry openGis2Geom(String opengis) {
+		opengis = opengis.trim();
+		if(opengis.endsWith(","))
+			opengis = opengis.substring(0,opengis.length()-1);
 		Geometry g = null;
 		try {
 			if(opengis.startsWith("POLYGON")) g = new WKTReader().read(opengis);
 			else g = new WKTReader().read("POLYGON (("+opengis+"))");
 		} catch(Exception e) {
+			System.out.println(opengis.trim());
 			e.printStackTrace();
+			System.exit(0);
 		}
 		return g;
 	}

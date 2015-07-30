@@ -23,16 +23,15 @@ public class CreatorRegionByIntersection {
 		RegionMap rm1 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+name1+"-gird.ser"));
 		RegionMap rm2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+name2+".ser"));
 		
-		RegionMap rm = new RegionMap(name1+"-"+name2);
+		RegionMap rm = new RegionMap("tic-"+name1+"-"+name2);
 		
-	
 		for(RegionI r1: rm1.rm.values())
 			for(RegionI r2: rm2.getOverlappingRegions(r1.getGeom())) 
 				rm.add(r2);
 		
 		rm.printKML();
 		
-		CopyAndSerializationUtils.save(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+rm.name+".ser"), rm);
+		CopyAndSerializationUtils.save(new File(Config.getInstance().base_folder+"/RegionMap/"+rm.name+".ser"), rm);
 		
 	}
 	

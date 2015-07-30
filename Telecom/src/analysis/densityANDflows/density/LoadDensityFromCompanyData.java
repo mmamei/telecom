@@ -29,13 +29,14 @@ public class LoadDensityFromCompanyData {
 	public static void main(String[] args) throws Exception {
 		String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
 		for(String c: city)
-			process(c, new String[]{"01-32","grande",""},10);
+			process(c, new String[]{"01-32","grande",""},100);
 		System.out.println("Done");
 	}	
 		
 	public static void process(String city, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
 		System.out.println("Process "+city);
-		LinkedHashMap<String, Double> map = getInstance(city,COMPANY_CONSTRAINTS);
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
+		LinkedHashMap<String, Double> map = getInstance(city,rm,COMPANY_CONSTRAINTS);
 		
 		Map<String,Double> limited_map = new HashMap<String,Double>();
 		int c = 0;
@@ -45,19 +46,18 @@ public class LoadDensityFromCompanyData {
 			if(c > LIMIT) break;
 		}
 		
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
+		
 		String suffix = (COMPANY_CONSTRAINTS == null) ? "" :  "-"+COMPANY_CONSTRAINTS[0]+"-"+COMPANY_CONSTRAINTS[1]+"-"+COMPANY_CONSTRAINTS[2];
 		KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+suffix+"-company.kml",limited_map,rm,"company",false);
 		
 	}
 		
-	public static LinkedHashMap<String, Double> getInstance(String city, String[] constraints) throws Exception {
+	public static LinkedHashMap<String, Double> getInstance(String city, RegionMap rm, String[] constraints) throws Exception {
 		
 		Map<String,String[]> desc = null;
 		if(constraints!=null)
 			desc = readCompanyDesc(); 
 		
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
 		AddMap map = new AddMap();
 		
 		BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/TI-CHALLENGE-2015/CERVED/headquarters-full.csv"));

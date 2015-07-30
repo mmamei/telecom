@@ -37,31 +37,33 @@ public class LoadDensityFromAggregatedData {
 	
 	public static void main(String[] args) throws Exception {
 		String city = "torino";
-			
-		TimeDensityFromAggregatedData td_in = new TimeDensityFromAggregatedData(city,"CallIn","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/CallIn.tar.gz",new int[]{0,1,2,3},null);
-		td_in.add(new TimeDensityFromAggregatedData(td_in.getCity(),"SmsIn","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsIn.tar.gz",new int[]{0,1,2,3},null));
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
 		
-		TimeDensityFromAggregatedData td_out = new TimeDensityFromAggregatedData(city,"CallOut","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/CallOut.tar.gz",new int[]{0,1,2,3},null);
-		td_out.add(new TimeDensityFromAggregatedData(td_out.getCity(),"SmsOut","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsOut.tar.gz",new int[]{0,1,2,3},null));
+		
+		TimeDensityFromAggregatedData td_in = new TimeDensityFromAggregatedData(city,"CallIn","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/CallIn.tar.gz",new int[]{0,1,2,3},null,rm);
+		td_in.add(new TimeDensityFromAggregatedData(td_in.getCity(),"SmsIn","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsIn.tar.gz",new int[]{0,1,2,3},null,rm));
+		
+		TimeDensityFromAggregatedData td_out = new TimeDensityFromAggregatedData(city,"CallOut","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/CallOut.tar.gz",new int[]{0,1,2,3},null,rm);
+		td_out.add(new TimeDensityFromAggregatedData(td_out.getCity(),"SmsOut","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsOut.tar.gz",new int[]{0,1,2,3},null,rm));
 		
 		
 		List<TimeDensityFromAggregatedData> tds = new ArrayList<TimeDensityFromAggregatedData>();
 		tds.add(td_in);
 		tds.add(td_out);
-		process(city,tds,new String[]{"01-32","grande",""},10);
+		process2(city,rm,tds,new String[]{"01-32","grande",""},10);
 
 		System.out.println("Done");
 	}	
 	
-	public static void process(String city, List<TimeDensityFromAggregatedData> tds, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
+	public static void process2(String city, RegionMap rm, List<TimeDensityFromAggregatedData> tds, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
 		
 		System.out.println("Processing "+city);
 		
 		
 		// compute z-score
-		for(TimeDensityFromAggregatedData td : tds)
-		for(String k: td.map.keySet())
-			td.map.put(k, StatsUtils.getZH(td.map.get(k),td.tc));
+		//for(TimeDensityFromAggregatedData td : tds)
+		//for(String k: td.map.keySet())
+		//	td.map.put(k, StatsUtils.getZH(td.map.get(k),td.tc));
 		
 		
 		//Calendar start_time = new GregorianCalendar(2015,Calendar.MARCH,28,0,0,0);
@@ -70,7 +72,7 @@ public class LoadDensityFromAggregatedData {
 		//AddMap density = loadFromPresenceFile(city,start_time,end_time);
 		//AddMap density = loadFromTelecomDataFile(city,"CallIn",start_time,end_time);
 		
-		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,COMPANY_CONSTRAINTS);
+		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,rm,COMPANY_CONSTRAINTS);
 		Map<String,Double> density = new HashMap<String,Double>();
 		int c = 0;
 		for(String k: company_map.keySet()) {
@@ -80,7 +82,7 @@ public class LoadDensityFromAggregatedData {
 			if(c > LIMIT) break;
 		}
 		
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
+		
 		
 		//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+".kml",density,rm,"presence",false);
 		//RPlotter.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+".pdf", density, rm, false, "presence");
@@ -95,7 +97,7 @@ public class LoadDensityFromAggregatedData {
 				
 			List<double[]> y = new ArrayList<double[]>();
 			for(TimeDensityFromAggregatedData td : tds)
-				y.add(td.map.get(r));
+				y.add(td.get(r));
 			
 			
 			List<String> names = new ArrayList<String>();

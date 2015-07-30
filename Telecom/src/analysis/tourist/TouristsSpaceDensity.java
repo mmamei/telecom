@@ -301,7 +301,7 @@ public class TouristsSpaceDensity {
 					*/
 					
 					if(x.length!=4) continue;
-					long celllac =Long.parseLong(x[3].trim());
+					String celllac = x[3].trim();
 					
 					if(exclude!=null && exclude.contains(celllac)) continue;
 					

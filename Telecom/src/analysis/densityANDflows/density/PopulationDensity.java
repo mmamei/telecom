@@ -185,7 +185,7 @@ public class PopulationDensity {
 					for(int i=5;i<p.length;i++) {
 						String[] x = p[i].split(":");
 						if(x.length!=4) continue;
-						long celllac =Long.parseLong(x[3].trim());
+						String celllac =x[3].trim();
 						float[] ai = rm.computeAreaIntersection(celllac,F2.parse(x[0]).getTime());
 						if(!Double.isNaN(ai[0]))
 						for(int j=0; j<ai.length;j++) {

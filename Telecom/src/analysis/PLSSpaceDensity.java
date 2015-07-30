@@ -191,7 +191,7 @@ public class PLSSpaceDensity implements Serializable {
 				
 				int day = DM.get(x[1]);
 				int h = Integer.parseInt(x[2]);
-				long celllac =Long.parseLong(x[3].trim());
+				String celllac =x[3].trim();
 				ai = map == null? new float[]{1} : map.computeAreaIntersection(celllac,F.parse(x[0]).getTime());
 				
 				Calendar cal = new GregorianCalendar();

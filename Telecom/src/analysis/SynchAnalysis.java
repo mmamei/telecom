@@ -10,33 +10,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.gps.utils.LatLonUtils;
-
 import region.RegionI;
 import region.RegionMap;
+import utils.AddMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import utils.GrangerTest;
 import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.kml.KMLHeatMap;
 import visual.r.RPlotter;
-import analysis.densityANDflows.density.LoadDensityFromAggregatedData;
 import analysis.densityANDflows.density.LoadDensityFromCompanyData;
+import analysis.istat.IstatCensus2011;
+import analysis.istat.MEF_IRPEF;
 
 public class SynchAnalysis {
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
 	public static final String[] COMPANY_CONSTRAINTS = null;//new String[]{"01-32","grande",""};
-	public static final int LIMIT = -1;
+	public static final int LIMIT = 20;
 	
-	public static final int CALLOUT = 0;
-	public static final int DEMOGRAPHIC = 1;
-	public static final int DEMOGRAPHIC2 = 2;
-	public static final int TYPE = DEMOGRAPHIC2;
+	public static final int CALLOUT_IT = 0;
+	public static final int CALLOUT_IT_VS_NON_IT = 1;
+	public static final int DEMOGRAPHIC_RES = 2;
+	public static final int DEMOGRAPHIC_RES_VS_NON_RES = 3;
+	public static final int DEMOGRAPHIC_IT_VS_NON_IT = 4;
+	public static final int DEMOGRAPHIC_ALL = 5;
+	public static final int TYPE = DEMOGRAPHIC_RES_VS_NON_RES;
 	
 	
 	
@@ -49,7 +50,7 @@ public class SynchAnalysis {
 		int[] readIndexes = null;
 		
 		
-		if(TYPE == CALLOUT) {
+		if(TYPE == CALLOUT_IT) {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
 			for(int i=0; i<city.length;i++)
@@ -67,7 +68,26 @@ public class SynchAnalysis {
 			
 		}
 		
-		if(TYPE == DEMOGRAPHIC) {
+		if(TYPE == CALLOUT_IT_VS_NON_IT) {
+			type = "CallOut";
+			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
+			for(int i=0; i<city.length;i++)
+				files[i] = "G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
+				
+			
+			for(int i=0; i<city.length;i++) {
+				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
+				Set<String> ok = new HashSet<String>();
+				ok.add("39");
+				constraints.add(new SynchConstraints("IT",ok));
+				constraints.add(new SynchConstraints("NOT-IT",ok,true));
+				map_constraints.put(city[i],constraints);
+				
+			}
+			
+		}
+		
+		if(TYPE == DEMOGRAPHIC_RES) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
@@ -82,7 +102,8 @@ public class SynchAnalysis {
 				map_constraints.put(city[i],constraints);
 			}
 		}
-		if(TYPE == DEMOGRAPHIC2) {
+		
+		if(TYPE == DEMOGRAPHIC_RES_VS_NON_RES) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
@@ -99,31 +120,76 @@ public class SynchAnalysis {
 		}
 		
 		
+		if(TYPE == DEMOGRAPHIC_IT_VS_NON_IT) {
+			type = "Demo";
+			readIndexes = new int[]{0,1,3,2};
+			
+			for(int i=0; i<city.length;i++)
+				files[i] = "G:/DATASET/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+			
+			for(int i=0; i<city.length;i++) {
+				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
+				constraints.add(new SynchConstraints("0"));
+				constraints.add(new SynchConstraints("0",true));
+				map_constraints.put(city[i],constraints);
+			}
+		}
+		
+		
+		if(TYPE == DEMOGRAPHIC_ALL) {
+			type = "Demo";
+			readIndexes = new int[]{0,1,3,2};
+			
+			for(int i=0; i<city.length;i++)
+				files[i] = "G:/DATASET/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+			
+			for(int i=0; i<city.length;i++) {
+				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
+				Set<String> caps = getCAPS(city[i]);
+				int cont = 0;
+				for(String cap: caps) {
+					constraints.add(new SynchConstraints(cap));
+					cont++;
+					if(cont >= 3) break;
+				}
+				
+				map_constraints.put(city[i],constraints);
+			}
+		}
+		
 		
 		
 		
 
 		String[] names = new String[city.length];
 		double[] values = new double[city.length];
-		List<double[]> lx = new ArrayList<double[]>();
-		List<double[]> ly = new ArrayList<double[]>();
 		List<String> ln = new ArrayList<String>();
 		List<double[]> lvalues = new ArrayList<double[]>();
+		
+		Map<String,Double> all_density2012 = new HashMap<String,Double>();
+		Map<String,Double> all_density2014 = new HashMap<String,Double>();
+		
+		RegionMap rm_to2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
+		RegionMap rm_to2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
 		
 		for(int i=0; i<city.length;i++) {
 			names[i] = city[i].substring(0, 1).toUpperCase() + city[i].substring(1,2); // capitalize first letter and consider only the first two letters
 			
-			SimpleRegression sr = new SimpleRegression();
-			double[][] xy = process(city[i],type,files[i],readIndexes,map_constraints.get(city[i]));
-			double[] x = xy[0];
-			double[] y = xy[1];
-			lx.add(x);
-			ly.add(y);
-			ln.add(names[i]);
-			for(int t=0; t<x.length;t++)
-				sr.addData(x[t], y[t]);
-			values[i] = sr.getR();
+			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city[i]+"-caps.ser"));
+			Map<String,Double> density = process(city[i],type,files[i],readIndexes,rm,map_constraints.get(city[i]));
 			
+			
+
+			all_density2012.putAll(reproject2map(city[i],type,density,rm,rm_to2012,false));
+			all_density2014.putAll(reproject2map(city[i],type,density,rm,rm_to2014,false));
+			
+			ln.add(names[i]);
+			
+			
+			double[] y = new double[density.size()];
+			int c = 0;
+			for(double v: density.values())
+				y[c++] = v; 
 			
 			lvalues.add(y);
 			
@@ -135,7 +201,73 @@ public class SynchAnalysis {
 		//RPlotter.drawBar(names, values, "cities", "R^2", Config.getInstance().base_folder+"/Images/bar-"+type+"-synch3.pdf",null);
 		RPlotter.drawBoxplot(lvalues,ln,"cities","R^2",Config.getInstance().base_folder+"/Images/boxplot-"+type+"-synch3.pdf",null);
 		
+		MEF_IRPEF mi = MEF_IRPEF.getInstance();
+		plotCorrelation(all_density2014,mi.redditoPC(false),"correlation","reddito PC",Config.getInstance().base_folder+"/Images/corr-redPC.pdf");
+		plotCorrelation(all_density2014,mi.gini(false),"correlation","Gini",Config.getInstance().base_folder+"/Images/corr-gini.pdf");
 		
+		IstatCensus2011 ic = IstatCensus2011.getInstance();
+		int[] indices = new int[]{46,51,59,61};
+		for(int i: indices)
+			plotCorrelation(all_density2014,ic.computeDensity(i, false),"correlation",IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/corr-"+IstatCensus2011.DIMENSIONS[i]+".pdf");
+		
+		
+	}
+	
+	
+	private static final boolean LM = true;
+	private static void plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file) {
+		
+		
+		List<Double> lx = new ArrayList<Double>();
+		List<Double> ly = new ArrayList<Double>();
+		
+		for(String k: mapx.keySet()) {
+			double vx = mapx.get(k);
+			Double vy = mapy.get(k);
+			if(vy != null) {
+				lx.add(vx);
+				ly.add(vy);
+			}
+		}
+		
+		double[] x = new double[lx.size()];
+		double[] y = new double[ly.size()];
+		for(int i=0; i<x.length;i++) {
+			x[i] = lx.get(i);
+			y[i] = ly.get(i);
+		}
+		
+		RPlotter.drawScatter(x,y, titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(size = 5)");
+	}
+	
+
+	
+	
+	private static Map<String,Double> reproject2map(String city, String type, Map<String,Double> density,RegionMap rm_from,RegionMap rm_to, boolean print) {
+		AddMap res = new AddMap();
+		for(String name: density.keySet()) {
+			String name_to = "";
+			if(name.equals("30121")) name_to = "27042"; // venezia
+			else if(name.equals("80053")) name_to = "63024"; // napoli castellammare		
+			else {
+				RegionI r = rm_from.getRegion(name);
+				System.out.print(name+": ("+r.getLatLon()[1]+","+r.getLatLon()[0]+") --> ");
+				name_to = rm_to.get(r.getLatLon()[1], r.getLatLon()[0]).getName();
+				System.out.println(name_to);
+			}
+			res.add(name_to, density.get(name));
+		}
+		
+		if(print) {
+			try {
+				rm_to.setName(city+"-"+type+"-corr-reprojected");
+				KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+type+"-correlation.kml",res,rm_to,"",false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return res;
 	}
 	
 	
@@ -156,12 +288,13 @@ public class SynchAnalysis {
 	
 	
 	
-	public static double[][] process(String city, String type, String file, int[] readIndexes, List<SynchConstraints> constraints) throws Exception {
+	public static Map<String,Double> process(String city, String type, String file, int[] readIndexes, RegionMap rm, List<SynchConstraints> constraints) throws Exception {
 		
+		//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/regioni.ser"));
 		
 		// select the regions to be considered
 		
-		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,COMPANY_CONSTRAINTS);
+		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,rm,COMPANY_CONSTRAINTS);
 		String[] regions = new String[LIMIT > 0 ? Math.min(LIMIT, company_map.size()) : company_map.size()];
 		int i = 0;
 		for(String key: company_map.keySet()) {
@@ -180,111 +313,120 @@ public class SynchAnalysis {
 		*/
 		
 		List<TimeDensityFromAggregatedData> tds = new ArrayList<TimeDensityFromAggregatedData>();
-		for(SynchConstraints constraint : constraints)
-			tds.add(new TimeDensityFromAggregatedData(city,type,file,readIndexes,constraint));
+		for(SynchConstraints constraint : constraints) {
+			TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,file,readIndexes,constraint,rm);
+			System.out.println(td.getType());
+			tds.add(td);
+		}
 		
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
 		
 		String suffix = LIMIT > 0 ? "limited to "+LIMIT : "";
 		System.out.println("processign "+city+" -- regions size --> "+rm.getNumRegions()+" "+suffix);
 		for(i=0; i<constraints.size();i++)
-			System.out.println("processing "+city+" -- "+constraints.get(i).title+" size --> "+tds.get(i).map.size()+" "+suffix);
+			System.out.println("processing "+city+" -- "+constraints.get(i).title+" size --> "+tds.get(i).size()+" "+suffix);
 		
 		//LoadDensityFromAggregatedData.process(city, tds, COMPANY_CONSTRAINTS, LIMIT);
 		
 		if(tds.size() == 1) return getDistCorr(regions,rm,tds.get(0));
-		if(tds.size() == 2) return getDistCorr(city,regions,rm,tds.get(0),tds.get(1));
-		return null;
+		else return getDistCorr(city,regions,rm,tds);
 	}
 	
 	
 	
 	
-	public static double[][] getDistCorr(String[] regions, RegionMap rm, TimeDensityFromAggregatedData td) {
-		int n = regions.length;
-		double[] x = new double[n*(n-1)/2];
-		double[] y = new double[n*(n-1)/2];
+	public static Map<String,Double> getDistCorr(String[] regions, RegionMap rm, TimeDensityFromAggregatedData td) {
 		
-		// now regions contains all the regions I have to consider
-		int c = 0;
-		for(int i=0; i<regions.length;i++)
-		for(int j=i+1;j<regions.length;j++) {
-			double[] zetai = /*td.map.get(regions[i]);*/ StatsUtils.getZH(td.map.get(regions[i]),td.tc);
-			double[] zetaj = /*td.map.get(regions[j]);*/ StatsUtils.getZH(td.map.get(regions[j]),td.tc);
-			
-			
-			double corr = StatsUtils.r2(filter(zetai,td.tc),filter(zetaj,td.tc));
-			//double corr = GrangerTest.granger(filter(zetai,td.tc),filter(zetaj,td.tc),0)[3];
-			
-			
-			if(Double.isNaN(corr)) corr = 0;
-			double dist = LatLonUtils.getHaversineDistance(rm.getRegion(regions[i]).getCenterPoint(),rm.getRegion(regions[j]).getCenterPoint());
-			//System.out.println(dist+" --> "+corr);
-			//sr.addData(dist, corr);
-			x[c] = Math.round(dist/1000);
-			y[c] = corr;
-			c++;
-		}	
-		return new double[][]{x,y};
-	}
-	
-	public static double[][] getDistCorr(String city, String[] regions, RegionMap rm, TimeDensityFromAggregatedData td1, TimeDensityFromAggregatedData td2) {
-		double[][] dc = new double[2][regions.length];
 		
 		Map<String,Double> density = new HashMap<String,Double>();
-		
 		
 		for(int i=0; i<regions.length;i++) {
 			
 			double corr = 0;
-			if(td1.map.get(regions[i]) != null && td2.map.get(regions[i]) != null) {
 			
-				double[] zeta1 = /*td1.map.get(regions[i]);*/ StatsUtils.getZH(td1.map.get(regions[i]),td1.tc);
-				double[] zeta2 = /*td2.map.get(regions[i]);*/ StatsUtils.getZH(td2.map.get(regions[i]),td2.tc);
-				corr = StatsUtils.r2(filter(zeta1,td1.tc),filter(zeta2,td2.tc));
-				dc[1][i] = corr;
+			for(int j=0;j<regions.length;j++) {
+				if(i==j) continue;
+				double[] seriesi = td.get(regions[i]);
+				double[] seriesj = td.get(regions[j]);
+				double[] zetai = StatsUtils.getZH(seriesi,td.tc);
+				double[] zetaj = StatsUtils.getZH(seriesj,td.tc);
+				
+	
+				corr+=StatsUtils.r2(filter(seriesi,td.tc),filter(seriesj,td.tc));
+				//double dist = LatLonUtils.getHaversineDistance(rm.getRegion(regions[i]).getCenterPoint(),rm.getRegion(regions[j]).getCenterPoint());
+				
 			}
+			
+			corr = corr / (regions.length - 1);
+			
+			density.put(regions[i], corr);
+		}
+		return density;
+	}
+	
+	public static Map<String,Double> getDistCorr(String city, String[] regions, RegionMap rm, List<TimeDensityFromAggregatedData> tds) {
+		
+		Map<String,Double> density = new HashMap<String,Double>();
+		
+		String[] x = tds.get(0).tc.getTimeLabels();
+		Map<String,String> desc = new HashMap<String,String>();
+		
+		for(int i=0; i<regions.length;i++) {
+			
+			int n = tds.size();
+			double[] corrs = new double[n*(n-1)/2];
+			int c=0;
+			for(int a=0; a<n;a++)
+			for(int b=a+1;b<n;b++) {
+			
+				TimeDensityFromAggregatedData td1 = tds.get(a);
+				TimeDensityFromAggregatedData td2 = tds.get(b);
+				double[] series1 = td1.get(regions[i]);
+				double[] series2 = td2.get(regions[i]);
+				
+				
+				
+				double[] zeta1 = StatsUtils.getZH(series1,td1.tc);
+				double[] zeta2 = StatsUtils.getZH(series2,td2.tc);
+				corrs[c] = StatsUtils.r2(filter(series1,td1.tc),filter(series2,td2.tc));	
+				c++;
+			}
+			
+			double corr  = avg(corrs);
+			
+			List<String> names = new ArrayList<String>();
+			List<double[]> y = new ArrayList<double[]>();
+				
+			for(TimeDensityFromAggregatedData td:tds) {
+				names.add(td.getType());
+				y.add(td.get(regions[i]));
+			}
+			desc.put(regions[i], GoogleChartGraph.getGraph(x, y, names, "data", "y"));
 			density.put(regions[i], corr);
 		}
 		
-		//System.out.println("DENSITY:");
-		//for(String r: density.keySet())
-		//	System.out.println(r+" = "+density.get(r));
 		
-		
-		String[] x = td1.tc.getTimeLabels();
-		
-		Map<String,String> desc = new HashMap<String,String>();
-		
-		for(String r: density.keySet()) {
-			
-			String description = "";
-			
-			if(td1.map.get(r) != null && td2.map.get(r) != null) {
-				List<double[]> y = new ArrayList<double[]>();
-				y.add(StatsUtils.getZH(td1.map.get(r),td1.tc));
-				y.add(StatsUtils.getZH(td2.map.get(r),td1.tc));
-				
-				List<String> names = new ArrayList<String>();
-				names.add(td1.getType());
-				names.add(td2.getType());
-				description = GoogleChartGraph.getGraph(x, y, names, "data", "y");
-			}
-			desc.put(r, description);
-		}
-		
-		
+
 		try {
-			KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-correlation.kml",density,rm,desc,false);
+			rm.setName(city+"-"+tds.get(0).getType()+"-correlation");
+			KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+tds.get(0).getType()+"-correlation.kml",density,rm,desc,false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return dc;
+		return density;
 	}
 	
 	
+	private static double avg(double[] x) {
+		double avg = 0;
+		for(double v: x)
+			avg+=v;
+		return avg / x.length;
+	}
 	
+	private static double log2(double x) {
+		return Math.log(x) / Math.log(2);
+	}
 	
 	
 	

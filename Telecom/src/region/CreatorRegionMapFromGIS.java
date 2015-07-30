@@ -15,6 +15,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.GeomUtils;
@@ -27,25 +29,53 @@ public class CreatorRegionMapFromGIS {
 
 	
 	public static void main(String[] args) throws Exception {
-		/*
+		
+		//WKT,id,
 		String[] cities = new String[]{"venezia","milano","torino","napoli","roma","palermo","bari"};
 		for(String city: cities) {
 			String name = "tic-"+city+"-gird";
 			String input_file = "G:/DATASET/GEO/ti-challenge/"+name+".csv";
 			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
-			processWTK(name,input_file,output_obj_file);
+			processWTK(name,input_file,output_obj_file,new int[]{1});
 		}
-		*/
+		
+		
+		//WKT	CAP	
+		//String input_file = "G:/DATASET/TI-CHALLENGE-2015/ZIP/CAPS.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
+		//processWTK("CAPS",input_file,output_obj_file,new int[]{1});
 		
 		/*
-		String input_file = "G:/DATASET/TI-CHALLENGE-2015/ZIP/CAPS.csv";
-		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
-		processWTK("CAPS",input_file,output_obj_file);
-		*/
-		
 		String input_file = "G:/DATASET/GEO/census-sections/veneto-census-sections.csv";
 		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/veneto-census-sections.ser";
 		processWTK("veneto-census-sections",input_file,output_obj_file);
+		*/
+		
+		
+		// WKT	COD_REG	COD_PRO	PROVINCIA	SIGLA	POP2001
+		//String input_file = "G:/DATASET/GEO/prov2011.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
+		//processWTK("prov2011",input_file,output_obj_file,new int[]{2,3});
+		
+		
+		
+		
+		//WKT	PRO_COM	COD_REG	COD_PRO	NOME_COM	POP2001
+		//String input_file = "G:/DATASET/GEO/comuni2014.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2014.ser";
+		//processWTK("comuni2014",input_file,output_obj_file,new int[]{1});
+		
+		
+		//WKT	OBJECTID	COD_REG	COD_PRO	SHAPE_Leng	SHAPE_Area	CODICE_C_1	COD_ISTA_1	PRO_COM__1	NOME_COM_2
+		//String input_file = "G:/DATASET/GEO/comuni2014.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2014.ser";
+		//processWTK("comuni2014",input_file,output_obj_file,new int[]{8});
+		
+		
+		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
+		//String input_file = "G:/DATASET/GEO/comuni2012.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2012.ser";
+		//processWTK("comuni2012",input_file,output_obj_file,new int[]{5});
 		
 		
 		/*
@@ -54,6 +84,8 @@ public class CreatorRegionMapFromGIS {
 		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
 		processWTK(name,input_file,output_obj_file);
 		*/
+		
+		
 		
 		/*
 		String[] cities = new String[]{"Venezia","Firenze","Torino","Lecce"};
@@ -71,7 +103,7 @@ public class CreatorRegionMapFromGIS {
 	}
 	
 	
-	public static RegionMap processWTK(String name, String input_file, String output_obj_file) throws Exception {
+	public static RegionMap processWTK(String name, String input_file, String output_obj_file, int[] name_indexes) throws Exception {
 		
 		RegionMap rm = new RegionMap(name);
 		
@@ -83,17 +115,24 @@ public class CreatorRegionMapFromGIS {
 			String wtk_shape = e[0];
 			wtk_shape = wtk_shape.replaceAll("\"MULTIPOLYGON \\(\\(\\(", "");
 			wtk_shape = wtk_shape.replaceAll("\\)\\)\\)\"", "");
-			String n = e[1];
 			
-			String[] polys = wtk_shape.split("\\)\\),\\(\\(");
 			
-			if(n.equals("57034")) {
-				System.out.println("57034");
-				System.out.println(wtk_shape);
+			String n = "";
+			for(int i: name_indexes)
+				n = n + e[i];
+			
+			String[] polys = wtk_shape.split("\\),\\(");
+			
+			
+			Geometry max_g = null; // polygon with max area
+			for(int i=0; i<polys.length;i++) {
+				String poly = polys[i].replaceAll("\\)|\\(", "");
+				Geometry g = GeomUtils.openGis2Geom(poly);
+				if(max_g == null || g.getArea() > max_g.getArea()) 
+					max_g = g;
+				//rm.add(new Region(polys.length > 1 ? n+"_"+i : n,g)); // this is to add all the regions in the multipolygon with a progressive counter
 			}
-			
-			for(int i=0; i<polys.length;i++)
-				rm.add(new Region(polys.length > 1 ? n+"_"+i : n,GeomUtils.openGis2Geom(polys[i])));
+			rm.add(new Region(n,max_g)); // this is to add the region (in the multipolygon) with the max area
 		}
 		
 		br.close();
@@ -105,7 +144,7 @@ public class CreatorRegionMapFromGIS {
 	}
 	
 	
-	public static RegionMap processKML(String name, String input_file, String output_obj_file) throws Exception {
+	public static RegionMap processKMLLine(String name, String input_file, String output_obj_file) throws Exception {
 		
 		RegionMap rm = new RegionMap(name);
 		

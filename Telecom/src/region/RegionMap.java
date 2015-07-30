@@ -36,14 +36,14 @@ public class RegionMap implements Serializable {
 	
 	protected String name;
 	protected Map<String,RegionI> rm;
-	private transient Map<Long,float[]> cache_intersection;
+	private transient Map<String,float[]> cache_intersection;
 	private transient Map<String,RegionI> cache_closest;
 	private transient Map<Integer,RegionI> int2region = null;
 	
 	public RegionMap(String name) {
 		this.name = name;
 		rm = new TreeMap<String,RegionI>();
-		cache_intersection = new HashMap<Long,float[]>();
+		cache_intersection = new HashMap<String,float[]>();
 		cache_closest = new HashMap<String,RegionI>();
 	}
 	
@@ -58,6 +58,9 @@ public class RegionMap implements Serializable {
 	
 	public String getName() {
 		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	public int getNumRegions() {
@@ -99,11 +102,11 @@ public class RegionMap implements Serializable {
 	
 	
 	public static final boolean CACHE_INTERSECTION = true;
-	public float[] computeAreaIntersection(long celllac, long time) {
+	public float[] computeAreaIntersection(String celllac, long time) {
 		
 		float[] area_intersection = null;
 		if(CACHE_INTERSECTION) {
-			if(cache_intersection == null) cache_intersection = new HashMap<Long,float[]>();
+			if(cache_intersection == null) cache_intersection = new HashMap<String,float[]>();
 			area_intersection = cache_intersection.get(celllac);
 			if(area_intersection != null) return area_intersection;
 		}
@@ -143,6 +146,43 @@ public class RegionMap implements Serializable {
 		}
 		
 		if(CACHE_INTERSECTION) cache_intersection.put(celllac, area_intersection);
+		return area_intersection;
+	}
+	
+	public float[] computeAreaIntersection(RegionI nc) {
+		
+		float[] area_intersection = null;
+		if(CACHE_INTERSECTION) {
+			if(cache_intersection == null) cache_intersection = new HashMap<String,float[]>();
+			area_intersection = cache_intersection.get(nc.getName());
+			if(area_intersection != null) return area_intersection;
+		}
+		area_intersection = new float[this.getNumRegions()];
+		
+		
+		//System.out.println(nc);
+		
+		int i=0;
+		for(RegionI r: this.getRegions()) {
+			
+			Geometry a = r.getGeom().intersection(nc.getGeom());
+			area_intersection[i] = (float)(GeomUtils.geoArea(a));
+			i++;
+		}
+		
+		// normailze to 1
+		float sum = 0;
+		for(float f: area_intersection)
+			sum += f;
+		
+		
+		
+		for(i=0; i<area_intersection.length;i++) {
+			area_intersection[i] = area_intersection[i] / sum;
+			//if(area_intersection[i] > 0) System.out.println(area_intersection[i]);
+		}
+		
+		if(CACHE_INTERSECTION) cache_intersection.put(nc.getName(), area_intersection);
 		return area_intersection;
 	}
 	

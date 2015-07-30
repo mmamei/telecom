@@ -1,6 +1,7 @@
 package analysis;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -15,7 +16,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
+import region.RegionI;
+import region.RegionMap;
 import utils.Config;
+import utils.CopyAndSerializationUtils;
 import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
@@ -27,12 +31,25 @@ public class TimeDensityFromAggregatedData {
 	private String type;
 	
 	public TimeConverter tc = null;
-	public Map<String,double[]> map = new HashMap<String,double[]>();
+	private Map<String,double[]> map = new HashMap<String,double[]>();
+	
+	private RegionMap gridMap;
+	private RegionMap rm;
 	
 	
 	public TimeDensityFromAggregatedData(String city, String type, String file, int[] readIndexes, SynchConstraints constraint) {
+		this(city,type,file,readIndexes,constraint,null);	
+	}
+		
+	public TimeDensityFromAggregatedData(String city, String type, String file, int[] readIndexes, SynchConstraints constraint, RegionMap rm) {
 		this.city = city;
-		this.type = type+"-"+constraint.title;
+		this.type = constraint==null ? type : type+"-"+constraint.title;
+		this.rm = rm;
+		if(rm!=null) {
+			// load the grid map to be used for conversion
+			gridMap = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
+		}
+		
 		try {
 			tc = TimeConverter.getInstance();
 			if(file.endsWith(".tar.gz")) {
@@ -56,26 +73,56 @@ public class TimeDensityFromAggregatedData {
 	}
 	
 	
+	public double[] get(String r) {
+		double[] t = map.get(r);
+		if(t == null)
+			t = new double[tc.getTimeSize()];
+		return t;
+	}
 	
+	public int size() {
+		return map.size();
+	}
 	
 	private void processFile(BufferedReader br,int[] readIndexes, SynchConstraints constraint) {
+		
+		
 		String line = null;
 		try {
 			while ((line = br.readLine()) != null) {
 			       String[] x = line.split("\t");
 			       long time = Long.parseLong(x[readIndexes[0]]) * 1000;
-			       String cell = x[readIndexes[1]];
+			       String cell = x[readIndexes[1]];   
 			       double value = Double.parseDouble(x[readIndexes[2]]);
 			       String meta = x[readIndexes[3]];
 			       if(constraint == null || constraint.ok(meta)) {
-			       //double calltime = Double.parseDouble(x[4]);
-				       double[] v = map.get(cell);
-				       if(v == null) {
-				       	   v = new double[tc.getTimeSize()];
-				       	   map.put(cell, v);
+			       
+			    	   if(rm != null) {
+				    	   // convert from grid representation (gridMap) to another region map (rm)
+				    	   
+			    		   
+			    		   float[] areas = rm.computeAreaIntersection(gridMap.getRegion(cell));
+			    		   for(int i=0; i<areas.length;i++)
+			    			   if(areas[i] > 0) {
+			    				   RegionI r = rm.getRegion(i);
+			    				   double[] v = map.get(r.getName());
+			    				   if(v == null) {
+			    					   v = new double[tc.getTimeSize()];
+			    					   map.put(r.getName(), v);
+			    				   }
+			    				   //System.out.println(time+" --> "+new Date(time));
+			    				   v[tc.time2index(time)]+= value * areas[i];
+			    			   }
 				       }
-				       //System.out.println(time+" --> "+new Date(time));
-				       v[tc.time2index(time)]+= value;
+			    	   else {
+			    		   double[] v = map.get(cell);
+					       if(v == null) {
+					       	   v = new double[tc.getTimeSize()];
+					       	   map.put(cell, v);
+					       }
+					       //System.out.println(time+" --> "+new Date(time));
+					       v[tc.time2index(time)]+= value;
+			    	   }
 			       }
 			}
 			//br.close();
@@ -149,9 +196,11 @@ public class TimeDensityFromAggregatedData {
 	public static void main(String[] args) {
 		String city = "venezia";
 		String type = "CallOut";
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,"G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz",new int[]{0,1,2,3},null);
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
+		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,"G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz",new int[]{0,1,2,3},null,rm);
 		//td.plot("3693_3_1_3_1");
 		
+		/*
 		double fdtw = StatsUtils.fdtw(td.map.get("3693_3_1_3_1"), td.map.get("3693_3_1_2_1"));
 		System.out.println("fdtw = "+fdtw);
 		
@@ -160,7 +209,7 @@ public class TimeDensityFromAggregatedData {
 		
 		double ed = StatsUtils.ed(td.map.get("3693_3_1_3_1"), td.map.get("3693_3_1_2_1"));
 		System.out.println("ed = "+ed);
-		
+		*/
 		System.out.println("Done!");
 	}
 		
