@@ -221,6 +221,38 @@ public class StatsUtils {
 		
 	}
 	
+	// divide by the mean rather than standard deviation
+	public static double[] getZmH(double[] x, TimeConverter tc) {
+		
+		DescriptiveStatistics[] stat = new DescriptiveStatistics[24];
+		for(int i=0; i<stat.length;i++)
+			stat[i] = new DescriptiveStatistics();
+		
+		Calendar cal = Calendar.getInstance();
+		for(int i=0; i<x.length;i++) {
+				cal.setTimeInMillis(tc.index2time(i));
+				int h = cal.get(Calendar.HOUR_OF_DAY);
+				stat[h].addValue(x[i]);
+		}
+			
+		double[] mean = new double[24];
+		double[] sd = new double[24];
+		for(int i=0; i<24;i++) {
+			mean[i] = stat[i].getMean();
+			sd[i] = stat[i].getStandardDeviation();
+		}
+		
+		double[] z = new double[x.length];
+		for(int i=0; i<x.length;i++) {
+			cal.setTimeInMillis(tc.index2time(i));
+			int h = cal.get(Calendar.HOUR_OF_DAY);
+			z[i] = sd[h] > 0 ? (x[i] - mean[h])/mean[h] : 0;
+		}
+		return z;
+		
+	}
+	
+	
 	
 	public static double[] getZ(double[] x) {
 		DescriptiveStatistics stat = new DescriptiveStatistics();

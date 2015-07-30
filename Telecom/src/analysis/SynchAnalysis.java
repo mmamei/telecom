@@ -29,7 +29,7 @@ public class SynchAnalysis {
 	public static boolean PRINT_CORR_MATRIX = false;
 	
 	public static final String[] COMPANY_CONSTRAINTS = null;//new String[]{"01-32","grande",""};
-	public static final int LIMIT = 20;
+	public static final int LIMIT = -1;
 	
 	public static final int CALLOUT_IT = 0;
 	public static final int CALLOUT_IT_VS_NON_IT = 1;
@@ -169,7 +169,7 @@ public class SynchAnalysis {
 		Map<String,Double> all_density2012 = new HashMap<String,Double>();
 		Map<String,Double> all_density2014 = new HashMap<String,Double>();
 		
-		RegionMap rm_to2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
+		RegionMap rm_to2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2012.ser"));
 		RegionMap rm_to2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
 		
 		for(int i=0; i<city.length;i++) {
@@ -208,7 +208,7 @@ public class SynchAnalysis {
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
 		int[] indices = new int[]{46,51,59,61};
 		for(int i: indices)
-			plotCorrelation(all_density2014,ic.computeDensity(i, false),"correlation",IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/corr-"+IstatCensus2011.DIMENSIONS[i]+".pdf");
+			plotCorrelation(all_density2012,ic.computeDensity(i, false),"correlation",IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/corr-"+IstatCensus2011.DIMENSIONS[i]+".pdf");
 		
 		
 	}
@@ -350,8 +350,12 @@ public class SynchAnalysis {
 				double[] zetai = StatsUtils.getZH(seriesi,td.tc);
 				double[] zetaj = StatsUtils.getZH(seriesj,td.tc);
 				
+				double[] zetami = StatsUtils.getZmH(seriesi,td.tc);
+				double[] zetamj = StatsUtils.getZmH(seriesj,td.tc);
 	
-				corr+=StatsUtils.r2(filter(seriesi,td.tc),filter(seriesj,td.tc));
+				//corr+=StatsUtils.r2(filter(seriesi,td.tc),filter(seriesj,td.tc));
+				corr+=StatsUtils.r2(filter(seriesi,td.tc),filter(seriesj,td.tc)) * avg(filter(zetami,td.tc)) * avg(filter(zetamj,td.tc)) ;
+				
 				//double dist = LatLonUtils.getHaversineDistance(rm.getRegion(regions[i]).getCenterPoint(),rm.getRegion(regions[j]).getCenterPoint());
 				
 			}
@@ -387,7 +391,16 @@ public class SynchAnalysis {
 				
 				double[] zeta1 = StatsUtils.getZH(series1,td1.tc);
 				double[] zeta2 = StatsUtils.getZH(series2,td2.tc);
-				corrs[c] = StatsUtils.r2(filter(series1,td1.tc),filter(series2,td2.tc));	
+				
+				double[] zetam1 = StatsUtils.getZmH(series1,td1.tc);
+				double[] zetam2 = StatsUtils.getZmH(series2,td2.tc);
+				
+			
+				
+				//corrs[c] = StatsUtils.r2(filter(series1,td1.tc),filter(series2,td2.tc));	
+				//corrs[c] = avg(filter(zetam1,td1.tc)) * avg(filter(zetam2,td2.tc));
+				corrs[c] = StatsUtils.r2(filter(series1,td1.tc),filter(series2,td2.tc)) * (avg(filter(zetam1,td1.tc)) + avg(filter(zetam2,td2.tc)));	
+				
 				c++;
 			}
 			
