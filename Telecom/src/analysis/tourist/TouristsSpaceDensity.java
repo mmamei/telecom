@@ -154,7 +154,7 @@ public class TouristsSpaceDensity {
 			
 			kd = new KDTree(2);
 			try {
-				BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/GEO/geonames/IT.txt"));
+				BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/GEO/geonames/IT.txt"));
 				String line;
 				while((line=br.readLine())!=null) {
 					String[] x = line.split("\t");

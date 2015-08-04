@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import utils.Config;
 import utils.Logger;
 
 public class DuplicateFiles {
@@ -13,7 +14,7 @@ public class DuplicateFiles {
 	
 	public static void main(String[] args) throws Exception {
 		Map<String,List<File>> allFiles = new HashMap<String,List<File>>();
-		analyzeDirectory(new File("G:/DATASET/PLS/file_pls"),allFiles);
+		analyzeDirectory(new File(Config.getInstance().dataset_folder+"/PLS/file_pls"),allFiles);
 		int tot_deteted = 0;
 		for(String n: allFiles.keySet()) {
 			List<File> files = allFiles.get(n);

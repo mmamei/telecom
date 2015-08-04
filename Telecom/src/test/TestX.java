@@ -20,7 +20,7 @@ public class TestX {
 		
 	
 		CDRX cdrx = new CDRX();
-		ZipFile zf = new ZipFile("G:/DATASET/PLS/file_pls/file_pls_fi/2013/PLS1541504_1371830431633.zip");
+		ZipFile zf = new ZipFile(Config.getInstance().dataset_folder+"/PLS/file_pls/file_pls_fi/2013/PLS1541504_1371830431633.zip");
 		ZipEntry ze = (ZipEntry) zf.entries().nextElement();
 		BufferedReader br = new BufferedReader(new InputStreamReader(zf.getInputStream(ze)));
 		String line;

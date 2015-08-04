@@ -107,21 +107,21 @@ public class Config {
 	
 	public void changeDataset(String dataset) {
 		if(dataset.equals("italy")) {
-			network_map_dir = "G:/DATASET/PLS/file_rete";
-			pls_root_folder = "G:/DATASET/PLS/file_pls";
-			pls_folder = "G:/DATASET/PLS/file_pls";
+			network_map_dir = Config.getInstance().dataset_folder+"/PLS/file_rete";
+			pls_root_folder = Config.getInstance().dataset_folder+"/PLS/file_pls";
+			pls_folder = Config.getInstance().dataset_folder+"/PLS/file_pls";
 			base_folder = "C:/BASE";
 		}
 		if(dataset.equals("ivory-set2")) {
-			network_map_dir = "G:/DATASET/D4D1/file_rete";
-			pls_root_folder = "G:/DATASET/D4D1/file_pls";
-			pls_folder = "G:/DATASET/D4D1/file_pls";
+			network_map_dir = Config.getInstance().dataset_folder+"/D4D1/file_rete";
+			pls_root_folder = Config.getInstance().dataset_folder+"/D4D1/file_pls";
+			pls_folder = Config.getInstance().dataset_folder+"/D4D1/file_pls";
 			base_folder = "C:/BASE_D4D1";
 		}
 		if(dataset.equals("ivory-set3")) {
-			network_map_dir = "G:/DATASET/D4D2/file_rete";
-			pls_root_folder = "G:/DATASET/D4D2/file_pls";
-			pls_folder = "G:/DATASET/D4D2/file_pls";
+			network_map_dir = Config.getInstance().dataset_folder+"/D4D2/file_rete";
+			pls_root_folder = Config.getInstance().dataset_folder+"/D4D2/file_pls";
+			pls_folder = Config.getInstance().dataset_folder+"/D4D2/file_pls";
 			base_folder = "C:/BASE_D4D2";
 		}
 	}

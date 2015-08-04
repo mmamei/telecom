@@ -346,7 +346,7 @@ public class TouristStatistics {
 	public static Map<String,String> mncT() throws Exception {
 		Map<String,String> mncT = new HashMap<String,String>();
 		
-		BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/PLS/MCC-MNC.csv"));
+		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/PLS/MCC-MNC.csv"));
 		String line;
 		while((line=br.readLine()) != null) {
 			//country;operator;mcc;mnc;operatorid

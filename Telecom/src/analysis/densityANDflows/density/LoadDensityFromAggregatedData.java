@@ -122,7 +122,7 @@ public class LoadDensityFromAggregatedData {
 			long end = end_time.getTimeInMillis();
 			
 			
-			BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/TI-CHALLENGE-2015/PRESENCE/presence-"+city+".csv"));
+			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/PRESENCE/presence-"+city+".csv"));
 			String line;
 			while((line=br.readLine())!=null) {
 				String[] e = line.split(",");
@@ -152,7 +152,7 @@ public class LoadDensityFromAggregatedData {
 			long start = start_time.getTimeInMillis();
 			long end = end_time.getTimeInMillis();
 			
-			String file = "G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz";
+			String file = "Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz";
 			TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
 			TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
 			BufferedReader br = null;

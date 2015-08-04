@@ -12,6 +12,7 @@ import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
 import region.RegionI;
+import utils.Config;
 import dataset.NetworkMapFactoryI;
 import dataset.impl.DataFactory;
 
@@ -19,8 +20,8 @@ public class RadiusOfGyrationFlickrTwitter {
 	
 	public static void main(String[] args) throws Exception {
 	
-		//BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/Twitter-Flickr/AllTwitterUsers.csv"));
-		BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/Twitter-Flickr/TotalFlickrUsers4MatchingNoDuplicates.csv"));
+		//BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/Twitter-Flickr/AllTwitterUsers.csv"));
+		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/Twitter-Flickr/TotalFlickrUsers4MatchingNoDuplicates.csv"));
 		String line;
 		
 		Map<String,List<double[]>> map = new HashMap<String,List<double[]>>();

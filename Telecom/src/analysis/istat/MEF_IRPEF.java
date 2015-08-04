@@ -74,7 +74,7 @@ public class MEF_IRPEF {
 			
 			data = new HashMap<String,long[]>();
 			
-			BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+YEAR+".csv"));
+			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+YEAR+".csv"));
 			String line;
 			br.readLine(); // skip header
 			while((line=br.readLine())!=null) {

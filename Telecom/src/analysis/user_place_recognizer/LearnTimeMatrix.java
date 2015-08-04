@@ -26,10 +26,10 @@ public class LearnTimeMatrix {
 	
 	public static void main(String[] args) throws Exception {
 		
-		Map<String, Map<String, LatLonPoint>> gt = read("G:/DATASET/PLS/volontari/users_info.txt");
+		Map<String, Map<String, LatLonPoint>> gt = read(Config.getInstance().dataset_folder+"/PLS/volontari/users_info.txt");
 		
 		String kop = "Work";
-		File dir = new File("G:/DATASET/PLS/volontari/pls");
+		File dir = new File(Config.getInstance().dataset_folder+"/PLS/volontari/pls");
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		NetworkMapFactoryI nmf = DataFactory.getNetworkMapFactory();
 		for(String f: dir.list()) {

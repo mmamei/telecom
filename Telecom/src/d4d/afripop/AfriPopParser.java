@@ -9,12 +9,14 @@ import java.io.PrintWriter;
 
 import javax.imageio.ImageIO;
 
+import utils.Config;
+
 
 
 public class AfriPopParser {
 	
 	
-	public static final String AFRIPOP_FILE = "G:/DATASET/CENSUS/afripop/apciv10v3.flt";
+	public static final String AFRIPOP_FILE = Config.getInstance().dataset_folder+"/CENSUS/afripop/apciv10v3.flt";
 	
 	
 	public static void main(String[] args) throws Exception {

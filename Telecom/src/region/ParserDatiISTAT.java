@@ -16,7 +16,7 @@ import utils.Config;
 public class ParserDatiISTAT {
 	public static void main(String[] args) throws Exception {
 		String region = "Lombardia";
-		String dir = "G:/DATASET/CENSUS/ISTAT/DatiDemografici/"+region;
+		String dir = Config.getInstance().dataset_folder+"/CENSUS/ISTAT/DatiDemografici/"+region;
 		Map<String,Integer> data = parse(dir);
 		
 		File out_dir = new File(Config.getInstance().base_folder+"/CENSUS");

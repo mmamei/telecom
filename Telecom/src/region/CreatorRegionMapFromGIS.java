@@ -34,26 +34,26 @@ public class CreatorRegionMapFromGIS {
 		String[] cities = new String[]{"venezia","milano","torino","napoli","roma","palermo","bari"};
 		for(String city: cities) {
 			String name = "tic-"+city+"-gird";
-			String input_file = "G:/DATASET/GEO/ti-challenge/"+name+".csv";
+			String input_file = Config.getInstance().dataset_folder+"/GEO/ti-challenge/"+name+".csv";
 			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
 			processWTK(name,input_file,output_obj_file,new int[]{1});
 		}
 		
 		
 		//WKT	CAP	
-		//String input_file = "G:/DATASET/TI-CHALLENGE-2015/ZIP/CAPS.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ZIP/CAPS.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
 		//processWTK("CAPS",input_file,output_obj_file,new int[]{1});
 		
 		/*
-		String input_file = "G:/DATASET/GEO/census-sections/veneto-census-sections.csv";
+		String input_file = Config.getInstance().dataset_folder+"/GEO/census-sections/veneto-census-sections.csv";
 		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/veneto-census-sections.ser";
 		processWTK("veneto-census-sections",input_file,output_obj_file);
 		*/
 		
 		
 		// WKT	COD_REG	COD_PRO	PROVINCIA	SIGLA	POP2001
-		//String input_file = "G:/DATASET/GEO/prov2011.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/prov2011.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
 		//processWTK("prov2011",input_file,output_obj_file,new int[]{2,3});
 		
@@ -61,26 +61,26 @@ public class CreatorRegionMapFromGIS {
 		
 		
 		//WKT	PRO_COM	COD_REG	COD_PRO	NOME_COM	POP2001
-		//String input_file = "G:/DATASET/GEO/comuni2014.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/comuni2014.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2014.ser";
 		//processWTK("comuni2014",input_file,output_obj_file,new int[]{1});
 		
 		
 		//WKT	OBJECTID	COD_REG	COD_PRO	SHAPE_Leng	SHAPE_Area	CODICE_C_1	COD_ISTA_1	PRO_COM__1	NOME_COM_2
-		//String input_file = "G:/DATASET/GEO/comuni2014.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/comuni2014.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2014.ser";
 		//processWTK("comuni2014",input_file,output_obj_file,new int[]{8});
 		
 		
 		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
-		//String input_file = "G:/DATASET/GEO/comuni2012.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/comuni2012.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2012.ser";
 		//processWTK("comuni2012",input_file,output_obj_file,new int[]{5});
 		
 		
 		/*
 		String name = "torino_circoscrizioni_geo";
-		String input_file = "G:/DATASET/GEO/"+name+".csv";
+		String input_file = Config.getInstance().dataset_folder+"/GEO/"+name+".csv";
 		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
 		processWTK(name,input_file,output_obj_file);
 		*/
@@ -91,7 +91,7 @@ public class CreatorRegionMapFromGIS {
 		String[] cities = new String[]{"Venezia","Firenze","Torino","Lecce"};
 		for(String city: cities) {
 			System.out.println("Processing "+city+" ...");
-			String input_file = "G:/DATASET/GEO/"+city.toLowerCase()+"/"+city.toLowerCase()+"_tourist_area.csv";
+			String input_file = Config.getInstance().dataset_folder+"/GEO/"+city.toLowerCase()+"/"+city.toLowerCase()+"_tourist_area.csv";
 			String outputname = city+"TouristArea";
 			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+outputname+".ser";
 			processKML(outputname,input_file,output_obj_file);

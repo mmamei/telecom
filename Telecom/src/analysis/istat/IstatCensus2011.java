@@ -171,7 +171,7 @@ public class IstatCensus2011 {
 		
 			data = new HashMap<String,int[]>();
 			
-			BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/TI-CHALLENGE-2015/ISTAT/census-data.csv"));
+			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/census-data.csv"));
 			String line;
 			br.readLine(); // skip header
 			while((line=br.readLine())!=null) {
