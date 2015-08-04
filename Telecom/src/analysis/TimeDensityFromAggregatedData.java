@@ -197,7 +197,7 @@ public class TimeDensityFromAggregatedData {
 		String city = "venezia";
 		String type = "CallOut";
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,"G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz",new int[]{0,1,2,3},null,rm);
+		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz",new int[]{0,1,2,3},null,rm);
 		//td.plot("3693_3_1_3_1");
 		
 		/*

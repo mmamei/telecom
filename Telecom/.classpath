@@ -16,10 +16,10 @@
 	<classpathentry kind="lib" path="lib/javax.mail.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.30-bin.jar"/>
 	<classpathentry kind="lib" path="lib/weka.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/R/R-3.1.2/library/Rserve/java/REngine.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/R/R-3.1.2/library/Rserve/java/Rserve.jar"/>
 	<classpathentry kind="lib" path="lib/wekaclassalgos.jar"/>
 	<classpathentry kind="lib" path="lib/freemarker.jar"/>
 	<classpathentry kind="lib" path="lib/commons-compress-1.8.jar"/>
+	<classpathentry kind="lib" path="lib/REngine.jar"/>
+	<classpathentry kind="lib" path="lib/Rserve.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

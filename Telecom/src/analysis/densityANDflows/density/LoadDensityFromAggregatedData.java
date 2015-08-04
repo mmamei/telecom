@@ -40,11 +40,11 @@ public class LoadDensityFromAggregatedData {
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
 		
 		
-		TimeDensityFromAggregatedData td_in = new TimeDensityFromAggregatedData(city,"CallIn","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/CallIn.tar.gz",new int[]{0,1,2,3},null,rm);
-		td_in.add(new TimeDensityFromAggregatedData(td_in.getCity(),"SmsIn","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsIn.tar.gz",new int[]{0,1,2,3},null,rm));
+		TimeDensityFromAggregatedData td_in = new TimeDensityFromAggregatedData(city,"CallIn",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/CallIn.tar.gz",new int[]{0,1,2,3},null,rm);
+		td_in.add(new TimeDensityFromAggregatedData(td_in.getCity(),"SmsIn",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsIn.tar.gz",new int[]{0,1,2,3},null,rm));
 		
-		TimeDensityFromAggregatedData td_out = new TimeDensityFromAggregatedData(city,"CallOut","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/CallOut.tar.gz",new int[]{0,1,2,3},null,rm);
-		td_out.add(new TimeDensityFromAggregatedData(td_out.getCity(),"SmsOut","G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsOut.tar.gz",new int[]{0,1,2,3},null,rm));
+		TimeDensityFromAggregatedData td_out = new TimeDensityFromAggregatedData(city,"CallOut",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/CallOut.tar.gz",new int[]{0,1,2,3},null,rm);
+		td_out.add(new TimeDensityFromAggregatedData(td_out.getCity(),"SmsOut",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsOut.tar.gz",new int[]{0,1,2,3},null,rm));
 		
 		
 		List<TimeDensityFromAggregatedData> tds = new ArrayList<TimeDensityFromAggregatedData>();

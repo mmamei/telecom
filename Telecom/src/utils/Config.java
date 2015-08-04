@@ -47,6 +47,7 @@ public class Config {
 	
 	public String paper_folder = null;
 	public String web_kml_folder = null;
+	public String dataset_folder = null;
 	public String network_map_dir = null;
 	public String pls_root_folder = null;
 	public String pls_folder = null;
@@ -65,6 +66,9 @@ public class Config {
 		}
 		else if(name.equals("paper_folder")) {
 			paper_folder = value;
+		}
+		else if(name.equals("dataset_folder")) {
+			dataset_folder = value;
 		}
 		else if(name.equals("pls_folder")) {
 			pls_root_folder = value;

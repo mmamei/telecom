@@ -54,7 +54,7 @@ public class SynchAnalysis {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
 			for(int i=0; i<city.length;i++)
-				files[i] = "G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
 				
 			
 			for(int i=0; i<city.length;i++) {
@@ -72,7 +72,7 @@ public class SynchAnalysis {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
 			for(int i=0; i<city.length;i++)
-				files[i] = "G:/DATASET/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
 				
 			
 			for(int i=0; i<city.length;i++) {
@@ -92,7 +92,7 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = "G:/DATASET/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
@@ -108,7 +108,7 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = "G:/DATASET/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
@@ -125,7 +125,7 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = "G:/DATASET/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
@@ -141,7 +141,7 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = "G:/DATASET/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] =Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();

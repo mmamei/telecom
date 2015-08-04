@@ -60,7 +60,7 @@ public class LoadDensityFromCompanyData {
 		
 		AddMap map = new AddMap();
 		
-		BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/TI-CHALLENGE-2015/CERVED/headquarters-full.csv"));
+		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/CERVED/headquarters-full.csv"));
 		String line;
 		
 		//subject_id;sign;long;lat;kind;area
@@ -119,7 +119,7 @@ public class LoadDensityFromCompanyData {
 		
 		Map<String,String[]> desc = new HashMap<String,String[]>();
 		
-		BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/TI-CHALLENGE-2015/CERVED/cerved-companies.csv"));
+		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/CERVED/cerved-companies.csv"));
 		String line;
 		br.readLine(); // skip header
 		while((line=br.readLine())!=null) {
