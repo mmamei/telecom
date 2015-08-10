@@ -1,31 +1,18 @@
 package analysis.densityANDflows.density;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-
+import region.RegionI;
 import region.RegionMap;
-import utils.AddMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.kml.KMLHeatMap;
-import visual.r.RPlotter;
 import analysis.TimeDensityFromAggregatedData;
 
 public class LoadDensityFromAggregatedData {
@@ -40,17 +27,17 @@ public class LoadDensityFromAggregatedData {
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
 		
 		
-		TimeDensityFromAggregatedData td_in = new TimeDensityFromAggregatedData(city,"CallIn",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/CallIn.tar.gz",new int[]{0,1,2,3},null,rm);
-		td_in.add(new TimeDensityFromAggregatedData(td_in.getCity(),"SmsIn",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsIn.tar.gz",new int[]{0,1,2,3},null,rm));
+		//TimeDensityFromAggregatedData td_in = new TimeDensityFromAggregatedData(city,"CallIn",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/CallIn.tar.gz",new int[]{0,1,2,3},null,rm);
+		//td_in.add(new TimeDensityFromAggregatedData(td_in.getCity(),"SmsIn",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsIn.tar.gz",new int[]{0,1,2,3},null,rm));
 		
 		TimeDensityFromAggregatedData td_out = new TimeDensityFromAggregatedData(city,"CallOut",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/CallOut.tar.gz",new int[]{0,1,2,3},null,rm);
-		td_out.add(new TimeDensityFromAggregatedData(td_out.getCity(),"SmsOut",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsOut.tar.gz",new int[]{0,1,2,3},null,rm));
+		//td_out.add(new TimeDensityFromAggregatedData(td_out.getCity(),"SmsOut",Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/SmsOut.tar.gz",new int[]{0,1,2,3},null,rm));
 		
 		
 		List<TimeDensityFromAggregatedData> tds = new ArrayList<TimeDensityFromAggregatedData>();
-		tds.add(td_in);
+		//tds.add(td_in);
 		tds.add(td_out);
-		process2(city,rm,tds,new String[]{"01-32","grande",""},10);
+		process2(city,rm,tds,new String[]{"","",""},-1);
 
 		System.out.println("Done");
 	}	
@@ -72,6 +59,7 @@ public class LoadDensityFromAggregatedData {
 		//AddMap density = loadFromPresenceFile(city,start_time,end_time);
 		//AddMap density = loadFromTelecomDataFile(city,"CallIn",start_time,end_time);
 		
+		/*
 		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,rm,COMPANY_CONSTRAINTS);
 		Map<String,Double> density = new HashMap<String,Double>();
 		int c = 0;
@@ -81,8 +69,11 @@ public class LoadDensityFromAggregatedData {
 			c++;
 			if(c > LIMIT) break;
 		}
+		*/
 		
-		
+		Map<String,Double> density = new HashMap<String,Double>();
+		for(RegionI r: rm.getRegions())
+			density.put(r.getName(), 10.0);
 		
 		//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+".kml",density,rm,"presence",false);
 		//RPlotter.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+".pdf", density, rm, false, "presence");

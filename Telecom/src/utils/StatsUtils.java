@@ -286,6 +286,26 @@ public class StatsUtils {
 		*/
 	}
 	
+	public static  double r(double[] a, double[] b) {
+		
+		SimpleRegression sr = new SimpleRegression();
+		for(int i=0;i<a.length;i++) 
+				sr.addData(a[i], b[i]);
+		
+		double r = sr.getR();
+		return Double.isNaN(r) ? 0: r;
+		
+		/*
+		OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
+		double[][] x = new double[b.length][1];
+		for(int i=0; i<b.length;i++)
+			x[i][0] = b[i];
+		
+		h0.newSampleData(a, x);
+		return h0.calculateRSquared();
+		*/
+	}
+	
 	
 	public static double maxxCorr(double[] a, double[] b) {
 		double[] xcorr = xcorr(a,b);

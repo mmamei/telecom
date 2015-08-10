@@ -66,7 +66,7 @@ public class GrangerTest {
     }
 
 
-    private static double[][] createLaggedSide(int L, double[]... a) {
+    public static double[][] createLaggedSide(int L, double[]... a) {
         int n = a[0].length - L;
         double[][] res = new double[n][L*a.length+1];
         for(int i=0; i<a.length; i++){

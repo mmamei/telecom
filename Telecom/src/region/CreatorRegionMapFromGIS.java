@@ -29,7 +29,7 @@ public class CreatorRegionMapFromGIS {
 
 	
 	public static void main(String[] args) throws Exception {
-		
+		/*
 		//WKT,id,
 		String[] cities = new String[]{"venezia","milano","torino","napoli","roma","palermo","bari"};
 		for(String city: cities) {
@@ -38,12 +38,12 @@ public class CreatorRegionMapFromGIS {
 			String output_obj_file=Config.getInstance().base_folder+"/RegionMap/"+name+".ser";
 			processWTK(name,input_file,output_obj_file,new int[]{1});
 		}
-		
+		*/
 		
 		//WKT	CAP	
-		//String input_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ZIP/CAPS.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ZIP/CAPS2.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
-		//processWTK("CAPS",input_file,output_obj_file,new int[]{1});
+		//processWTK("CAPS_ALL",input_file,output_obj_file,new int[]{1});
 		
 		/*
 		String input_file = Config.getInstance().dataset_folder+"/GEO/census-sections/veneto-census-sections.csv";
@@ -58,6 +58,10 @@ public class CreatorRegionMapFromGIS {
 		//processWTK("prov2011",input_file,output_obj_file,new int[]{2,3});
 		
 		
+		// WKT	COD_REG	REGIONE	POP2001
+		String input_file = Config.getInstance().dataset_folder+"/GEO/regioni.csv";
+		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/regioni.ser";
+		processWTK("regioni",input_file,output_obj_file,new int[]{2,3});
 		
 		
 		//WKT	PRO_COM	COD_REG	COD_PRO	NOME_COM	POP2001

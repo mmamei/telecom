@@ -21,5 +21,6 @@
 	<classpathentry kind="lib" path="lib/commons-compress-1.8.jar"/>
 	<classpathentry kind="lib" path="lib/REngine.jar"/>
 	<classpathentry kind="lib" path="lib/Rserve.jar"/>
+	<classpathentry kind="lib" path="lib/JavaMI.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -52,20 +52,34 @@ public class TimeDensityFromAggregatedData {
 		
 		try {
 			tc = TimeConverter.getInstance();
-			if(file.endsWith(".tar.gz")) {
-				TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
-				TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
-				
-				while (currentEntry != null) {
-					processFile(new BufferedReader(new InputStreamReader(tarInput)),readIndexes,constraint); // Read directly from tarInput
-				    //System.out.println("Reading File = " + currentEntry.getName()); 
-				    currentEntry = tarInput.getNextTarEntry(); 
-				}
-				tarInput.close();
+			
+			
+			File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/"+city+"-"+type+"-"+new File(file).getName()+"-"+constraint.title+".ser");
+			if(f.exists()) {
+				map = (Map<String,double[]>)CopyAndSerializationUtils.restore(f);
 			}
 			else {
-				processFile(new BufferedReader(new FileReader(file)),readIndexes,constraint);
+			
+				if(file.endsWith(".tar.gz")) {
+					TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
+					TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
+					
+					while (currentEntry != null) {
+						processFile(new BufferedReader(new InputStreamReader(tarInput)),readIndexes,constraint); // Read directly from tarInput
+					    //System.out.println("Reading File = " + currentEntry.getName()); 
+					    currentEntry = tarInput.getNextTarEntry(); 
+					}
+					tarInput.close();
+				}
+				else {
+					processFile(new BufferedReader(new FileReader(file)),readIndexes,constraint);
+				}
+				
+				CopyAndSerializationUtils.save(f, map);
+				
 			}
+			
+			
 			
 		}catch(Exception e) {
 			e.printStackTrace();

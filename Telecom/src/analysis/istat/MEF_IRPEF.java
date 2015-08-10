@@ -3,7 +3,11 @@ package analysis.istat;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import region.RegionI;
@@ -68,19 +72,20 @@ public class MEF_IRPEF {
 		return instance;
 	}
 	
-	private static final int YEAR = 2013;
+	public static final int MEF_YEAR = 2012; 
+	public static final int COMUNI_YEAR = 2014;
 	private MEF_IRPEF() {
 		try {
 			
 			data = new HashMap<String,long[]>();
 			
-			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+YEAR+".csv"));
+			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+MEF_YEAR+".csv"));
 			String line;
 			br.readLine(); // skip header
 			while((line=br.readLine())!=null) {
 				String[] e = line.split(";");
 				
-				String comune_id = e[2];
+				String comune_id = String.valueOf(Integer.parseInt(e[2].replaceAll("\"", "")));
 				String comune_name = e[3];
 				
 				//System.out.println(e.length+" "+line);
@@ -90,6 +95,7 @@ public class MEF_IRPEF {
 					if(i+7 >= e.length) d[i] = 0;
 					else d[i] = e[i+7].length() == 0 ? 0 : Long.parseLong(e[i+7]);
 				}
+			
 				
 				long[] v = data.get(comune_id);
 				if(v == null) 
@@ -104,23 +110,35 @@ public class MEF_IRPEF {
 	}
 	
 	public AddMap redditoPC(boolean print) {
-		String title = "RedditoProCapita"+YEAR;
-		int[] indices = new int[]{24,26,28,30,32,34,34,38};
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
+		String title = "RedditoProCapita"+MEF_YEAR;
+		int[] indices = new int[]{26,28,30,32,34,34,38,40};
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni"+COMUNI_YEAR+".ser"));
 		rm.setName(title);
 		AddMap density = new AddMap();
+		int not_found_count = 0;
 		for(RegionI r : rm.getRegions()) {
 			
 			String key = r.getName();// r.getName().indexOf("_") > 0 ? r.getName().substring(0,r.getName().indexOf("_")) : r.getName();
+			
 			long[] v = data.get(key);
 			double value = 0;
 			if(v!=null) {
+										
 				for(int i: indices)
 					value+=v[i];
 				value/=v[0];
 			}
+			else {
+				not_found_count ++;
+				System.out.println("region not found "+key);
+			}
 			density.add(key, value);
 		}
+		
+		System.out.println("not found = "+not_found_count);
+		System.out.println("data size = "+data.size());
+		System.out.println("regions = "+rm.getNumRegions());
+		System.out.println("density size = "+density.size());
 		
 		
 		Map<String,Double> toDraw = new HashMap<String,Double>();
@@ -142,29 +160,28 @@ public class MEF_IRPEF {
 	
 	
 	public AddMap gini(boolean print) {
-		String title = "IndiceGini"+YEAR;
-		int[] pop_i = new int[]{23,25,27,29,31,33,35,37};
-		int[] red_i = new int[]{24,26,28,30,32,34,34,38};
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
+		String title = "IndiceGini"+MEF_YEAR;
+		int[] pop_i = new int[]{27,29,31,33,35,37,39};
+		
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni"+COMUNI_YEAR+".ser"));
 		rm.setName(title);
 		AddMap density = new AddMap();
 		for(RegionI r : rm.getRegions()) {
 			long[] v = data.get(r.getName());
-			double gini = 1;
 			if(v!=null) {
 				
 				double tot_pop = 0;
 				double tot_red = 0;
 				for(int i=0; i<pop_i.length;i++) {
 					tot_pop += v[pop_i[i]];
-					tot_red += v[red_i[i]]; 
+					tot_red += v[pop_i[i]+1]; 
 				}
 				
 				double[] x = new double[pop_i.length];
-				double[] y = new double[red_i.length];
+				double[] y = new double[pop_i.length];
 				for(int i=0; i<x.length;i++) {
 					x[i] = v[pop_i[i]] / tot_pop;
-					y[i] = v[red_i[i]] / tot_red;
+					y[i] = v[pop_i[i]+1] / tot_red;
 				}
 				
 				for(int i=1; i<x.length;i++) {
@@ -174,14 +191,13 @@ public class MEF_IRPEF {
 				
 				
 				
-				
-				for(int k=1; k<x.length;k++) {
+	
+				double gini = 1 - x[0]*y[0];
+				for(int k=1; k<x.length;k++) 
 					gini = gini - (x[k] - x[k-1]) * (y[k] + y[k-1]);
-				}
-				
+
+				density.add(r.getName(), gini);
 			}
-			
-			density.add(r.getName(), gini);
 		}
 		
 	
@@ -198,6 +214,7 @@ public class MEF_IRPEF {
 	}
 	
 	
+	
 	private long[] add(long[] a, long[] b) {
 		long[] x = new long[a.length];
 		for(int i=0; i<x.length;i++)
@@ -208,7 +225,7 @@ public class MEF_IRPEF {
 	
 	public static void main(String[] args) throws Exception {
 		MEF_IRPEF ic = MEF_IRPEF.getInstance();
-		//ic.redditoPC(true);
+		//ic.redditoPC(false);
 		ic.gini(true);
 		System.out.println("Done");
 	}
