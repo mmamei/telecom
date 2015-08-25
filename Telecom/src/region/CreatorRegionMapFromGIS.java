@@ -4,23 +4,15 @@ package region;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-
-import com.vividsolutions.jts.geom.Geometry;
+import java.util.HashSet;
+import java.util.Set;
 
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.GeomUtils;
 import utils.Logger;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 
 
@@ -55,13 +47,13 @@ public class CreatorRegionMapFromGIS {
 		// WKT	COD_REG	COD_PRO	PROVINCIA	SIGLA	POP2001
 		//String input_file = Config.getInstance().dataset_folder+"/GEO/prov2011.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
-		//processWTK("prov2011",input_file,output_obj_file,new int[]{2,3});
+		//processWTK("prov2011",input_file,output_obj_file,new int[]{3});
 		
 		
 		// WKT	COD_REG	REGIONE	POP2001
-		String input_file = Config.getInstance().dataset_folder+"/GEO/regioni.csv";
-		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/regioni.ser";
-		processWTK("regioni",input_file,output_obj_file,new int[]{2,3});
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/regioni.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/regioni.ser";
+		//processWTK("regioni",input_file,output_obj_file,new int[]{2});
 		
 		
 		//WKT	PRO_COM	COD_REG	COD_PRO	NOME_COM	POP2001
@@ -107,7 +99,20 @@ public class CreatorRegionMapFromGIS {
 	}
 	
 	
+	
+	
 	public static RegionMap processWTK(String name, String input_file, String output_obj_file, int[] name_indexes) throws Exception {
+		
+		
+		Set<String> tdc2015 = new HashSet<String>();
+		tdc2015.add("TORINO");
+		tdc2015.add("MILANO");
+		tdc2015.add("VENEZIA");
+		tdc2015.add("ROMA");
+		tdc2015.add("BARI");
+		tdc2015.add("NAPOLI");
+		tdc2015.add("PALERMO");
+		
 		
 		RegionMap rm = new RegionMap(name);
 		
@@ -124,6 +129,13 @@ public class CreatorRegionMapFromGIS {
 			String n = "";
 			for(int i: name_indexes)
 				n = n + e[i];
+			
+			if(!tdc2015.contains(n)) continue;
+			
+			
+			
+			System.out.println(n);
+			
 			
 			String[] polys = wtk_shape.split("\\),\\(");
 			

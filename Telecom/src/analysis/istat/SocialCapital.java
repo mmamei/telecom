@@ -48,8 +48,8 @@ public class SocialCapital {
 						prov_name = r.getName();
 				}
 				
-				if(prov_name == null)
-					System.out.println(name);
+				//if(prov_name == null)
+				//	System.out.println("------ SocialCapital:52 --- "+name);
 				
 				
 				assoc.put(prov_name, Double.parseDouble(e[3]));

@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class AddMap extends HashMap<String,Double> {
 	
@@ -10,6 +11,11 @@ public class AddMap extends HashMap<String,Double> {
 			this.put(key, value);
 		else 
 			this.put(key, v+value);
+	}
+	
+	public void addAll(Map<String,Double> map) {
+		for(String k: map.keySet())
+			this.add(k, map.get(k));
 	}
 
 	

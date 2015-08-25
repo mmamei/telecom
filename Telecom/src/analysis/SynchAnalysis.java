@@ -15,16 +15,21 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
+
 import region.RegionI;
 import region.RegionMap;
 import utils.AddMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.GrangerTest;
 import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.kml.KMLHeatMap;
 import visual.r.RPlotter;
+import zzz_misc_code.TestEntropy;
+import JavaMI.Entropy;
 import analysis.densityANDflows.density.LoadDensityFromCompanyData;
 import analysis.istat.Deprivation;
 import analysis.istat.IstatCensus2011;
@@ -33,6 +38,22 @@ import analysis.istat.MEF_IRPEF_BLOG;
 import analysis.istat.SocialCapital;
 
 public class SynchAnalysis {
+	
+	
+	
+	
+	/*
+	 * Fare un bello studio sulla composizione in termini di caos del traffico generato in ogni comune.
+	 * Potremmo misurare l'entropia di quella distribuzione e vedre quanta eterogeneità c'è in quella zona.
+	 * Anche quetsa feature si potrebbe correlare con i dati economici.
+	 * nota: i caps potrebbero essere aggragti a livello di comune-privincia-regione in modo da avere distribuzioni migliori.
+	 * forse è meglio fare un altra classe ed agire su time density from aggregated data
+	 */
+	
+	
+	
+	
+	public static boolean CAPOLUOGO_ONLY = false;
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
@@ -46,6 +67,17 @@ public class SynchAnalysis {
 	public static final int DEMOGRAPHIC_IT_VS_NON_IT = 4;
 	public static final int DEMOGRAPHIC_ALL = 5;
 	public static final int TYPE = DEMOGRAPHIC_RES_VS_NON_RES;
+	
+	
+	public static final String F_AVGZH = "Avg_ZH";
+	public static final String F_ENTROPY_LAG = "Entropy Lag";
+	public static final String F_ENTROPY = "Entropy";
+	public static final String F_ENTROPY_CORRECTED = "Entropy Corrected";
+	public static final String F_R = "R";
+	public static final String F_R2 = "R-Sq";
+	public static final String F_GRANGER = "Granger";
+	public static final String F_R2_CORR = "R-Sq-Corr";
+	public static final String USE_FEATURE = F_ENTROPY_CORRECTED;	
 	
 	
 	
@@ -172,15 +204,20 @@ public class SynchAnalysis {
 		String[] names = new String[city.length];
 		double[] values = new double[city.length];
 		List<String> ln = new ArrayList<String>();
-		List<double[]> lvalues = new ArrayList<double[]>();
+		
+		//List<double[]> lvalues_caps = new ArrayList<double[]>();
+		List<double[]> lvalues_comuni2012 = new ArrayList<double[]>();
+		List<double[]> lvalues_comuni2014 = new ArrayList<double[]>();
+		List<double[]> lvalues_prov2011 = new ArrayList<double[]>();
+		List<double[]> lvalues_regioni = new ArrayList<double[]>();
 		
 		Map<String,Double> all_density_comuni2012 = new HashMap<String,Double>();
 		Map<String,Double> all_density_comuni2014 = new HashMap<String,Double>();
 		Map<String,Double> all_density_prov2011 = new HashMap<String,Double>();
 		Map<String,Double> all_density_regioni = new HashMap<String,Double>();
 		
-		RegionMap comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2012.ser"));
-		RegionMap comuni2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2014.ser"));
+		RegionMap comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012.ser"));
+		RegionMap comuni2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014.ser"));
 		RegionMap prov2011 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
 		RegionMap regioni = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/regioni.ser"));
 		
@@ -188,85 +225,126 @@ public class SynchAnalysis {
 			names[i] = city[i].substring(0, 1).toUpperCase() + city[i].substring(1,2); // capitalize first letter and consider only the first two letters
 			
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city[i]+"-caps.ser"));
-			Map<String,Double> density = process(city[i],type,files[i],readIndexes,rm,map_constraints.get(city[i]));
+			/*
+			Map<String,Double> density_caps = process(city[i],type,files[i],readIndexes,rm,map_constraints.get(city[i]));
+			Map<String,Double> density_comuni2012 = reproject2map(city[i],type,density_caps,rm,comuni2012,false);
+			Map<String,Double> density_comuni2014 = reproject2map(city[i],type,density_caps,rm,comuni2014,false);
+			Map<String,Double> density_prov2011 = reproject2map(city[i],type,density_caps,rm,prov2011,false);
+			Map<String,Double> density_regioni = reproject2map(city[i],type,density_caps,rm,regioni,false);
+			*/
 			
-
-			all_density_comuni2012.putAll(reproject2map(city[i],type,density,rm,comuni2012,false));
-			all_density_comuni2014.putAll(reproject2map(city[i],type,density,rm,comuni2014,false));
-			all_density_prov2011.putAll(reproject2map(city[i],type,density,rm,prov2011,false));
-			all_density_regioni.putAll(reproject2map(city[i],type,density,rm,regioni,false));
+			
+			Map<String,Double> density_caps = process(city[i],type,files[i],readIndexes,rm,map_constraints.get(city[i]));
+			Map<String,Double> density_comuni2012 = reproject2map(city[i],type,density_caps,rm,comuni2012,false);
+			Map<String,Double> density_comuni2014 = reproject2map(city[i],type,density_caps,rm,comuni2014,false);
+			Map<String,Double> density_prov2011 = reproject2map(city[i],type,density_caps,rm,prov2011,false);
+			Map<String,Double> density_regioni = reproject2map(city[i],type,density_caps,rm,regioni,false);
+			
+			
+			all_density_comuni2012.putAll(density_comuni2012);
+			all_density_comuni2014.putAll(density_comuni2014);
+			all_density_prov2011.putAll(density_prov2011);
+			all_density_regioni.putAll(density_regioni);
 			
 			ln.add(names[i]);
 			
 			
-			double[] y = new double[density.size()];
-			int c = 0;
-			for(double v: density.values())
-				y[c++] = v; 
 			
-			lvalues.add(y);
 			
+			//lvalues_caps.add(density2array(density_caps));
+			lvalues_comuni2012.add(density2array(density_comuni2012));
+			lvalues_comuni2014.add(density2array(density_comuni2014));
+			lvalues_prov2011.add(density2array(density_prov2011));
+			lvalues_regioni.add(density2array(density_regioni));
 			
 			//System.out.println(names[i]+" --> "+values[i]);
 			//RPlotter.drawScatter(x, y, "dist (km)", "pearson", Config.getInstance().base_folder+"/Images/scatter-"+names[i]+"-"+type+"-synch3.pdf",null);
 		}
 		//RPlotter.drawScatter(lx, ly, ln, "cities", "dist", "R^2", Config.getInstance().base_folder+"/Images/scatter-"+type+"-synch3.pdf",null);
 		//RPlotter.drawBar(names, values, "cities", "R^2", Config.getInstance().base_folder+"/Images/bar-"+type+"-synch3.pdf",null);
-		RPlotter.drawBoxplot(lvalues,ln,"cities","R^2",Config.getInstance().base_folder+"/Images/boxplot-"+type+"-synch3.pdf",null);
+		//RPlotter.drawBoxplot(lvalues_caps,ln,"caps",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-caps-"+type+"-"+USE_FEATURE+".pdf",null);
+		RPlotter.drawBoxplot(lvalues_comuni2012,ln,"comuni2012",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE+".pdf",null);
+		RPlotter.drawBoxplot(lvalues_comuni2014,ln,"comuni2014",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2014-"+type+"-"+USE_FEATURE+".pdf",null);
+		RPlotter.drawBoxplot(lvalues_prov2011,ln,"prov2011",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE+".pdf",null);
+		RPlotter.drawBoxplot(lvalues_regioni,ln,"regioni",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE+".pdf",null);
+		
 		
 		Deprivation dp = Deprivation.getInstance();
-		plotCorrelation(all_density_regioni,dp.getDepriv(),"correlation","deprivazione",Config.getInstance().base_folder+"/Images/corr-deprivazione.pdf");
-		for(String k: all_density_regioni.keySet())
-			System.out.println("deprivazione..................... "+k+""+" "+all_density_regioni.get(k)+" .... "+dp.getDepriv().get(k));
+		plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivazione",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-deprivazione.pdf");
 		
+		//for(String k: all_density_regioni.keySet())
+		//	System.out.println("deprivazione..................... "+k+""+" "+all_density_regioni.get(k)+" .... "+dp.getDepriv().get(k));
 		
+		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 		MEF_IRPEF mi = MEF_IRPEF.getInstance();
-		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),"correlation","reddito PC",Config.getInstance().base_folder+"/Images/corr-redPC.pdf");
-		plotCorrelation(all_density_comuni2014,mi.gini(false),"correlation","Gini",Config.getInstance().base_folder+"/Images/corr-gini.pdf");
+		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),USE_FEATURE,"reddito PC",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-redPC.pdf",id2name);
+		plotCorrelation(all_density_comuni2014,mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-gini.pdf",id2name);
 		
 		
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
 		int[] indices = new int[]{46,51,59,61};
 		for(int i: indices)
-			plotCorrelation(all_density_comuni2012,ic.computeDensity(i, true, false),"correlation",IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/corr-"+IstatCensus2011.DIMENSIONS[i]+".pdf");
+			plotCorrelation(all_density_comuni2012,ic.computeDensity(i, true, false),USE_FEATURE,IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-"+IstatCensus2011.DIMENSIONS[i]+".pdf",id2name);
 		
 		
 		SocialCapital sc = SocialCapital.getInstance();
-		plotCorrelation(all_density_prov2011,sc.getAssoc(),"correlation","assoc",Config.getInstance().base_folder+"/Images/corr-assoc.pdf");
-		plotCorrelation(all_density_prov2011,sc.getReferendum(),"correlation","referendum",Config.getInstance().base_folder+"/Images/corr-referendum.pdf");
-		plotCorrelation(all_density_prov2011,sc.getBlood(),"correlation","blood",Config.getInstance().base_folder+"/Images/corr-blood.pdf");
+		plotCorrelation(all_density_prov2011,sc.getAssoc(),USE_FEATURE,"assoc",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-assoc.pdf");
+		plotCorrelation(all_density_prov2011,sc.getReferendum(),USE_FEATURE,"referendum",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-referendum.pdf");
+		plotCorrelation(all_density_prov2011,sc.getBlood(),USE_FEATURE,"blood",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-blood.pdf");
 		
-		for(String k: all_density_prov2011.keySet())
-			System.out.println("blood..................... "+k+""+" "+all_density_prov2011.get(k)+" .... "+sc.getBlood().get(k));
+		//for(String k: all_density_prov2011.keySet())
+		//	System.out.println("blood..................... "+k+""+" "+all_density_prov2011.get(k)+" .... "+sc.getBlood().get(k));
 		
 	}
 	
+	
+	private static double[] density2array(Map<String,Double> density) {
+		double[] y = new double[density.size()];
+		int c = 0;
+		for(double v: density.values())
+			y[c++] = v; 
+		return y;
+	}
+ 	
 	private static final DecimalFormat DF = new DecimalFormat("0.00",new DecimalFormatSymbols(Locale.US));
 	private static final boolean LM = false;
+	
+	
 	public static void plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file) {
+		plotCorrelation(mapx,mapy,titx,tity,file,null);
+	}
+	
+	public static void plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file, Map<String,String> name2name) {
 		
 		
 		List<Double> lx = new ArrayList<Double>();
 		List<Double> ly = new ArrayList<Double>();
+		List<String> labels = new ArrayList<String>();
 		
 		for(String k: mapx.keySet()) {
+			if(k.equals("97091")) continue;
 			double vx = mapx.get(k);
+			
+			//if(vx < 1.2 || vx > 1.7) continue;
+			
 			Double vy = mapy.get(k);
 			if(vy != null) {
 				lx.add(vx);
 				ly.add(vy);
+				String ll = k.replace("'", "");
+				if(name2name!=null && name2name.get(ll) != null) ll =  name2name.get(ll).toUpperCase().split("-")[0];
+				labels.add(ll);
 			}
 		}
 		
 		double[] x = new double[lx.size()];
 		double[] y = new double[ly.size()];
+		String[] l = new String[labels.size()];
 		for(int i=0; i<x.length;i++) {
 			x[i] = lx.get(i);
 			y[i] = ly.get(i);
+			l[i] = labels.get(i);
 		}
-		
-		
-		
 		
 		//System.out.println(titx+" map = "+mapx.size()+" array = "+x.length);
 		//System.out.println(tity+" map = "+mapy.size()+" array = "+y.length);
@@ -274,7 +352,9 @@ public class SynchAnalysis {
 		double r = StatsUtils.r(x, y);
 		String r2 = "annotate(\"text\", parse=TRUE, size=10, fontface='bold', x="+(r > 0 ? "-" : "")+"Inf, y=Inf, label=\"r^2 == "+DF.format(r*r)+"\", hjust="+(r > 0 ? "-0.2" : "1.2")+", vjust=1.2)";
 		
-		RPlotter.drawScatter(x,y, titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(size = 5) + "+r2);
+		//RPlotter.drawScatter(x,y,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(size = 5) + "+r2);
+		RPlotter.drawScatterWLabels(x,y,l,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + "+r2);
+
 	}
 	
 
@@ -294,63 +374,90 @@ public class SynchAnalysis {
 	}
 	
 	private static Map<String,Double> reproject2map(String city, String type, Map<String,Double> density,RegionMap rm_from,RegionMap rm_to, boolean print) {
+		
+		System.out.println(">>>>> REPROJECT "+city+" "+type+" FROM "+rm_from.getName()+" TO "+rm_to.getName());
+		
+		
+		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
+		
 		AddMap res = new AddMap();
 		AddMap cont = new AddMap(); // this is to divide res in order to compute means
+		
+		
 		for(String name: density.keySet()) {
 			String name_to = null;
 			//System.out.println(rm_to.getName()+"............................................................");
 			if(rm_to.getName().contains("comuni")) {
 				if(name.equals("30121")) name_to = "27042"; // venezia
-				else if(name.equals("80053")) name_to = "63024"; // napoli castellammare		
+				else if(name.equals("80053")) name_to = "63024"; // napoli castellammare			
 			}
 			if(rm_to.getName().contains("prov")) {
-				if(name.equals("20078")) name_to = "98LODI";
-				else if(name.equals("30121")) name_to = "27VENEZIA";
-				else if(name.equals("80058")) name_to = "63NAPOLI";
-				else if(name.equals("80053")) name_to = "63NAPOLI";
-				else if(name.equals("80076")) name_to = "63NAPOLI";
-				else if(name.equals("80075")) name_to = "63NAPOLI";
-				else if(name.equals("80074")) name_to = "63NAPOLI";
-				else if(name.equals("80073")) name_to = "63NAPOLI";
-				else if(name.equals("80071")) name_to = "63NAPOLI";
-				else if(name.equals("80079")) name_to = "63NAPOLI";
-				else if(name.equals("80077")) name_to = "63NAPOLI";		
+				if(name.equals("20078")) name_to = "LODI";
+				else if(name.equals("30121")) name_to = "VENEZIA";
+				else if(name.equals("80058")) name_to = "NAPOLI";
+				else if(name.equals("80053")) name_to = "NAPOLI";
+				else if(name.equals("80076")) name_to = "NAPOLI";
+				else if(name.equals("80075")) name_to = "NAPOLI";
+				else if(name.equals("80074")) name_to = "NAPOLI";
+				else if(name.equals("80073")) name_to = "NAPOLI";
+				else if(name.equals("80071")) name_to = "NAPOLI";
+				else if(name.equals("80079")) name_to = "NAPOLI";
+				else if(name.equals("80077")) name_to = "NAPOLI";		
 			}
 			if(rm_to.getName().contains("regioni")) {
-				if(name.equals("30121")) name_to = "VENETO4527694";
-				else if(name.equals("80058")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80053")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80076")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80075")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80074")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80073")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80071")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80079")) name_to = "CAMPANIA5701931";
-				else if(name.equals("80077")) name_to = "CAMPANIA5701931";			
+				if(name.equals("30121")) name_to = "VENETO";
+				else if(name.equals("80058")) name_to = "CAMPANIA";
+				else if(name.equals("80053")) name_to = "CAMPANIA";
+				else if(name.equals("80076")) name_to = "CAMPANIA";
+				else if(name.equals("80075")) name_to = "CAMPANIA";
+				else if(name.equals("80074")) name_to = "CAMPANIA";
+				else if(name.equals("80073")) name_to = "CAMPANIA";
+				else if(name.equals("80071")) name_to = "CAMPANIA";
+				else if(name.equals("80079")) name_to = "CAMPANIA";
+				else if(name.equals("80077")) name_to = "CAMPANIA";			
 			}
 			if(name_to == null) {
 				RegionI r = rm_from.getRegion(name);
 				RegionI r_to = rm_to.get(r.getLatLon()[1], r.getLatLon()[0]);
 				
 				if(r_to == null) {
-					System.err.println(name+" -->" + r.getLatLon()[0]+","+r.getLatLon()[1]);
+					//System.err.println(name+" -->" + r.getLatLon()[0]+","+r.getLatLon()[1]);
 					name_to = null;
 				}
 				else name_to = r_to.getName();
 			}
+			
+			if(rm_to.getName().contains("comuni")) {
+				if(CAPOLUOGO_ONLY) {
+					String cname = id2name.get(name_to);
+					if(cname == null) name_to = null;
+					else if(!cname.toLowerCase().startsWith(city.toLowerCase())) name_to = null;
+				}
+			}
+			
+			
 			if(rm_to.getName().contains("regioni")) {
-				if(name_to.equals("BASILICATA597768")) name_to = "PUGLIA4020707";
-				else if(name_to.equals("UMBRIA825826")) name_to = "LAZIO5112413";
+				if(name_to.equals("BASILICATA")) name_to = "PUGLIA";
+				else if(name_to.equals("UMBRIA")) name_to = "LAZIO";
+				
+				if(city.equals("milano") && !name_to.equals("LOMBARDIA"))
+					name_to = null;
 			}
 			
 			
 			if(rm_to.getName().contains("prov")) {
-				if(name_to.equals("2VERCELLI")) name_to = null;  // come mai se metto 1TORINO influneza così tanto?
+				//if(name_to.equals("VERCELLI")) {
+				//	name_to = city.equals("torino") ? "TORINO" : null;  // come mai se metto 1TORINO influneza così tanto?
+					
+					//System.out.println("------- was vercelli now torino");
+				//}
+				if(name_to!=null && !name_to.equalsIgnoreCase(city)) name_to = null;
+				
 			}
 			
 			if(name_to!=null){
 				res.add(name_to, density.get(name));
-				cont.add(name_to, 1);
+				cont.add(name_to, 1);		
 			}
 		}
 		
@@ -361,7 +468,7 @@ public class SynchAnalysis {
 		
 		if(print) {
 			try {
-				rm_to.setName(city+"-"+type+"-corr-reprojected");
+				rm_to.setName(city+"-"+type+"-"+USE_FEATURE+"-reprojected");
 				KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+type+"-correlation.kml",res,rm_to,"",false);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -415,8 +522,6 @@ public class SynchAnalysis {
 		}
 		
 		
-		
-		
 		System.out.println(city+" regions = "+regions.length);
 		
 		/*
@@ -458,18 +563,7 @@ public class SynchAnalysis {
 			
 			for(int j=0;j<regions.length;j++) {
 				if(i==j) continue;
-				double[] seriesi = td.get(regions[i]);
-				double[] seriesj = td.get(regions[j]);
-				double[] zetai = StatsUtils.getZH(seriesi,td.tc);
-				double[] zetaj = StatsUtils.getZH(seriesj,td.tc);
-				
-				double[] zetami = StatsUtils.getZmH(seriesi,td.tc);
-				double[] zetamj = StatsUtils.getZmH(seriesj,td.tc);
-				
-				
-				
-				//corr+=StatsUtils.r2(filter(seriesi,td.tc),filter(seriesj,td.tc));
-				corr+=StatsUtils.r2(filter(seriesi,td.tc),filter(seriesj,td.tc)) * avg(filter(zetami,td.tc)) * avg(filter(zetamj,td.tc)) ;
+				corr+=computeFeature( td.get(regions[i]), td.get(regions[j]));
 				
 				//double dist = LatLonUtils.getHaversineDistance(rm.getRegion(regions[i]).getCenterPoint(),rm.getRegion(regions[j]).getCenterPoint());
 				
@@ -496,39 +590,8 @@ public class SynchAnalysis {
 			double[] corrs = new double[n*(n-1)/2];
 			int c=0;
 			for(int a=0; a<n;a++)
-			for(int b=a+1;b<n;b++) {
-			
-				TimeDensityFromAggregatedData td1 = tds.get(a);
-				TimeDensityFromAggregatedData td2 = tds.get(b);
-				double[] series1 = td1.get(regions[i]);
-				double[] series2 = td2.get(regions[i]);
-				
-				
-				
-				double[] zeta1 = StatsUtils.getZH(series1,td1.tc);
-				double[] zeta2 = StatsUtils.getZH(series2,td2.tc);
-				
-				double[] zetam1 = StatsUtils.getZmH(series1,td1.tc);
-				double[] zetam2 = StatsUtils.getZmH(series2,td2.tc);
-				
-				
-				
-				
-				//corrs[c] = StatsUtils.r2(filter(series1,td1.tc),filter(series2,td2.tc));	
-				//corrs[c] = Entropy.calculateConditionalEntropy(bin(filter(series1,td1.tc),10),bin(filter(series2,td2.tc),10));	
-				corrs[c] = avg(filter(zetam1,td1.tc)) * avg(filter(zetam2,td2.tc));
-				
-				/*
-				double[][] ls1 = TestEntropy.createLagged(bin(filter(series1,td1.tc),10), 24);
-				double[][] ls2 = TestEntropy.createLagged(bin(filter(series2,td2.tc),10), 24);
-				double e1 = Entropy.calculateConditionalEntropy(ls1[0],ls1[1]);
-				double e2 = Entropy.calculateConditionalEntropy(ls2[0],ls2[1]);
-				corrs[c] = e1*e2;
-				*/
-				//corrs[c] = StatsUtils.r2(filter(series1,td1.tc),filter(series2,td2.tc)) * (avg(filter(zetam1,td1.tc)) + avg(filter(zetam2,td2.tc)));	
-				
-				c++;
-			}
+			for(int b=a+1;b<n;b++) 
+				corrs[c++] = computeFeature(tds.get(a).get(regions[i]),tds.get(b).get(regions[i]));
 			
 			double corr  = avg(corrs);
 			
@@ -566,6 +629,84 @@ public class SynchAnalysis {
 		}
 		
 		return density;
+	}
+	
+	
+	private static double computeFeature(double[] series1, double[] series2) {
+		try {
+			TimeConverter tc = TimeConverter.getInstance();
+			if(USE_FEATURE.equals(F_AVGZH)) {
+				double[] zetam1 = StatsUtils.getZmH(series1,tc);
+				double[] zetam2 = StatsUtils.getZmH(series2,tc);
+				return avg(filter(zetam1,tc)) * avg(filter(zetam2,tc));
+			}
+			else if(USE_FEATURE.equals(F_ENTROPY_LAG)) {
+				double[][] ls1 = TestEntropy.createLagged(bin(series1,4), 24*7);
+				double[][] ls2 = TestEntropy.createLagged(bin(series2,4), 24*7);
+				
+				//double[][] ls1 = TestEntropy.createLagged(bin(filter(series1,tc),10), 10);
+				//double[][] ls2 = TestEntropy.createLagged(bin(filter(series2,tc),10), 10);
+				
+				
+				double e1 = Entropy.calculateConditionalEntropy(ls1[0],ls1[1]);
+				double e2 = Entropy.calculateConditionalEntropy(ls2[0],ls2[1]);
+				return e1;
+				
+				//return Entropy.calculateConditionalEntropy(bin(filter(series1,tc),10),bin(filter(series2,tc),10));
+			}
+			else if(USE_FEATURE.equals(F_ENTROPY)) {
+				//double e3 = Entropy.calculateConditionalEntropy(bin(filter(series1,tc),10),bin(filter(series2,tc),10));
+				double e3 = Entropy.calculateConditionalEntropy(bin(series1,10),bin(series2,10));
+				return e3;
+			}
+			else if(USE_FEATURE.equals(F_ENTROPY_CORRECTED)) {
+				double[][] ls1 = TestEntropy.createLagged(bin(series1,10), 24*7);
+				double[][] ls2 = TestEntropy.createLagged(bin(series2,10), 24*7);
+				
+				//double[][] ls1 = TestEntropy.createLagged(bin(filter(series1,tc),10), 10);
+				//double[][] ls2 = TestEntropy.createLagged(bin(filter(series2,tc),10), 10);
+				
+				
+				double e1 = Entropy.calculateConditionalEntropy(ls1[0],ls1[1]);
+				if(e1 == 0) e1 = 1; // come mai a roma viene entropy = 0?
+				
+				double e2 = Entropy.calculateConditionalEntropy(ls2[0],ls2[1]);
+				if(e2 == 0) e2 = 1; // come mai a roma viene entropy = 0?
+				
+				double e3 = Entropy.calculateConditionalEntropy(ls1[0],ls2[0]);
+				return e3/(e1+e2);
+				
+				// una cosa simile a livello di concetto la ottengo mettendo una regressione lineaere (multipla?) quanto più è alta l'entropia tanto più la regressione linerare sbaglia
+				
+			}
+			else if(USE_FEATURE.equals(F_GRANGER)) {
+				return Math.sqrt(GrangerTest.granger(filter(series1,tc), filter(series2,tc), 24)[2]); // pValue,ftest,h0.calculateRSquared(),h1.calculateRSquared()
+			}
+			else if(USE_FEATURE.equals(F_R)) {
+				return StatsUtils.r(filter(series1,tc),filter(series2,tc));
+			}
+			else if(USE_FEATURE.equals(F_R2)) {
+				return StatsUtils.r2(filter(series1,tc),filter(series2,tc));
+			}
+			
+			else if(USE_FEATURE.equals(F_R2_CORR)) {
+				
+				double[] zetam1 = StatsUtils.getZmH(series1,tc);
+				double[] zetam2 = StatsUtils.getZmH(series2,tc);
+				double avgzh = avg(filter(zetam1,tc)) * avg(filter(zetam2,tc));
+				double r2 = StatsUtils.r2(filter(series1,tc),filter(series2,tc));
+				return avgzh * r2;
+			}
+				
+			
+			else {
+				throw (new Exception("Unknown feature"));
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+		
 	}
 	
 	

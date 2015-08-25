@@ -252,6 +252,46 @@ public class RPlotter {
         }      
 	}
 	
+	public static void drawScatterWLabels(double[] x, double [] y, String[] labels, String xlab, String ylab, String file, String opts) {
+		try {
+			file = file.replaceAll("_", "-");
+            c = new RConnection();// make a new local connection on default port (6311)
+            
+            c.assign("x", x);
+            c.assign("y", y);
+            c.assign("l", labels);
+            
+            
+            
+            for(int i=0; i<labels.length;i++)
+            	System.out.print(labels[i]+";");
+            System.out.println();
+            
+            
+            String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
+            String code = 
+            		   "library(ggplot2);"
+            	     + "z <- data.frame(x,y);"
+            	     + "ggplot(z,aes(x=x,y=y)) + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"') + geom_text(aes(label=l), size=3)"+end
+            	     + "ggsave('"+file+"');"
+            	     + "dev.off();";
+            System.out.println(code);
+            c.eval(code);
+            c.close();
+            if(VIEW) Desktop.getDesktop().open(new File(file));
+        } catch (Exception e) {
+        	if(e.getMessage().startsWith("Cannot connect")) {
+             	System.err.println("You must launch the following code in R");
+             	System.err.println("library(Rserve)");
+             	System.err.println("Rserve()");
+            }
+            else{
+            	c.close();
+            	e.printStackTrace();
+            }
+        }      
+	}
+	
 	
 	public static void drawScatter(List<double[]> x, List<double []> y, List<String> names, String kind, String xlab, String ylab, String file, String opts) {
 		try {
@@ -496,7 +536,7 @@ public class RPlotter {
             	          + "ggsave('"+file+"',width=10);"
             	          + "dev.off();";
             
-            System.out.println(code.replaceAll(";", ";\n"));
+            //System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -518,6 +558,7 @@ public class RPlotter {
 //		drawBar(new String[]{"a","b","c"},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 //		drawLine(new double[]{1,2,3},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 //		drawScatter(new double[]{1,2,9},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		drawScatterWLabels(new double[]{1,2,9},new double[]{5,6,7},new String[]{"a","b","c"},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 
 		
 //		List<double[]> l = new ArrayList<double[]>();
@@ -535,6 +576,7 @@ public class RPlotter {
 		//drawBoxplot(l,names,"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		
 		
+		/*
 		List<double[]> lx = new ArrayList<double[]>();
 		lx.add(new double[]{5,6,7});
 		lx.add(new double[]{1,2,7});
@@ -552,7 +594,7 @@ public class RPlotter {
 		names.add("stadium3");
 		
 		drawScatter(lx,ly,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-		
+		*/
 		
 //		double[] lat = new double[]{29.775,30.240,29.803};
 //		double[] lon = new double[]{-93.649,-94.270,-94.418};

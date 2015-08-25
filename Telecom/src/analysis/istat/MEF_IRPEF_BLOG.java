@@ -110,26 +110,30 @@ public class MEF_IRPEF_BLOG {
 	}
 	
 	
-	public static Map<String,String> name2id() throws Exception {
+	public static Map<String,String> name2id() {
 		Map<String,String> name2id = new HashMap<String,String>();
-		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+MEF_IRPEF.MEF_YEAR+".csv"));
-		String line;
-		br.readLine(); // skip header
-		while((line=br.readLine())!=null) {
-			String[] e = line.split(";");
-			
-			String comune_id =  String.valueOf(Integer.parseInt(e[2].replaceAll("\"", "")));
-			String comune_name = e[3];
-			String region_name = e[5];
-			String key = (comune_name+"-"+region_name).toLowerCase();
-			name2id.put(key, comune_id);
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+MEF_IRPEF.MEF_YEAR+".csv"));
+			String line;
+			br.readLine(); // skip header
+			while((line=br.readLine())!=null) {
+				String[] e = line.split(";");
+				
+				String comune_id =  String.valueOf(Integer.parseInt(e[2].replaceAll("\"", "")));
+				String comune_name = e[3];
+				String region_name = e[5];
+				String key = (comune_name+"-"+region_name).toLowerCase();
+				name2id.put(key, comune_id);
+			}
+			br.close();
+		}catch(Exception e) {
+			e.printStackTrace();
 		}
-		br.close();
 		return name2id;
 	}
 	
 	
-	public static Map<String,String> id2name() throws Exception {
+	public static Map<String,String> id2name() {
 		Map<String,String> name2id = name2id();
 		Map<String,String> id2name = new HashMap<String,String>();
 		for(String name: name2id.keySet()) {

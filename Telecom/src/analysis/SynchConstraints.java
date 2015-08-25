@@ -33,9 +33,15 @@ public class SynchConstraints {
 		this(title,false);
 	}
 	
+	
 	public boolean ok(String meta) {
-		if(!invert && selected.contains(meta)) return true;
-		if(invert && !selected.contains(meta)) return true;
+		
+		String gmeta = meta.length() <2 ? meta: meta.substring(0, meta.length()-2)+"00"; // useful for caps (generalized meta)
+		//System.out.println(meta+" --> "+gmeta);
+		
+		if(meta.equals("0")) return false;
+		if(!invert && (selected.contains(meta) || selected.contains(gmeta))) return true;
+		if(invert &&  (!selected.contains(meta) && !selected.contains(gmeta))) return true;
 		return false;
 	}
 	
