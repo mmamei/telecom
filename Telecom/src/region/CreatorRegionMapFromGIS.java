@@ -35,7 +35,7 @@ public class CreatorRegionMapFromGIS {
 		//WKT	CAP	
 		//String input_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ZIP/CAPS2.csv";
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/caps.ser";
-		//processWTK("CAPS_ALL",input_file,output_obj_file,new int[]{1});
+		//processWTK("CAPS",input_file,output_obj_file,new int[]{1});
 		
 		/*
 		String input_file = Config.getInstance().dataset_folder+"/GEO/census-sections/veneto-census-sections.csv";
@@ -45,9 +45,9 @@ public class CreatorRegionMapFromGIS {
 		
 		
 		// WKT	COD_REG	COD_PRO	PROVINCIA	SIGLA	POP2001
-		//String input_file = Config.getInstance().dataset_folder+"/GEO/prov2011.csv";
-		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
-		//processWTK("prov2011",input_file,output_obj_file,new int[]{3});
+		String input_file = Config.getInstance().dataset_folder+"/GEO/prov2011.csv";
+		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
+		processWTK("prov2011",input_file,output_obj_file,new int[]{3});
 		
 		
 		// WKT	COD_REG	REGIONE	POP2001
@@ -103,7 +103,7 @@ public class CreatorRegionMapFromGIS {
 	
 	public static RegionMap processWTK(String name, String input_file, String output_obj_file, int[] name_indexes) throws Exception {
 		
-		
+		/*
 		Set<String> tdc2015 = new HashSet<String>();
 		tdc2015.add("TORINO");
 		tdc2015.add("MILANO");
@@ -112,7 +112,7 @@ public class CreatorRegionMapFromGIS {
 		tdc2015.add("BARI");
 		tdc2015.add("NAPOLI");
 		tdc2015.add("PALERMO");
-		
+		*/
 		
 		RegionMap rm = new RegionMap(name);
 		
@@ -130,11 +130,11 @@ public class CreatorRegionMapFromGIS {
 			for(int i: name_indexes)
 				n = n + e[i];
 			
-			if(!tdc2015.contains(n)) continue;
+			//if(!tdc2015.contains(n)) continue;
 			
 			
 			
-			System.out.println(n);
+			//System.out.println(n);
 			
 			
 			String[] polys = wtk_shape.split("\\),\\(");

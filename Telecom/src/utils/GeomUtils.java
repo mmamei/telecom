@@ -231,6 +231,7 @@ public class GeomUtils {
 			lon[i] = Math.toRadians(cs[i].x);
 			lat[i] = Math.toRadians(cs[i].y);
 		}
+		if(lat.length < 3 || lon.length < 3) return 0;
 		return sphericalPolygonArea(lat,lon,EARTH_RADIUS_METERS);
 	}
 

@@ -44,7 +44,7 @@ public class CreatorRegionByIntersection {
 	public static final double BUFFER = 0.05;
 	
 	public static void main(String[] args) throws Exception {
-		String base_com = "comuni2012";
+		String base_com = "comuni2014";
 		RegionMap comuni = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+base_com+".ser"));
 		RegionMap provincie = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
 		

@@ -53,7 +53,7 @@ public class SynchAnalysis {
 	
 	
 	
-	public static boolean CAPOLUOGO_ONLY = false;
+	public static boolean CAPOLUOGO_ONLY = false; // non collegato
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
@@ -77,7 +77,7 @@ public class SynchAnalysis {
 	public static final String F_R2 = "R-Sq";
 	public static final String F_GRANGER = "Granger";
 	public static final String F_R2_CORR = "R-Sq-Corr";
-	public static final String USE_FEATURE = F_ENTROPY_CORRECTED;	
+	public static final String USE_FEATURE = F_AVGZH;	
 	
 	
 	
@@ -132,11 +132,11 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
-				Set<String> caps = getCAPS(city[i]);
+				Set<String> caps = getComuni2012FromCity(city[i]);
 				constraints.add(new SynchConstraints("resident",caps));
 				//constraints.add(new SynchConstraints("not-resident",caps,true));
 				map_constraints.put(city[i],constraints);
@@ -148,11 +148,11 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
-				Set<String> caps = getCAPS(city[i]);
+				Set<String> caps = getComuni2012FromCity(city[i]);
 				constraints.add(new SynchConstraints("resident",caps));
 				constraints.add(new SynchConstraints("not-resident",caps,true));
 				map_constraints.put(city[i],constraints);
@@ -165,7 +165,7 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
@@ -181,11 +181,11 @@ public class SynchAnalysis {
 			readIndexes = new int[]{0,1,3,2};
 			
 			for(int i=0; i<city.length;i++)
-				files[i] =Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_CAP";
+				files[i] =Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
 			for(int i=0; i<city.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
-				Set<String> caps = getCAPS(city[i]);
+				Set<String> caps = getComuni2012FromCity(city[i]);
 				int cont = 0;
 				for(String cap: caps) {
 					constraints.add(new SynchConstraints(cap));
@@ -205,7 +205,6 @@ public class SynchAnalysis {
 		double[] values = new double[city.length];
 		List<String> ln = new ArrayList<String>();
 		
-		//List<double[]> lvalues_caps = new ArrayList<double[]>();
 		List<double[]> lvalues_comuni2012 = new ArrayList<double[]>();
 		List<double[]> lvalues_comuni2014 = new ArrayList<double[]>();
 		List<double[]> lvalues_prov2011 = new ArrayList<double[]>();
@@ -216,29 +215,45 @@ public class SynchAnalysis {
 		Map<String,Double> all_density_prov2011 = new HashMap<String,Double>();
 		Map<String,Double> all_density_regioni = new HashMap<String,Double>();
 		
-		RegionMap comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012.ser"));
-		RegionMap comuni2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014.ser"));
-		RegionMap prov2011 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
+		
+		RegionMap prov2011 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-prov2011.ser"));
 		RegionMap regioni = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/regioni.ser"));
+		
+		
+		Map<String,String> id2name = new HashMap<String,String>();
+		id2name.put("torino", "1272");
+		id2name.put("milano", "15146");
+		id2name.put("venezia", "27042");
+		id2name.put("roma", "58091");
+		id2name.put("napoli", "63049");
+		id2name.put("bari", "72006");
+		id2name.put("palermo", "82053");
 		
 		for(int i=0; i<city.length;i++) {
 			names[i] = city[i].substring(0, 1).toUpperCase() + city[i].substring(1,2); // capitalize first letter and consider only the first two letters
 			
-			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city[i]+"-caps.ser"));
-			/*
-			Map<String,Double> density_caps = process(city[i],type,files[i],readIndexes,rm,map_constraints.get(city[i]));
-			Map<String,Double> density_comuni2012 = reproject2map(city[i],type,density_caps,rm,comuni2012,false);
-			Map<String,Double> density_comuni2014 = reproject2map(city[i],type,density_caps,rm,comuni2014,false);
-			Map<String,Double> density_prov2011 = reproject2map(city[i],type,density_caps,rm,prov2011,false);
-			Map<String,Double> density_regioni = reproject2map(city[i],type,density_caps,rm,regioni,false);
-			*/
+			RegionMap rm_comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city[i]+".ser"));
+			Map<String,Double> density_comuni2012 = process(city[i],type,files[i],readIndexes,rm_comuni2012,map_constraints.get(city[i]));
 			
 			
-			Map<String,Double> density_caps = process(city[i],type,files[i],readIndexes,rm,map_constraints.get(city[i]));
-			Map<String,Double> density_comuni2012 = reproject2map(city[i],type,density_caps,rm,comuni2012,false);
-			Map<String,Double> density_comuni2014 = reproject2map(city[i],type,density_caps,rm,comuni2014,false);
-			Map<String,Double> density_prov2011 = reproject2map(city[i],type,density_caps,rm,prov2011,false);
-			Map<String,Double> density_regioni = reproject2map(city[i],type,density_caps,rm,regioni,false);
+			RegionMap rm_comuni2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-"+city[i]+".ser"));
+			Map<String,Double> density_comuni2014 = process(city[i],type,files[i],readIndexes,rm_comuni2014,map_constraints.get(city[i]));
+			
+			Map<String,Double> density_prov2011 = reproject2map(city[i],type,density_comuni2012,rm_comuni2012,prov2011,false);
+			Map<String,Double> density_regioni = reproject2map(city[i],type,density_comuni2012,rm_comuni2012,regioni,false);
+			
+			
+			
+			if(CAPOLUOGO_ONLY) {
+				// keep only the capoluogo
+				double value2012 =  density_comuni2012.get(id2name.get(city[i]));
+				double value2014 =  density_comuni2014.get(id2name.get(city[i]));
+				density_comuni2012.clear();
+				density_comuni2014.clear();
+				density_comuni2012.put(id2name.get(city[i]), value2012);
+				density_comuni2014.put(id2name.get(city[i]), value2014);
+			}
+			
 			
 			
 			all_density_comuni2012.putAll(density_comuni2012);
@@ -248,10 +263,6 @@ public class SynchAnalysis {
 			
 			ln.add(names[i]);
 			
-			
-			
-			
-			//lvalues_caps.add(density2array(density_caps));
 			lvalues_comuni2012.add(density2array(density_comuni2012));
 			lvalues_comuni2014.add(density2array(density_comuni2014));
 			lvalues_prov2011.add(density2array(density_prov2011));
@@ -269,13 +280,15 @@ public class SynchAnalysis {
 		RPlotter.drawBoxplot(lvalues_regioni,ln,"regioni",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE+".pdf",null);
 		
 		
+		//System.exit(0);
+		
 		Deprivation dp = Deprivation.getInstance();
 		plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivazione",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-deprivazione.pdf");
 		
 		//for(String k: all_density_regioni.keySet())
 		//	System.out.println("deprivazione..................... "+k+""+" "+all_density_regioni.get(k)+" .... "+dp.getDepriv().get(k));
 		
-		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
+		id2name = MEF_IRPEF_BLOG.id2name();
 		MEF_IRPEF mi = MEF_IRPEF.getInstance();
 		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),USE_FEATURE,"reddito PC",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-redPC.pdf",id2name);
 		plotCorrelation(all_density_comuni2014,mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-gini.pdf",id2name);
@@ -298,7 +311,7 @@ public class SynchAnalysis {
 	}
 	
 	
-	private static double[] density2array(Map<String,Double> density) {
+	public static double[] density2array(Map<String,Double> density) {
 		double[] y = new double[density.size()];
 		int c = 0;
 		for(double v: density.values())
@@ -373,98 +386,48 @@ public class SynchAnalysis {
 			return conv;
 	}
 	
+	
+	
+	
 	private static Map<String,Double> reproject2map(String city, String type, Map<String,Double> density,RegionMap rm_from,RegionMap rm_to, boolean print) {
 		
 		System.out.println(">>>>> REPROJECT "+city+" "+type+" FROM "+rm_from.getName()+" TO "+rm_to.getName());
 		
-		
-		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
-		
+	
 		AddMap res = new AddMap();
-		AddMap cont = new AddMap(); // this is to divide res in order to compute means
 		
 		
 		for(String name: density.keySet()) {
-			String name_to = null;
-			//System.out.println(rm_to.getName()+"............................................................");
-			if(rm_to.getName().contains("comuni")) {
-				if(name.equals("30121")) name_to = "27042"; // venezia
-				else if(name.equals("80053")) name_to = "63024"; // napoli castellammare			
-			}
-			if(rm_to.getName().contains("prov")) {
-				if(name.equals("20078")) name_to = "LODI";
-				else if(name.equals("30121")) name_to = "VENEZIA";
-				else if(name.equals("80058")) name_to = "NAPOLI";
-				else if(name.equals("80053")) name_to = "NAPOLI";
-				else if(name.equals("80076")) name_to = "NAPOLI";
-				else if(name.equals("80075")) name_to = "NAPOLI";
-				else if(name.equals("80074")) name_to = "NAPOLI";
-				else if(name.equals("80073")) name_to = "NAPOLI";
-				else if(name.equals("80071")) name_to = "NAPOLI";
-				else if(name.equals("80079")) name_to = "NAPOLI";
-				else if(name.equals("80077")) name_to = "NAPOLI";		
-			}
-			if(rm_to.getName().contains("regioni")) {
-				if(name.equals("30121")) name_to = "VENETO";
-				else if(name.equals("80058")) name_to = "CAMPANIA";
-				else if(name.equals("80053")) name_to = "CAMPANIA";
-				else if(name.equals("80076")) name_to = "CAMPANIA";
-				else if(name.equals("80075")) name_to = "CAMPANIA";
-				else if(name.equals("80074")) name_to = "CAMPANIA";
-				else if(name.equals("80073")) name_to = "CAMPANIA";
-				else if(name.equals("80071")) name_to = "CAMPANIA";
-				else if(name.equals("80079")) name_to = "CAMPANIA";
-				else if(name.equals("80077")) name_to = "CAMPANIA";			
-			}
-			if(name_to == null) {
-				RegionI r = rm_from.getRegion(name);
-				RegionI r_to = rm_to.get(r.getLatLon()[1], r.getLatLon()[0]);
-				
-				if(r_to == null) {
-					//System.err.println(name+" -->" + r.getLatLon()[0]+","+r.getLatLon()[1]);
-					name_to = null;
-				}
-				else name_to = r_to.getName();
-			}
-			
-			if(rm_to.getName().contains("comuni")) {
-				if(CAPOLUOGO_ONLY) {
-					String cname = id2name.get(name_to);
-					if(cname == null) name_to = null;
-					else if(!cname.toLowerCase().startsWith(city.toLowerCase())) name_to = null;
-				}
-			}
-			
+			double value = density.get(name);
+			RegionI r = rm_from.getRegion(name);
 			
 			if(rm_to.getName().contains("regioni")) {
-				if(name_to.equals("BASILICATA")) name_to = "PUGLIA";
-				else if(name_to.equals("UMBRIA")) name_to = "LAZIO";
-				
-				if(city.equals("milano") && !name_to.equals("LOMBARDIA"))
-					name_to = null;
+				if(rm_from.getName().contains("torino")) res.add("PIEMONTE", value); 
+				else if(rm_from.getName().contains("milano")) res.add("LOMBARDIA", value); 
+				else if(rm_from.getName().contains("venezia")) res.add("VENETO", value); 
+				else if(rm_from.getName().contains("roma")) res.add("LAZIO", value); 
+				else if(rm_from.getName().contains("napoli"))  res.add("CAMPANIA", value); 
+				else if(rm_from.getName().contains("bari"))  res.add("PUGLIA", value); 
+				else if(rm_from.getName().contains("palermo"))  res.add("SICILIA", value); 
+				else System.err.println("ERROR IN "+rm_from.getName());
 			}
-			
-			
-			if(rm_to.getName().contains("prov")) {
-				//if(name_to.equals("VERCELLI")) {
-				//	name_to = city.equals("torino") ? "TORINO" : null;  // come mai se metto 1TORINO influneza così tanto?
-					
-					//System.out.println("------- was vercelli now torino");
-				//}
-				if(name_to!=null && !name_to.equalsIgnoreCase(city)) name_to = null;
+			else {
+				//System.out.println("Processing... "+name+" "+r.getLatLon()[0]+", "+r.getLatLon()[1]);
+				float[] areas = rm_to.computeAreaIntersection(r);
+				boolean interesction = false;
+				for(int i=0; i<areas.length;i++)
+	 			   if(areas[i] > 0) {
+	 				  interesction = true;
+	 				  RegionI r_to = rm_to.getRegion(i);
+	 				  String name_to = r_to.getName();
+	 				  res.add(name_to, value * areas[i]); 
+	 			   }
 				
-			}
-			
-			if(name_to!=null){
-				res.add(name_to, density.get(name));
-				cont.add(name_to, 1);		
+				if(interesction == false) {
+					System.err.println(name+" not found");
+				}
 			}
 		}
-		
-		
-		// compute mean
-		for(String k: res.keySet())
-			res.put(k, res.get(k) / cont.get(k));
 		
 		if(print) {
 			try {
@@ -479,9 +442,9 @@ public class SynchAnalysis {
 	}
 	
 	
-	private static Set<String> getCAPS(String city) {
-		Set<String> caps = new HashSet<String>();
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
+	private static Set<String> getComuni2012FromCity(String city) {
+		Set<String> comuni = new HashSet<String>();
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
 		for(RegionI r: rm.getRegions()) {
 			String name = r.getName();
 			if(name.indexOf("_")>0) {
@@ -489,14 +452,14 @@ public class SynchAnalysis {
 				name = name.substring(0,name.indexOf("_"));
 				//System.out.println(name);
 			}
-			caps.add(name);
+			comuni.add(name);
 		}
-		return caps;
+		return comuni;
 	}
 	
 	
 	
-	public static Map<String,Double> process(String city, String type, String file, int[] readIndexes, RegionMap rm, List<SynchConstraints> constraints) throws Exception {
+	public static Map<String,Double> process(String city, String type, String file, int[] readIndexes, final RegionMap rm, List<SynchConstraints> constraints) throws Exception {
 		
 		//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/regioni.ser"));
 		
@@ -514,6 +477,7 @@ public class SynchAnalysis {
 		*/
 		
 		String[] regions = new String[LIMIT > 0 ? Math.min(LIMIT, rm.getNumRegions()) : rm.getNumRegions()];
+		
 		int i=0;
 		for(RegionI r : rm.getRegions()) {
 			regions[i] = r.getName();
@@ -541,7 +505,7 @@ public class SynchAnalysis {
 		String suffix = LIMIT > 0 ? "limited to "+LIMIT : "";
 		System.out.println("processign "+city+" -- regions size --> "+rm.getNumRegions()+" "+suffix);
 		for(i=0; i<constraints.size();i++)
-			System.out.println("processing "+city+" -- "+constraints.get(i).title+" size --> "+tds.get(i).size()+" "+suffix);
+			System.out.println("	processing "+city+" -- "+constraints.get(i).title+" size --> "+tds.get(i).size()+" "+suffix);
 		
 		//LoadDensityFromAggregatedData.process(city, tds, COMPANY_CONSTRAINTS, LIMIT);
 		
@@ -552,7 +516,7 @@ public class SynchAnalysis {
 	
 	
 	
-	public static Map<String,Double> getDistCorr(String[] regions, RegionMap rm, TimeDensityFromAggregatedData td) {
+	public static Map<String,Double> getDistCorr(String[] regions, final RegionMap rm, TimeDensityFromAggregatedData td) {
 		
 		
 		Map<String,Double> density = new HashMap<String,Double>();
@@ -576,7 +540,7 @@ public class SynchAnalysis {
 		return density;
 	}
 	
-	public static Map<String,Double> getDistCorr(String city, String[] regions, RegionMap rm, List<TimeDensityFromAggregatedData> tds) {
+	public static Map<String,Double> getDistCorr(String city, String[] regions, final RegionMap rm, List<TimeDensityFromAggregatedData> tds) {
 		
 		Map<String,Double> density = new HashMap<String,Double>();
 		
@@ -607,23 +571,24 @@ public class SynchAnalysis {
 			rawDesc.put(regions[i], getRawDesc(names,y));
 		}
 		
-		RegionMap comuni = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni"+MEF_IRPEF.COMUNI_YEAR+".ser"));
-		Map<String,String> map_converter = mapConverter(rm,comuni);
+		//RegionMap comuni = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni"+MEF_IRPEF.COMUNI_YEAR+".ser"));
+		//Map<String,String> map_converter = mapConverter(rm,comuni);
 		
 
 		try {
-			//rm.setName(city+"-"+tds.get(0).getType()+"-correlation");
-			//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+tds.get(0).getType()+"-correlation.kml",density,rm,desc,false);
+			String orig_name = rm.getName();
+			rm.setName(city+"-"+tds.get(0).getType()+"-correlation");
+			KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+tds.get(0).getType()+"-correlation.kml",density,rm,desc,false);
+			rm.setName(orig_name);
+			//Map<String,Double> rdensity = reproject2map(city,tds.get(0).getType()+"-correlation",density,rm,comuni,false);
+			//Map<String,String> rdesc = new HashMap<String,String>();
+			//for(String k: desc.keySet())
+			//	rdesc.put(map_converter.get(k), desc.get(k));
 			
-			Map<String,Double> rdensity = reproject2map(city,tds.get(0).getType()+"-correlation",density,rm,comuni,false);
-			Map<String,String> rdesc = new HashMap<String,String>();
-			for(String k: desc.keySet())
-				rdesc.put(map_converter.get(k), desc.get(k));
-			
-			KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+tds.get(0).getType()+"-correlation.kml",rdensity,comuni,rdesc,false);
+			//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+tds.get(0).getType()+"-correlation.kml",rdensity,comuni,rdesc,false);
 			
 			
-			printCSV(Config.getInstance().base_folder+"/TIC2015/"+city+"-raw.csv",rawDesc,map_converter);
+			//printCSV(Config.getInstance().base_folder+"/TIC2015/"+city+"-raw.csv",rawDesc,map_converter);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

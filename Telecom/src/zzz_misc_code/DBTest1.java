@@ -12,11 +12,9 @@ public class DBTest1 {
 	private static final String PW_FILE = "C:/Users/marco/gmailpassword.ser";
 	public static void main(String[] args) throws Exception {
 		
-		Class.forName("com.mysql.jdbc.Driver");
-	    Connection c = DriverManager.getConnection("jdbc:mysql://localhost/telecom?user=root&password="+(String)CopyAndSerializationUtils.restore(new File(PW_FILE)));
-	    Statement s = c.createStatement();
-		s.close();
-		c.close();
+		String s = "00012230005500";
+		s = s.replaceFirst("^0+(?!$)", "");
+		System.out.println(s);
 	}
 	
 }
