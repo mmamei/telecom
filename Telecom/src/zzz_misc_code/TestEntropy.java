@@ -36,7 +36,9 @@ public class TestEntropy {
 	
 	public static double[][] createLagged(double[] a, int lag) {
 		double[][] la = new double[2][a.length-lag];
+
 		System.arraycopy(a, lag, la[0], 0, la[0].length);
+
 		System.arraycopy(a, 0, la[1], 0, la[1].length);
 		return la;
 	}

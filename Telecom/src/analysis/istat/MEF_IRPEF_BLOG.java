@@ -96,6 +96,7 @@ public class MEF_IRPEF_BLOG {
 		
 		MEF_IRPEF_BLOG blog_instance = MEF_IRPEF_BLOG.getInstance();
 		
+
 			
 		
 		MEF_IRPEF mef_instance = MEF_IRPEF.getInstance();
@@ -143,6 +144,7 @@ public class MEF_IRPEF_BLOG {
 	}
 	
 	
+
 	
 	
 	
