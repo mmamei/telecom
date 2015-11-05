@@ -18,6 +18,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
+import analysis.istat.MEF_IRPEF_BLOG;
 import JavaMI.Entropy;
 import region.RegionI;
 import region.RegionMap;
@@ -59,7 +60,7 @@ public class TimeDensityFromAggregatedDataMulti {
 			
 			String constr_title = constraint == null ? "" : constraint.title;
 			
-			File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/multi-"+city+"-"+type+"-"+rm.getName()+"-"+meta_rm.getName()+"-"+constr_title+".ser");
+			File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/multi/multi-"+city+"-"+type+"-"+rm.getName()+"-"+meta_rm.getName()+"-"+constr_title+".ser");
 			if(f.exists()) {
 				map = (Map<String,Map<String,double[]>>)CopyAndSerializationUtils.restore(f);
 			}
@@ -111,6 +112,7 @@ public class TimeDensityFromAggregatedDataMulti {
 		 Map<String,Double> m = new  HashMap<String,Double>();
 		 for(String kind: t.keySet()) {
 			 if(NO_ZERO && kind.equals("0")) continue;
+			 if(NO_TERNI && (kind.equals("55032") || kind.equals("TR") || kind.equals("UMBRIA"))) continue;
 			 double sum = 0;
 			 for(double v: t.get(kind))
 				 sum+=v;
@@ -217,6 +219,7 @@ public class TimeDensityFromAggregatedDataMulti {
 	
 	private static final int MAX_META = 10;
 	public static boolean NO_ZERO = true;
+	public static boolean NO_TERNI = true;
 	public static boolean LOG = false;
 	public static boolean LOGH = true;
 	public Map<String,Double> plot() {
@@ -236,8 +239,9 @@ public class TimeDensityFromAggregatedDataMulti {
 			String[] names = new String[Math.min(MAX_META, sum.size())];
 			double[] v = new double[names.length];
 			int i=0;
+			Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 			for(String m: sum.keySet()) {
-				names[i] = m;
+				names[i] = meta_rm.getName().equals("comuni2012")? m+":"+id2name.get(m).replaceAll("'", "") : m;
 				v[i] = sum.get(m);
 				i++;
 				if(i >= names.length) break;
@@ -319,7 +323,6 @@ public class TimeDensityFromAggregatedDataMulti {
 	}
 	
 	
-	public static boolean REMOVE_ZERO = false;
 	
 	
 	public static final int COMUNI = 0;
@@ -346,9 +349,7 @@ public class TimeDensityFromAggregatedDataMulti {
 		for(String city: cities) {
 			System.out.println("Processing "+city);
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
-			TimeDensityFromAggregatedDataMulti td = null;
-			if(REMOVE_ZERO) td = new TimeDensityFromAggregatedDataMulti(city,type,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012",readIndexes,new SynchConstraints("0",true),rm,meta_rm);
-			else td = new TimeDensityFromAggregatedDataMulti(city,type,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012",readIndexes,null,rm,meta_rm);
+			TimeDensityFromAggregatedDataMulti td = new TimeDensityFromAggregatedDataMulti(city,type,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012",readIndexes,null,rm,meta_rm);
 			Map<String,Double> density = td.plot();
 			
 			ln.add(city);

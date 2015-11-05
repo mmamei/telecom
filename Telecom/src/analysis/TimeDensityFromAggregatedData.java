@@ -34,13 +34,100 @@ public class TimeDensityFromAggregatedData {
 	private Map<String,double[]> map = new HashMap<String,double[]>();
 	
 	private RegionMap gridMap;
-	private RegionMap rm;
+	public RegionMap rm;
 	
 	
 	public TimeDensityFromAggregatedData(String city, String type, String file, int[] readIndexes, SynchConstraints constraint) {
 		this(city,type,file,readIndexes,constraint,null);	
 	}
+	
+	
+	private TimeDensityFromAggregatedData() {
 		
+	}
+	
+	/*
+	public TimeDensityFromAggregatedData reproject2Map(RegionMap rm_to) {
+		TimeDensityFromAggregatedData res = new TimeDensityFromAggregatedData();
+		res.city = city;
+		res.type = type;
+		res.tc = tc;
+		res.rm = rm_to;
+		res.map = new HashMap<String,double[]>();
+		for(String f : map.keySet()) {
+			double[] value = map.get(f);
+			RegionI from = rm.getRegion(f);
+			float[] areas = rm_to.computeAreaIntersection(from);
+			//boolean interesction = false;
+			for(int i=0; i<areas.length;i++)
+ 			   if(areas[i] > 0) {
+ 				  //interesction = true;
+ 				  RegionI to = rm_to.getRegion(i);
+ 				  String name_to = to.getName();
+ 				  
+ 				  double[] v = res.map.get(name_to);
+ 				  if(v == null) {
+ 					  v = new double[value.length];
+ 	 				  res.map.put(name_to,v);  
+ 				  }
+ 				  
+ 				  for(int k=0; k<v.length;k++)
+ 					  v[k] += value[k] * areas[i];
+ 			   }
+		}
+		return res;
+	}
+	*/
+	
+	
+	public TimeDensityFromAggregatedData reproject2Map(RegionMap rm_to) {
+		TimeDensityFromAggregatedData res = new TimeDensityFromAggregatedData();
+		res.city = city;
+		res.type = type;
+		res.tc = tc;
+		res.rm = rm_to;
+		res.map = new HashMap<String,double[]>();
+		for(String f : map.keySet()) {
+			double[] value = map.get(f);
+			
+			if(rm_to.getName().contains("regioni")) {
+				if(rm.getName().contains("torino")) add(res.map,"PIEMONTE", value); 
+				else if(rm.getName().contains("milano")) add(res.map,"LOMBARDIA", value); 
+				else if(rm.getName().contains("venezia")) add(res.map,"VENETO", value); 
+				else if(rm.getName().contains("roma")) add(res.map,"LAZIO", value); 
+				else if(rm.getName().contains("napoli"))  add(res.map,"CAMPANIA", value); 
+				else if(rm.getName().contains("bari"))  add(res.map,"PUGLIA", value); 
+				else if(rm.getName().contains("palermo"))  add(res.map,"SICILIA", value); 
+				else System.err.println("ERROR IN "+rm.getName());
+			}
+			
+			if(rm_to.getName().contains("prov2011")) {
+				if(rm.getName().contains("torino")) add(res.map,"TORINO", value); 
+				else if(rm.getName().contains("milano")) add(res.map,"MILANO", value); 
+				else if(rm.getName().contains("venezia")) add(res.map,"VENEZIA", value); 
+				else if(rm.getName().contains("roma")) add(res.map,"ROMA", value); 
+				else if(rm.getName().contains("napoli"))  add(res.map,"NAPOLI", value); 
+				else if(rm.getName().contains("bari"))  add(res.map,"BARI", value); 
+				else if(rm.getName().contains("palermo"))  add(res.map,"PALERMO", value); 
+				else System.err.println("ERROR IN "+rm.getName());
+			}
+			
+			
+			
+		}
+		//System.out.println("---------------------> "+res.map.size());
+		return res;
+	}
+	
+	public static void add(Map<String,double[]> map, String key, double[] value) {
+		double[] v = map.get(key);
+		if(v == null) v = new double[value.length];
+		for(int i=0; i<v.length;i++)
+			v[i]+=value[i];
+		map.put(key, v);
+	}
+	
+	
 	public TimeDensityFromAggregatedData(String city, String type, String file, int[] readIndexes, SynchConstraints constraint, RegionMap rm) {
 		this.city = city;
 		this.type = constraint==null ? type : type+"-"+constraint.title;
@@ -54,7 +141,7 @@ public class TimeDensityFromAggregatedData {
 			tc = TimeConverter.getInstance();
 			
 			
-			File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/"+city+"-"+type+"-"+new File(file).getName()+"-"+constraint.title+".ser");
+			File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/single/"+city+"-"+type+"-"+new File(file).getName()+"-"+constraint.title+".ser");
 			if(f.exists()) {
 				map = (Map<String,double[]>)CopyAndSerializationUtils.restore(f);
 			}
@@ -88,10 +175,7 @@ public class TimeDensityFromAggregatedData {
 	
 	
 	public double[] get(String r) {
-		double[] t = map.get(r);
-		if(t == null)
-			t = new double[tc.getTimeSize()];
-		return t;
+		return map.get(r);
 	}
 	
 	public int size() {

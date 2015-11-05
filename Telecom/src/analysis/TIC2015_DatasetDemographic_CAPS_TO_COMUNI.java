@@ -98,7 +98,6 @@ public class TIC2015_DatasetDemographic_CAPS_TO_COMUNI {
 		System.out.println("FOUND = "+(int)(100.0*found/tot)+"%");
 		System.out.println("NOT_FOUND = "+(int)(100.0*not_found/tot)+"%");
 		System.out.println("ZERO = "+(int)(100.0*zero/tot)+"%");
-		
 	}
 	
 	

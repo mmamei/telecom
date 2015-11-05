@@ -292,6 +292,7 @@ public class StatsUtils {
 		for(int i=0;i<a.length;i++) 
 				sr.addData(a[i], b[i]);
 		
+		
 		double r = sr.getR();
 		return Double.isNaN(r) ? 0: r;
 		

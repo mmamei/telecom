@@ -268,11 +268,14 @@ public class RPlotter {
             System.out.println();
             
             
+            if(!xlab.startsWith("expression")) xlab = "'"+xlab+"'";
+            if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
+            
             String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
             String code = 
             		   "library(ggplot2);"
             	     + "z <- data.frame(x,y);"
-            	     + "ggplot(z,aes(x=x,y=y)) + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"') + geom_text(aes(label=l), size=3)"+end
+            	     + "ggplot(z,aes(x=x,y=y)) + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+") + geom_text(aes(label=l), size=3)"+end
             	     + "ggsave('"+file+"');"
             	     + "dev.off();";
             System.out.println(code);
@@ -527,16 +530,19 @@ public class RPlotter {
             		code += "yy"+i+" <- melt(yy"+i+",id.vars=c());";
             }
             
+            if(!xlab.startsWith("expression")) xlab = "'"+xlab+"'";
+            if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
+            
             StringBuffer sby= new StringBuffer();
             for(int i=0; i<y.size();i++)
             	sby.append(",yy"+i);
             
             	     code += "z <- rbind("+sby.substring(1)+");"   
-            	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot() + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"')"+end
+            	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot() + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
             	          + "ggsave('"+file+"',width=10);"
             	          + "dev.off();";
             
-            //System.out.println(code.replaceAll(";", ";\n"));
+            System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -558,22 +564,22 @@ public class RPlotter {
 //		drawBar(new String[]{"a","b","c"},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 //		drawLine(new double[]{1,2,3},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 //		drawScatter(new double[]{1,2,9},new double[]{5,6,7},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-		drawScatterWLabels(new double[]{1,2,9},new double[]{5,6,7},new String[]{"a","b","c"},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+//		drawScatterWLabels(new double[]{1,2,9},new double[]{5,6,7},new String[]{"a","b","c"},"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 
 		
-//		List<double[]> l = new ArrayList<double[]>();
-//		l.add(new double[]{5,6,7,8});
-//		l.add(new double[]{1,2,9});
-//		l.add(new double[]{5,-1,4,10});
-//		
-//		List<String> names = new ArrayList<String>();
-//		names.add("ok1");
-//		names.add("ok2");
-//		names.add("ok3");
+		List<double[]> l = new ArrayList<double[]>();
+		l.add(new double[]{5,6,7,8});
+		l.add(new double[]{1,2,9});
+		l.add(new double[]{5,-1,4,10});
+		
+		List<String> names = new ArrayList<String>();
+		names.add("ok1");
+		names.add("ok2");
+		names.add("ok3");
 		
 		//drawBar(new String[]{"a","b","c","d"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		//drawLine(new String[]{"3","2","1","0"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-		//drawBoxplot(l,names,"x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		drawBoxplot(l,names,"expression(avg[i]~R^{2}~'('~res[r]~','~res[i!=r]~')')","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		
 		
 		/*

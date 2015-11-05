@@ -5,12 +5,14 @@ import java.util.Set;
 
 public class SynchConstraints {
 	
+	public static final boolean CLEAN = true;
+	
 	public String title;
 	private Set<String> selected;
 	private boolean invert;
 	
 	SynchConstraints(String title, Set<String> selected, boolean invert) {
-		this.title = title;
+		this.title = title + (CLEAN ? "-CLEAN" : "");
 		this.selected = selected;
 		this.invert = invert;
 	} 
@@ -24,7 +26,7 @@ public class SynchConstraints {
 	}
 	
 	SynchConstraints(String title,boolean invert) {
-		this.title = (invert? "not-" : "") + title;
+		this.title = (invert? "not-" : "") + title + (CLEAN ? "-CLEAN" : "");
 		this.selected = new HashSet<String>();
 		selected.add(title);
 		this.invert = invert;
@@ -39,7 +41,9 @@ public class SynchConstraints {
 		String gmeta = meta.length() <2 ? meta: meta.substring(0, meta.length()-2)+"00"; // useful for caps (generalized meta)
 		//System.out.println(meta+" --> "+gmeta);
 		
-		if(meta.equals("0")) return false;
+		if(CLEAN && meta.equals("55032")) return false;
+		if(CLEAN && meta.equals("0")) return false;
+		
 		if(!invert && (selected.contains(meta) || selected.contains(gmeta))) return true;
 		if(invert &&  (!selected.contains(meta) && !selected.contains(gmeta))) return true;
 		return false;

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import JavaMI.Entropy;
 import region.RegionI;
 import region.RegionMap;
 import utils.AddMap;
@@ -15,6 +16,7 @@ import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.Sort;
 import visual.kml.KMLHeatMap;
+import visual.r.RPlotter;
 
 public class LoadDensityFromCompanyData {
 	/*
@@ -24,14 +26,81 @@ public class LoadDensityFromCompanyData {
 	grande: If number of employees >250 
 	*/
 	
+	static final int ATECO = 0;
+	static final int SIZE = 1;
+	static final int AGE = 2;
+	
+	static final String[] TXT = new String[]{"ateco","size","age"};
+	
+	static final int MODE = ATECO;
 	
 	
 	public static void main(String[] args) throws Exception {
 		String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
-		for(String c: city)
-			process(c, new String[]{"01-32","grande",""},100);
+		String[] n = new String[city.length];
+		double[] e = new double[city.length];
+		for(int i=0; i<city.length;i++) {
+			n[i] = city[i].substring(0,2).toUpperCase();
+			e[i] = process2(city[i]);
+			System.out.println(city[i]+" ==> "+e[i]);
+		}
+		RPlotter.drawBar(n, e, "provinces", "entropy companies "+TXT[MODE], Config.getInstance().base_folder+"/Images/entropy-company-"+TXT[MODE]+".png", "");
 		System.out.println("Done");
 	}	
+	
+	public static double process2(String city) throws Exception {
+		
+		Map<String,String[]> desc = new HashMap<String,String[]>();
+		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/CERVED/cerved-companies.csv"));
+		String line;
+		br.readLine(); // skip header
+		while((line=br.readLine())!=null) {
+			String[] e = line.split(",");
+			//System.out.println(line);
+			desc.put(e[0], new String[]{e[e.length-3],e[e.length-2],e[e.length-1]});
+		}
+		br.close();
+		
+		br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/CERVED/headquarters-full.csv"));
+		
+		//subject_id;sign;long;lat;kind;area
+		//361869449;;7.66839336;45.03530199;U;Torino
+		
+		AddMap map = new AddMap();
+		
+		
+		while((line=br.readLine())!=null) {
+			String[] e = line.split(";");
+			if(e[5].toLowerCase().equals(city)) {
+					String[] d = desc.get(e[0]);
+					if(d!=null && !d[MODE].equals("n.d."))
+					map.add(d[MODE], 1);
+			}
+		}
+		br.close();
+		
+		
+		double tot = 0;
+		for(double v: map.values())
+			tot+=v;
+		
+		System.out.print(city+": ");
+		double[] x  = new double[map.size()];
+		int i=0;
+		for(String k: map.keySet()) {
+			x[i] = map.get(k)/tot;
+			System.out.print(k+"="+x[i]+" ");
+			i++;
+		}
+		System.out.println();
+		
+		
+		double e = 0;
+		for(i=0; i<x.length;i++)
+			e-=x[i]*Math.log(x[i])/Math.log(2);
+		
+		return e;
+	}
 		
 	public static void process(String city, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
 		System.out.println("Process "+city);

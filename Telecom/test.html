@@ -1,1 +1,26 @@
-<html><head><script type="text/javascript" src="https://www.google.com/jsapi"></script><script type="text/javascript">google.load('visualization', '1.0', {'packages':['corechart']});google.setOnLoadCallback(drawChart);function drawChart() {var data = google.visualization.arrayToDataTable([['x', 's1', 's2'], ['a', 1.00, 1.00], ['b', 2.00, 4.00], ['c', 3.00, 1.00], ]);var options = {'width':1400,'height':500};var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));chart.draw(data, options);}</script></head><body><div id="chart_div"></div></body></html>
+<html>
+<head>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+google.load('visualization', '1.0', {'packages':['corechart']});
+google.setOnLoadCallback(drawChart);
+function drawChart() {
+var data = google.visualization.arrayToDataTable([
+['x', 's1', 's2'],
+ ['a', 1.00, 100.00], ['b', 2.00, 400.00], ['c', 3.00, 100.00], ]);
+var options = {
+'width':1400,
+'height':500,
+vAxes: {0: {viewWindowMode:'explicit',gridlines: {color: 'transparent'}},1: {gridlines: {color: 'transparent'},format:'#'}},
+series: {0: {targetAxisIndex:0},1:{targetAxisIndex:1}},
+};
+var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+chart.draw(data, options);
+}
+</script>
+</head>
+<body>
+<div id="chart_div"></div>
+</body>
+</html>
+
