@@ -18,12 +18,12 @@ import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import utils.Config;
 import utils.Logger;
-import visual.r.RPlotter;
+import visual.java.GraphScatterPlotter;
 
 public class ResultEvaluator {
 	
 	
-	public static boolean PLOT = true;
+	public static boolean PLOT = false;
 	
 	public static boolean USE_INDIVIDUAL_EVENT = true;
 	public static boolean DIFF = false;
@@ -33,12 +33,6 @@ public class ResultEvaluator {
 	public static int PIECE_SIZE = 6;
 	
 	public static boolean RANGE = false;
-	
-	
-	
-	public static boolean LEST = true;
-	public static boolean LGT = true;
-	
 	public static int RANGE_TH = 10000;
 	
 	
@@ -54,107 +48,16 @@ public class ResultEvaluator {
 	private static File piem2013 = new File(Config.getInstance().base_folder+"/PresenceCounter/C_DATASET_PLS_file_pls_file_pls_piem_piem_2013/result_"+type+"_0.0_3"+sdiff+".csv");
 	//private static String piem2013_openair = FileUtils.getFileS("PresenceCounter/C_DATASET_PLS_file_pls_file_pls_piem_2013/result_openair_"+type+"_0.0_3"+sdiff+".csv");
 
-	public static boolean FAKE_MULTI = false;
-	public static boolean UNSTRUCTURED = false;
+	
 	
 	public static void main(String[] args) throws Exception {
 		PLOT = true;
-		File[] training = null;
-		File[] testing = null;
+		File[] training = new File[]{lomb,piem2012,piem2013};
+		File[] testing = new File[]{lomb,piem2012,piem2013};
 		
-		
-		//naive();
-		//FAKE_MULTI = false; PIECEWISE = false; RANGE = false;
-		training = new File[]{lomb,piem2012,piem2013};
-		testing = new File[]{lomb,piem2012,piem2013};
-		//run(training,testing);
-		
-		//FAKE_MULTI = false; PIECEWISE = true; RANGE = false;
-		//run(training,testing);
-		
-		
-		//FAKE_MULTI = false; PIECEWISE = false; RANGE = true;
-		//run(training,testing);
-		
-		
-		FAKE_MULTI = true;PIECEWISE = true; RANGE = false;
 		run(training,testing);
 		
-		//UNSTRUCTURED = true;
-		//training = new File[]{lomb,piem2012};
-		//testing = new File[]{piem2013};
-		//FAKE_MULTI = false; PIECEWISE = true; RANGE = false;
-		//run(training,testing);
-		
 		Logger.logln("Done");
-	}
-	
-	
-	/*
-	 * Commodity method to plot native approach correlation
-	 */
-	public static void naive() throws Exception {
-		String title = "naive";
-		Map<String,List<double[]>> map = new HashMap<String,List<double[]>>();
-		
-		List<double[]> x = new ArrayList<double[]>();
-		x.add(new double[]{994,	40045});
-		x.add(new double[]{997,	38644});
-		x.add(new double[]{599,	35000});
-		x.add(new double[]{1084,	38686});
-		map.put("Juventus Stadium (TO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{270,	20000});
-		x.add(new double[]{316,	20000});
-		map.put("Parco Dora (TO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{3704,	40000});
-		map.put("Piazza Vittorio (TO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{4195,	21453});
-		x.add(new double[]{3975,	12246});
-		x.add(new double[]{3377,	14306});
-		x.add(new double[]{3404,	12592});
-		x.add(new double[]{2695,	35000});
-		x.add(new double[]{2275,	35000});
-		x.add(new double[]{3603,	40000});
-		map.put("Stadio Olimpico (TO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{854,	8708});
-		x.add(new double[]{1043,	9943});
-		x.add(new double[]{1075,	10066});
-		x.add(new double[]{933,	9946});
-		x.add(new double[]{2605,	17649});
-		map.put("Stadio Silvio Piola (NO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{1296,	25000});
-		map.put("Piazza Castello (TO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{1647,	25000});
-		x.add(new double[]{1143,	10000});
-		x.add(new double[]{1212,	15000});
-		x.add(new double[]{936,	15000});
-		x.add(new double[]{1216,	10000});
-		x.add(new double[]{1348,	20000});
-		x.add(new double[]{1282,	25000});
-		map.put("Piazza San Carlo (TO)", x);
-		
-		x = new ArrayList<double[]>();
-		x.add(new double[]{1647,	25000});
-		x.add(new double[]{1143,	10000});
-		x.add(new double[]{1212,	15000});
-		map.put("Piazza San Carlo (TO)", x);
-
-		
-		map = logT(map);
-		
-		draw(title,map);
 	}
 	
 	public static int run(File file) {
@@ -169,37 +72,13 @@ public class ResultEvaluator {
 	
 	
 	
-	private static Map<String,List<double[]>> logT(Map<String,List<double[]>> x) {
-		Map<String,List<double[]>> y = new HashMap<String,List<double[]>>();
-		for(String k: x.keySet()) {
-			List<double[]> newv = new ArrayList<double[]>();
-			for(double[] v: x.get(k)) 
-				newv.add(new double[]{LEST ? Math.log(v[0]) : v[0], LGT? Math.log(v[1]) : v[1]});
-			y.put(k, newv);
-		}
-		return y;
-	}
-	
-	
 	public static Map<String,List<double[]>> run(File[] training_files, File[] testing_files) throws Exception {
 		Map<String,List<double[]>> training_map = read(training_files);
 		Map<String,List<double[]>> testing_map = read(testing_files);
-		
-		
-		training_map = logT(training_map);
-		testing_map = logT(testing_map);
-		
-	
-		
-		
 		Map<String,List<double[]>> scaled = new HashMap<String,List<double[]>>();
 		if(RANGE) {
-			Map<String,List<double[]>>[] tra = divideTraining(training_map,LGT?Math.log(RANGE_TH):RANGE_TH);
+			Map<String,List<double[]>>[] tra = divideTraining(training_map,RANGE_TH);
 			Map<String,List<double[]>>[] tst = divideTesting(testing_map,tra);
-			
-			
-			Logger.logln("RANGE TRAINING DIVISION: LOW = "+tra[0].size()+" HIGH = "+tra[1].size());
-			Logger.logln("RANGE TESTING DIVISION: LOW = "+tst[0].size()+" HIGH = "+tst[1].size());
 			
 			Logger.logln("RESULTS FOR EVENTS BELOW "+RANGE_TH);
 			INTERCEPT = false;
@@ -210,7 +89,6 @@ public class ResultEvaluator {
 			scaled.putAll(run(tra[1],tst[1]));
 		}
 		else scaled.putAll(run(training_map,testing_map));
-		draw("ResultAfterScaling",scaled);
 		return scaled;
 	}
 
@@ -222,10 +100,9 @@ public class ResultEvaluator {
 		Map<String,List<double[]>> scaled = PIECEWISE ? scalePiecewise(testing_map,training_map) : scale(testing_map,training_map);
 		
 		if(PLOT) {
-			//draw("Testing",testing_map);
-			//draw("ResultAfterScaling",scaled);
-			
-			
+			draw("Testing",testing_map);
+			draw("Result after scaling",scaled);
+		
 			// compute error
 			
 			DescriptiveStatistics[] abs_perc_errors = computeErrorStats(scaled);
@@ -247,7 +124,7 @@ public class ResultEvaluator {
 	
 	
 	
-	private static Map<String,List<double[]>>[] divideTraining(Map<String,List<double[]>> x, double threshold) {
+	public static Map<String,List<double[]>>[] divideTraining(Map<String,List<double[]>> x, double threshold) {
 		Map<String,List<double[]>>[] ba = (Map<String,List<double[]>>[])new Map[2]; // ba = bottom - above
 		ba[0] = new HashMap<String,List<double[]>>();
 		ba[1] = new HashMap<String,List<double[]>>();
@@ -272,7 +149,7 @@ public class ResultEvaluator {
 	}
 	
 	
-	private static Map<String,List<double[]>>[] divideTesting(Map<String,List<double[]>> x, Map<String,List<double[]>>[] tra) {
+	public static Map<String,List<double[]>>[] divideTesting(Map<String,List<double[]>> x, Map<String,List<double[]>>[] tra) {
 		
 		double threshold = (getMax(tra[0]) + getMin(tra[1]))/2;
 		
@@ -311,7 +188,7 @@ public class ResultEvaluator {
 
 	
 	
-	private static Map<String,List<double[]>> scale(Map<String,List<double[]>> testing_map, Map<String,List<double[]>> training_map) {
+	public static Map<String,List<double[]>> scale(Map<String,List<double[]>> testing_map, Map<String,List<double[]>> training_map) {
 		SimpleRegression training_sr = getRegression(training_map);
 		
 		if(PLOT) printInfo("INFO: ",training_sr);
@@ -330,7 +207,8 @@ public class ResultEvaluator {
 		return scaled;
 	}
 	
-	private static Map<String,List<double[]>> scalePiecewise(Map<String,List<double[]>> testing_map, Map<String,List<double[]>> training_map) {
+	
+	public static Map<String,List<double[]>> scalePiecewise(Map<String,List<double[]>> testing_map, Map<String,List<double[]>> training_map) {
 		Map<String,List<double[]>> scaled = new HashMap<String,List<double[]>>();		
 		for(String placemark: testing_map.keySet()) {
 			//Logger.logln(placemark);
@@ -346,22 +224,21 @@ public class ResultEvaluator {
 		return scaled;
 	}
 	
-	private static double constrain(double est) {
-		double max = LEST? Math.log(80000) : 80000;
+	public static double constrain(double est) {
 		if(est < 0) return 0;
-		if(est > max) return max;
+		if(est > 80000) return 80000;
 		return est;
 	}
 	
 	
-	private static DescriptiveStatistics[] computeErrorStats(Map<String,List<double[]>> scaled) {
+	public static DescriptiveStatistics[] computeErrorStats(Map<String,List<double[]>> scaled) {
 		DescriptiveStatistics abs_err_stat = new DescriptiveStatistics();
 		DescriptiveStatistics perc_err_stat = new DescriptiveStatistics();
 		for(String p: scaled.keySet()) {
 			List<double[]> lv = scaled.get(p);
 			for(double[] v: lv) {
-				double est = LEST? Math.exp(v[0]) : v[0];
-				double gt = LGT? Math.exp(v[1]) : v[1];
+				double est = v[0];
+				double gt = v[1];
 				double abserr = Math.abs(est - gt);
 				abs_err_stat.addValue(abserr);
 					
@@ -374,8 +251,8 @@ public class ResultEvaluator {
 		return new DescriptiveStatistics[]{abs_err_stat,perc_err_stat};
 	}
 	
-	private static final DecimalFormat F = new DecimalFormat("##.##",new DecimalFormatSymbols(Locale.US));
-	private static void printInfo(String title, SimpleRegression sr) {
+	static final DecimalFormat F = new DecimalFormat("##.##",new DecimalFormatSymbols(Locale.US));
+	public static void printInfo(String title, SimpleRegression sr) {
 		double s = sr.getSlope();
 		double sconf = sr.getSlopeConfidenceInterval(); 
 		
@@ -389,7 +266,7 @@ public class ResultEvaluator {
 		Logger.logln(title+": r="+F.format(sr.getR()));//+", r^2="+Fsr.getRSquare()+", sse="+sr.getSumSquaredErrors());
 	}
 	
-	private static Map<String,List<double[]>> read(File[] files) throws Exception {
+	public static Map<String,List<double[]>> read(File[] files) throws Exception {
 		Map<String,List<double[]>> map = new HashMap<String,List<double[]>>();
 		
 		for(File file: files) {
@@ -414,7 +291,7 @@ public class ResultEvaluator {
 	}
 	
 	
-	private static SimpleRegression getRegression(Map<String,List<double[]>> map) {
+	public static SimpleRegression getRegression(Map<String,List<double[]>> map) {
 		SimpleRegression sr = new SimpleRegression(INTERCEPT);
 		for(List<double[]> lv: map.values())
 		for(double[] v: lv)
@@ -424,7 +301,7 @@ public class ResultEvaluator {
 	
 	
 	
-	private static SimpleRegression getPiecewiseLR(Map<String,List<double[]>> training, final double x) {
+	public static SimpleRegression getPiecewiseLR(Map<String,List<double[]>> training, final double x) {
 		
 		// create a single list
 		List<double[]> all = new ArrayList<double[]>();
@@ -451,7 +328,7 @@ public class ResultEvaluator {
 				continue;
 			}
 			
-			//System.out.println("............................................add regression piece... "+all.get(i)[0]+","+all.get(i)[1]);
+			System.out.println("............................................add regression piece... "+all.get(i)[0]+","+all.get(i)[1]);
 			
 			r.addData(all.get(i)[0], all.get(i)[1]);
 		}
@@ -459,125 +336,34 @@ public class ResultEvaluator {
 		return r;
 	}
 	
-	private static void draw(String title, Map<String,List<double[]>> map) {
+	
+	
+	public static void draw(String title, Map<String,List<double[]>> map) {
 		
-		
-		int count = 0;
-		for(String n: map.keySet()) {
-			if(UNSTRUCTURED && n.contains("Olimpico")) continue;
-			count+=map.get(n).size();
-		}
-		
-		double[] x = new double[count];
-		double[] y = new double[count];
-		double[] error_x = new double[count];
-		double[] error_y = new double[count];
-		
-		DescriptiveStatistics err = new DescriptiveStatistics();
-		int i = 0;
-		for(String n: map.keySet()) {
-			List<double[]> xy = map.get(n);
-			
-			for(int j=0; j<xy.size();j++) {
-				x[i] = xy.get(j)[0];			
-				y[i] = xy.get(j)[1];
-				
-				if(UNSTRUCTURED && n.contains("Olimpico")) continue;
-				
-				if(x[i] == (LEST? Math.log(19004.36985495802) : 19004.36985495802)) x[i] = (LEST? Math.log(7000) : 7000);
-				if(x[i] > (LEST? Math.log(50000) : 50000)) x[i] = (LEST? Math.log(35000) : 35000);
-				if(y[i] > (LEST? Math.log(65000) : 65000)) x[i] = (LEST? Math.log(55000) : 55000); 
-				//if(y[i] > (LGT? Math.log(15000) : 15000) && y[i] < (LGT? Math.log(30000) : 30000)) x[i] += (LEST? Math.log(7000) : 7000);
-		
-				if(FAKE_MULTI) {
-					n = n.replaceAll("[^a-zA-Z0-9]", "");
-					System.out.println(n);
-					if(n.equals("StadioMarioRigamontiBS")) x[i] = (LEST? Math.log(5000) : 5000);
-					if(n.equals("PiazzaCastelloTO")) x[i] = (LEST? Math.log(22000) : 22000);
-					//if(n.equals("ParcoDoraTO")) x[i] += (LEST? Math.log(12000) : 12000);
-					if(n.equals("StadioOlimpicoTO") && y[i] < (LGT? Math.log(30000) : 30000)) x[i] = (LEST? Math.log(20000) : 20000);
-					if(x[i] < (LEST? Math.log(10000) : 10000)) x[i] = (LEST? Math.log(15000) : 15000);
-					//if(n.equals("StadioSanSiroMI")) x[i] = y[i] - Math.abs(Math.random()) * (LEST? Math.log(6000) : 6000); 
+		if(VERBOSE) {
+			Logger.logln(title+" ***************************************");
+	
+			for(String placemark: map.keySet()) {
+				for(double[] x : map.get(placemark)) {
+					double est = x[0];
+					double gt = x[1];
+					Logger.logln(placemark+";"+(int)est+";"+(int)gt);
 				}
-				
-				
-				
-				error_x[i] = y[i]; // error x is groundtruth
-				error_y[i] = 100*Math.abs(x[i] - y[i]) / y[i];
-				err.addValue(error_y[i]);
-				
-				i++;
 			}
 		}
 		
+		List<String> labels = new ArrayList<String>();
+		List<double[][]> data = new ArrayList<double[][]>();
 		
-		
-		double[] px = new double[100];
-		double[] py = new double[100];
-		for(i=0; i<px.length;i++) {
-			px[i] = err.getPercentile(i+1);
-			py[i] = i+1;
+		for(String placemark: map.keySet()) {
+			labels.add(placemark);
+			List<double[]> p = map.get(placemark);
+			double[][] x = new double[p.size()][2];
+			for(int i=0; i<p.size();i++)
+				x[i] = p.get(i);
+			data.add(x);
 		}
 		
-		System.out.println("----- "+err.getSkewness());
-		
-		// divide between < > RANGE_TH
-		int nless = 0;
-		for(i=0; i<x.length;i++)
-			if(x[i] < (LEST?Math.log(RANGE_TH):RANGE_TH))
-				nless++;
-		
-		int i_less = 0;
-		double[] x_less = new double[nless];
-		double[] y_less = new double[nless];
-		
-		int i_more = 0; 
-		double[] x_more = new double[x.length-nless];
-		double[] y_more = new double[x.length-nless];
-		
-		for(i=0; i<x.length;i++)
-			if(x[i] < (LEST?Math.log(RANGE_TH):RANGE_TH)) {
-				x_less[i_less] = x[i];
-				y_less[i_less] = y[i];
-				i_less++;
-			}
-			else {
-				x_more[i_more] = x[i];
-				y_more[i_more] = y[i];
-				i_more++;
-			}
-		
-		List<double[]> lx = new ArrayList<double[]>(); 
-		lx.add(x_less);
-		lx.add(x_more);
-		List<double[]> ly = new ArrayList<double[]>(); 
-		ly.add(y_less);
-		ly.add(y_more);
-		List<String> names = new ArrayList<String>();
-		names.add("Small Events");
-		names.add("Large Events");
-		
-		
-		if(FAKE_MULTI)
-			title = "multi_"+title;
-		if(UNSTRUCTURED)
-			title = "unstructured_"+title;
-		
-		String post = PIECEWISE ? "_piecewise" : RANGE ? "_range" : "";
-		
-		if(!title.contains("naive")) {
-			if(!RANGE) RPlotter.drawScatter(y,x,  (LGT?"log ":"")+"Groundtruth",  (LEST?"log ":"")+"CDR Estimate", Config.getInstance().base_folder+"/Images/"+title+"_"+type+post+".pdf", "stat_smooth("+(PIECEWISE?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(size = 5)");
-			else RPlotter.drawScatter(ly,lx, names, "Event",  (LGT?"log ":"")+"Groundtruth",   (LEST?"log ":"")+"CDR Estimate", Config.getInstance().base_folder+"/Images/"+title+"_"+type+post+".pdf", "scale_shape_manual(values=c(15:25)) + theme(legend.title = element_blank(), legend.text = element_text(size = 10), legend.justification=c(1,0), legend.position=c(1,0)) + geom_point(size = 5) + stat_smooth(method=lm, colour = 'black')");
-			//RPlotter.drawScatter(error_x,error_y,  (LGT?"log ":"")+"Groundtruth", "% Error", Config.getInstance().base_folder+"/Images/Error_"+title+"_"+type+post+".pdf", "stat_smooth(colour='black') + geom_point(size = 5) + theme(legend.position='none')");
-			RPlotter.drawScatter(error_x,error_y,  (LGT?"log ":"")+"Groundtruth", "% Error", Config.getInstance().base_folder+"/Images/Error_"+title+"_"+type+post+".pdf", "geom_point(size = 5) + theme(legend.position='none')");
-		}
-		else
-			RPlotter.drawScatter(y,x,  (LGT?"log ":"")+"Groundtruth", (LEST?"log ":"")+"CDR Estimate", Config.getInstance().base_folder+"/Images/"+title+"_"+type+post+".pdf", "theme(legend.position='none') + geom_point(size = 5)");	
-		
-		RPlotter.drawScatter(px, py, "% Error", "CDF", Config.getInstance().base_folder+"/Images/ErrorCDF_"+title+"_"+type+post+".pdf", "geom_line() + theme(legend.position='none')");
-		
-		
+		new GraphScatterPlotter(title,"Estimated","GroundTruth",data,labels);
 	}
 }
-
-

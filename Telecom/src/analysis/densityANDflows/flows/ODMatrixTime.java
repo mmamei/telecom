@@ -29,8 +29,11 @@ public class ODMatrixTime {
 		//String js = od.runAll("2014-04-20", "00", "2014-04-21", "00", 7.6203,45.0945,7.6969,45.0774, "FIX_Piemonte.ser", "");
 		//String js = od.runAll("2012-04-11", "19", "2012-04-11", "23", 9.0937,45.4896,9.150,45.4655, "grid5", ";users_event_probscores=C:/BASE/PresenceCounter/C_DATASET_PLS_file_pls_file_pls_lomb/ProbScores/Stadio_San_Siro_(MI)-11_04_2012_19_00-11_04_2012_23_00.txt");	
 		//String js = od.runAll("2014-05-01", "08", "2014-05-01", "11", 12.3135,45.4483,12.3611,45.4263, "grid20", "mnt=!22201");
-		String js = od.runAll("2014-08-23", "18", "2014-08-23", "19", 16.6415,41.2241,18.3719,39.9519, "grid10", "");
+		
+		//String js = od.runAll("2014-08-23", "18", "2014-08-23", "19", 16.6415,41.2241,18.3719,39.9519, "grid10", "");
 	
+		String js = od.runAll("2015-04-15","0","2015-04-15","4",10.9132,44.6524,10.9333,44.6401,"grid5","");
+		
 		
 		System.out.println(js);
 	}

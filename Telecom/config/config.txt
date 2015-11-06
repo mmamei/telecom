@@ -7,11 +7,11 @@
 // according to Windows-like systems, to avoid errors.
 
 
-web_kml_folder = G:/CODE/Telecom/Telecom2/web/kml
+web_kml_folder = G:/CODE/GITHUB/Telecom/telecom/Telecom/web/kml
 
 paper_folder = C:/Users/marco/Desktop/TELECOM3-D2
 
-dataset_folder = C:/DATASET
+dataset_folder =G:/DATASET
 
 // File Telecom
 network_map_dir = G:/DATASET/PLS/file_rete

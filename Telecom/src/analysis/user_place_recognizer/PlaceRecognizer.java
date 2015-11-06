@@ -204,7 +204,7 @@ public class PlaceRecognizer {
 		//Config.getInstance().changeDataset("ivory-set3");
 		//String dir = "file_pls_ivory_users_2000_10000";
 		
-		
+		/*
 		String dir = "file_pls_piem_users_200_10000";
 		String in_dir = Config.getInstance().base_folder+"/UsersCSVCreator/"+dir;
 		String out_dir = Config.getInstance().base_folder+"/PlaceRecognizer/"+dir;
@@ -241,13 +241,13 @@ public class PlaceRecognizer {
 		
 		//PlaceRecognizerEvaluator rs = new PlaceRecognizerEvaluator(2000);
 		//rs.evaluate(allResults);
-		
+		*/
 		
 		/**************************************************************************************************************************/
 		/**************************************   				SINGLE RUN 					***************************************/
 		/**************************************************************************************************************************/
 		
-		/*
+		
 		PlaceRecognizer pr = new PlaceRecognizer();
 		Map<String, List<LatLonPoint>> res = pr.runSingle("2012-03-06", "2012-03-07", "362f6cf6e8cfba0e09b922e21d59563d26ae0207744af2de3766c5019415af", 7.6855,45.0713,  7.6855,45.0713);
 		//pr.runSingle("2012-03-06", "2012-04-30", "7f3e4f68105e863aa369e5c39ab5789975f0788386b45954829346b7ca63", 7.6855,45.0713,  7.6855,45.0713);
@@ -257,7 +257,7 @@ public class PlaceRecognizer {
 				System.out.println(p.getLongitude()+","+p.getLatitude());
 		}
 		Logger.logln("Done!");
-		*/
+		
 	}
 }
 

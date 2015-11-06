@@ -146,10 +146,18 @@ public class ODMatrixVisual {
 		String n = region.substring("file_pls_".length());
 		String ghLoc = "C:/DATASET/osm/"+n;
 	    String testOsm = "C:/DATASET/osm/"+n+"/"+n+".pbf";
+	    GraphHopper gh = null;
+	    try {
+			gh = new GraphHopper().setInMemory(true, true).setEncodingManager(new EncodingManager(TRASPORTATION_MODE)).setGraphHopperLocation(ghLoc).setOSMFile(testOsm);
+			gh.setPreciseIndexResolution(10000); // to be set about the grid size
+			gh.importOrLoad();
+	    } catch(Exception e) {
+	    	System.err.println("Did you downloaded map files?");
+	    	System.err.println("Go to http://geodati.fmach.it/gfoss_geodata/osm/italia_osm.html");
+	    	throw e;
+	    }
 		
-		GraphHopper gh = new GraphHopper().setInMemory(true, true).setEncodingManager(new EncodingManager(TRASPORTATION_MODE)).setGraphHopperLocation(ghLoc).setOSMFile(testOsm);
-		gh.setPreciseIndexResolution(10000); // to be set about the grid size
-		gh.importOrLoad();
+		
 		
 		if(!directed) {
 			Map<Move,Double> list_od_undirected = new HashMap<Move,Double>();
