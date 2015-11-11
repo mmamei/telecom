@@ -14,6 +14,7 @@ import utils.CopyAndSerializationUtils;
 import utils.Logger;
 import visual.html.HeatMapGoogleMaps;
 import visual.kml.KMLHeatMap;
+import visual.r.RHeatMap;
 import analysis.Constraints;
 
 public class PopulationDensityPlaces {
@@ -78,7 +79,7 @@ public class PopulationDensityPlaces {
 		
 		
 		String title = rm.getName()+"-"+kind_of_place+"-"+exclude_kind_of_place;	
-		plotSpaceDensity(title, space_density, rm,0);
+		plotSpaceDensity(title, space_density, rm, 0);
 		
 		
 		StringBuffer sb = new StringBuffer();
@@ -107,6 +108,7 @@ public class PopulationDensityPlaces {
 	public void plotSpaceDensity(String title, Map<String,Double> space_density, RegionMap rm, double threshold) throws Exception {
 		File d = new File(Config.getInstance().web_kml_folder);
 		d.mkdirs();
+		RHeatMap.drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+title+".png",space_density,rm,true,"",true);
 		KMLHeatMap.drawHeatMap(d.getAbsolutePath()+"/"+title+".kml",space_density,rm,title,true);
 		HeatMapGoogleMaps.draw(d.getAbsolutePath()+"/"+title+".html", title, space_density, rm, threshold);
 	}

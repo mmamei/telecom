@@ -45,9 +45,9 @@ public class CreatorRegionMapFromGIS {
 		
 		
 		// WKT	COD_REG	COD_PRO	PROVINCIA	SIGLA	POP2001
-		String input_file = Config.getInstance().dataset_folder+"/GEO/prov2011.csv";
-		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
-		processWTK("prov2011",input_file,output_obj_file,new int[]{3});
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/prov2011.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/prov2011.ser";
+		//processWTK("prov2011",input_file,output_obj_file,new int[]{3});
 		
 		
 		// WKT	COD_REG	REGIONE	POP2001
@@ -67,6 +67,22 @@ public class CreatorRegionMapFromGIS {
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2014.ser";
 		//processWTK("comuni2014",input_file,output_obj_file,new int[]{8});
 		
+		
+		
+		/****************************************************************************************************************/
+		/*											MAIN PROGETTO MATRICI OD 2015 										*/
+		
+		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
+		String input_file = Config.getInstance().dataset_folder+"/GEO/telecom-2015-od/piemonte/piemonte.csv";
+		String output_obj_file=Config.getInstance().base_folder+"/RegionMap/piemoente-od-2015.ser";
+		processWTK("piemonte-od-2015",input_file,output_obj_file,new int[]{4});
+		
+		//WKT	OBJECTID	ID_ZONA	Shape_Leng	Shape_Area	INDEMM_02_	INDEMM_021
+		input_file = Config.getInstance().dataset_folder+"/GEO/telecom-2015-od/lombardia/lombardia.csv";
+		output_obj_file=Config.getInstance().base_folder+"/RegionMap/lombardia-od-2015.ser";
+		processWTK("lombardia-od-2015",input_file,output_obj_file,new int[]{2});
+		
+		/****************************************************************************************************************/
 		
 		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
 		//String input_file = Config.getInstance().dataset_folder+"/GEO/comuni2012.csv";
@@ -103,16 +119,16 @@ public class CreatorRegionMapFromGIS {
 	
 	public static RegionMap processWTK(String name, String input_file, String output_obj_file, int[] name_indexes) throws Exception {
 		
-		/*
-		Set<String> tdc2015 = new HashSet<String>();
-		tdc2015.add("TORINO");
-		tdc2015.add("MILANO");
-		tdc2015.add("VENEZIA");
-		tdc2015.add("ROMA");
-		tdc2015.add("BARI");
-		tdc2015.add("NAPOLI");
-		tdc2015.add("PALERMO");
-		*/
+		
+		//Set<String> tdc2015 = new HashSet<String>();
+		//tdc2015.add("TORINO");
+		//tdc2015.add("MILANO");
+		//tdc2015.add("VENEZIA");
+		//tdc2015.add("ROMA");
+		//tdc2015.add("BARI");
+		//tdc2015.add("NAPOLI");
+		//tdc2015.add("PALERMO");
+		
 		
 		RegionMap rm = new RegionMap(name);
 		

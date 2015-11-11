@@ -22,8 +22,10 @@ public class ODMatrixHW {
 		String regionMap = "grid5";
 		String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_100/results.csv";
 		ODMatrixHW od = new ODMatrixHW();
-		String js = od.runAll(places_file, regionMap, "",0,0,0,0);
-		System.out.println(js);
+		
+		
+		String js = od.runAll(places_file, regionMap, "",45.0813,7.6417,45.0347,7.698);
+		//System.out.println(js);
 		Logger.log("Done!");
 	}
 	
@@ -88,7 +90,10 @@ public class ODMatrixHW {
 			}
 			
 			// prepare for drawing
-			return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region);
+			
+			
+			
+			return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region,rm);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

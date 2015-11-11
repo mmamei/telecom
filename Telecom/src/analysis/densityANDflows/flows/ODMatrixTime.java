@@ -112,7 +112,7 @@ public class ODMatrixTime {
 			}
 			br.close();		
 			String n = file.getName();
-			allRoads = ODMatrixVisual.draw("ODMatrixTime_"+n.substring(0,n.lastIndexOf(".")), list_od,false,dir);
+			allRoads = ODMatrixVisual.draw("ODMatrixTime_"+n.substring(0,n.lastIndexOf(".")), list_od,false,dir,rm);
 
 		} catch(Exception e) {
 			e.printStackTrace();

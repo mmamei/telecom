@@ -11,15 +11,18 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import region.RegionMap;
 import utils.Config;
 import utils.Logger;
 import visual.html.ArrowsGoogleMaps;
 import visual.kml.KML;
 import visual.kml.KMLArrow;
- 
+import visual.r.RRoadNetwork;
+
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
+import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.util.PointList;
 
@@ -43,22 +46,33 @@ public class ODMatrixVisual {
 		double end_lat = 44.968199;
 		double end_lon = 7.621368;
 		
+		
+		
+		
 		GHResponse ph = gh.route(new GHRequest(start_lat,start_lon,end_lat,end_lon));
-        
 		if(ph.isFound()) {
 	        PointList list = ph.getPoints();
-	        for(int i=0; i<list.getSize();i++) {
+	        for(int i=1; i<list.getSize();i++) {
+	        	
+	        	double prevlat = list.getLatitude(i-1);
+	        	double prevlon = list.getLongitude(i-1);
 	        	double lat = list.getLatitude(i);
 	        	double lon = list.getLongitude(i);
-	        	System.out.println(lat+","+lon);
-	        }
+	        	
+	        	int previndex = gh.getIndex().findID(prevlat, prevlon);
+	        	int index = gh.getIndex().findID(lat, lon);
+	        	
+	        	//int edge = gh.getGraph().createEdgeExplorer().
+	        	
+	        	System.out.println("("+prevlat+","+prevlon+") ==> ("+lat+","+lon+") ==> "+gh.route(new GHRequest(list.getLatitude(i-1),list.getLongitude(i-1),list.getLatitude(i),list.getLongitude(i))).getInstructions().toString());
+	        } 
 		}
     }
     
     
     
     
-    public static String draw(String title, Map<Move,Double> list_od, boolean directed, String region) throws Exception {
+    public static String draw(String title, Map<Move,Double> list_od, boolean directed, String osm_region, RegionMap rm) throws Exception {
     	
     	List<double[][]> points = new ArrayList<double[][]>();
 		List<Double> w = new ArrayList<Double>();	
@@ -66,7 +80,7 @@ public class ODMatrixVisual {
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		
     	
-    	Map<String,Double> map = getSegmentOD(list_od,directed,region);
+    	Map<String,Double> map = getSegmentOD(list_od,directed,osm_region);
     	
     	
 		for(Double x: map.values()) 
@@ -90,7 +104,7 @@ public class ODMatrixVisual {
 		File d = new File(dir);
 		if(!d.exists()) d.mkdirs();
 		
-	
+		RRoadNetwork.draw(title, points, w, colors, directed, rm, Config.getInstance().base_folder+"/Images/"+title+".png", null);
 		printKML(dir+"/od_tmp.kml",title,points,w,colors,false);
 		return ArrowsGoogleMaps.draw(dir+"/"+title+".html",title,points,w,colors,false);
     }

@@ -23,9 +23,9 @@ import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.Sort;
 import utils.kdtree.KDTree;
+import visual.r.RHeatMap;
 import visual.r.RPlotter;
 import visual.text.TextPlotter;
-import analysis.densityANDflows.density.PopulationDensity;
 
 
 /*
@@ -103,7 +103,7 @@ public class TouristsSpaceDensity {
 		for(String profile: profile_space_density.keySet()) {
 			Map<String,Double> density = profile_space_density.get(profile);
 			//pd.plotSpaceDensity(name+"_"+profile+(in_out_only ? "_inout" : ""), density, rm, 0);
-			RPlotter.drawHeatMap(dir+"/"+name+"_"+profile+(in_out_only ? "_inout" : "")+".pdf", density, rm, LOG_PLOT,profile+(in_out_only ? " (in/out)" : ""));
+			RHeatMap.drawHeatMap(dir+"/"+name+"_"+profile+(in_out_only ? "_inout" : "")+".pdf", density, rm, LOG_PLOT,profile+(in_out_only ? " (in/out)" : ""));
 				
 		}
 		
