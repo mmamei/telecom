@@ -3,6 +3,7 @@ package visual.r;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import org.rosuda.REngine.Rserve.RConnection;
 import region.RegionI;
 import region.RegionMap;
 import utils.Config;
+import utils.CopyAndSerializationUtils;
 import utils.Logger;
 import analysis.densityANDflows.density.PopulationDensityPlaces;
 
@@ -31,8 +33,15 @@ public class RHeatMap {
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_lomb_users_200_10000/results_lomb.csv", "milano_circoscrizioni_geo.ser", "SUNDAY", "HOME","",0,0,0,0);
 		
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/fast_home_Torino.csv", "torino_circoscrizioni_geo.ser", "HOME", null,"",0,0,0,0);
-		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_lomb_users_200_10000/results_lomb.csv", "lombardia-od-2015.ser", "HOME", null,"",0,0,0,0);
+		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_lomb_users_200_10000/results_lomb.csv", "lombardia-od-2015.ser", "HOME", null,"",0,0,0,0);
 		
+		
+		
+		
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-milano.ser"));
+		Map<String,Double> density = new HashMap<String,Double>();
+		drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+rm.getName()+".png",density,rm,false,"",true);
+				
 		Logger.logln("Done!");
 	}
 	
@@ -44,6 +53,7 @@ public class RHeatMap {
 	
 	
 	public static void drawChoroplethMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text, boolean ggmap) {
+		
 		
 		// extract arrays with all the coordinates, ids, and density values
 		List<Double> llat = new ArrayList<Double>();
@@ -87,7 +97,7 @@ public class RHeatMap {
 			c.assign("id", id);
 			c.assign("val", val);
 			
-			double buffer = 0.5;
+			double buffer = 0.0;
 			// get the bbox for this map
 			Envelope e = rm.getEnvelope();
 			double[] lonlatBbox = new double[4];
@@ -108,7 +118,11 @@ public class RHeatMap {
 				 // BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE
 				 //+ (ggmap? "ggmap(get_map(location = c(bbox), source='stamen', maptype='watercolor', crop=FALSE))" : "ggplot()")
 				 + (ggmap?   "ggmap(get_map(location = c(bbox), maptype='terrain', color='bw', crop=FALSE))" : "ggplot()")
-				 + "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = NA, alpha = 0.5) + theme_bw() + theme(legend.position = c(0.95, 0.1));"
+				 
+				 // *************************************************
+				 // BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE. FIRST FOR CHOROPLETH, SECOND FOR SHAPE ONLY
+				 //+ "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.5) + theme_bw() + theme(legend.position = c(0.95, 0.1));"
+				 + "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.1) + theme_bw() + theme(legend.position = 'none');"
 				 + "ggsave('"+file+"',width=10, height=10);";
          
 			
