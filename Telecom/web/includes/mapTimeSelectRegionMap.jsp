@@ -58,7 +58,7 @@ Weight By Event Attendance
 <select id="users_event_probscores">
 <option value="null"><span>null</option>
 <%
-analysis.presence_at_event.ProbScoresFinder psf = new analysis.presence_at_event.ProbScoresFinder();
+	cdrindividual.presence_at_event.ProbScoresFinder psf = new cdrindividual.presence_at_event.ProbScoresFinder();
 String[] pscores = psf.getAvailableProbScores();
 if(pscores!=null)
 for(String ps: pscores) {

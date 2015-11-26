@@ -1,7 +1,7 @@
 <html>
 <head>
 <%@include file="includes/head.html" %>
-<jsp:useBean id="pu" scope="application" class="analysis.find_user.UserPlotter"/>
+<jsp:useBean id="pu" scope="application" class="cdrindividual.find_user.UserPlotter"/>
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 <script type="text/javascript" src="js/geoxmlfull_v3.js"></script>
 <script>

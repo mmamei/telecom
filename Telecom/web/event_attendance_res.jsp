@@ -1,6 +1,6 @@
 <html>
 <head>
-<jsp:useBean id="ra" scope="application" class="analysis.presence_at_event.RunAll"/>
+<jsp:useBean id="ra" scope="application" class="cdrindividual.presence_at_event.RunAll"/>
 <%@include file="includes/head.html" %>
 </head>
 <body class="no-sidebar">

@@ -11,7 +11,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import analysis.PLSEvent;
+import cdrindividual.PLSEvent;
 
 public class CopyAndSerializationUtils {
 	public static List<PLSEvent> clone(List<PLSEvent> events) {

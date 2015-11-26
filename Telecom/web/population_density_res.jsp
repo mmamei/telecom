@@ -3,7 +3,7 @@
 <%@include file="includes/head.html" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="region.RegionMap" %>
-<jsp:useBean id="pd" scope="application" class="analysis.densityANDflows.density.PopulationDensity"/>
+<jsp:useBean id="pd" scope="application" class="cdrindividual.densityANDflows.density.PopulationDensity"/>
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>
 <script>
 

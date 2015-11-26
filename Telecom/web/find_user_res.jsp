@@ -1,6 +1,6 @@
 <html>
 <head>
-<jsp:useBean id="uf" scope="application" class="analysis.find_user.UserFinder"/>
+<jsp:useBean id="uf" scope="application" class="cdrindividual.find_user.UserFinder"/>
 <%@include file="includes/head.html" %>
 </head>
 <body class="no-sidebar">

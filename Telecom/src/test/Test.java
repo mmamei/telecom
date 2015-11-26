@@ -9,10 +9,10 @@ import java.util.Map;
 
 import org.gps.utils.LatLonPoint;
 
+import cdrindividual.PLSTimeDensity;
+import cdrindividual.presence_at_event.RunAll;
+import cdrindividual.user_place_recognizer.PlaceRecognizer;
 import region.Placemark;
-import analysis.PLSTimeDensity;
-import analysis.presence_at_event.RunAll;
-import analysis.user_place_recognizer.PlaceRecognizer;
 
 
 // http://www.vogella.com/tutorials/JUnit/article.html

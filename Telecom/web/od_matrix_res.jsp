@@ -3,7 +3,7 @@
 <%@include file="includes/head.html" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="region.RegionMap" %>
-<jsp:useBean id="od" scope="application" class="analysis.densityANDflows.flows.ODMatrixTime"/>
+<jsp:useBean id="od" scope="application" class="cdrindividual.densityANDflows.flows.ODMatrixTime"/>
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>
 <script>
 

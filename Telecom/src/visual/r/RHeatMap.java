@@ -14,7 +14,7 @@ import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.Logger;
-import analysis.densityANDflows.density.PopulationDensityPlaces;
+import cdrindividual.densityANDflows.density.PopulationDensityPlaces;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;

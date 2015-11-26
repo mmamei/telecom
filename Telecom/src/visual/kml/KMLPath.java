@@ -13,13 +13,13 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 
+import cdrindividual.PLSEvent;
+import cdrindividual.dataset.impl.DataFactory;
 import region.RegionI;
 import region.RegionMap;
 import utils.Colors;
 import utils.Config;
 import utils.Logger;
-import analysis.PLSEvent;
-import dataset.impl.DataFactory;
 
 public class KMLPath {
 	public static final boolean JITTER = false;

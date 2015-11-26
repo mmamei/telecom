@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.rosuda.REngine.Rserve.RConnection;
 
-import analysis.densityANDflows.flows.ODMatrixHW;
+import cdrindividual.densityANDflows.flows.ODMatrixHW;
 
 import com.vividsolutions.jts.geom.Envelope;
 

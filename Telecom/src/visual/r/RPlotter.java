@@ -14,7 +14,7 @@ import org.rosuda.REngine.Rserve.RConnection;
 import region.RegionI;
 import region.RegionMap;
 import utils.Config;
-import analysis.tourist.GTExtractor;
+import cdrindividual.tourist.GTExtractor;
 
 import com.vividsolutions.jts.geom.Envelope;
 
