@@ -1,7 +1,9 @@
-package cdrindividual.densityANDflows.flows;
+package cdraggregated.densityANDflows.flows;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -11,6 +13,7 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import region.Placemark;
 import region.RegionMap;
 import utils.Config;
 import utils.Logger;
@@ -18,11 +21,11 @@ import visual.html.ArrowsGoogleMaps;
 import visual.kml.KML;
 import visual.kml.KMLArrow;
 import visual.r.RRoadNetwork;
+import cdrindividual.densityANDflows.flows.Move;
 
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
-import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.util.PointList;
 
@@ -33,7 +36,7 @@ public class ODMatrixVisual {
 	
     
     // main for testing purposes
-    public static void main(String[] args) throws Exception {
+    public static void main2(String[] args) throws Exception {
     	String ghLoc = "C:/DATASET/osm/piem";
 	    String testOsm = "C:/DATASET/osm/piem/piem.pbf";
     	GraphHopper gh = new GraphHopper().setInMemory(true, true).setEncodingManager(new EncodingManager(TRASPORTATION_MODE)).setGraphHopperLocation(ghLoc).setOSMFile(testOsm);
@@ -70,7 +73,52 @@ public class ODMatrixVisual {
     }
     
     
+    /*
+     * Questo codice è un po' tutto da rifare.
+     * Innanzitutto non si tratta semplicemente di un visual, ma di un assegnamento della matrice OD sulle strade.
+     * Poi non dovrebbe più passare per la classe Move.
+     * Anche il fatto che il file della regione osm si debba chiamare "file_pls_piem" è brutto.
+     * Derva dal codice precedente e da come il metodo è invocato da ad esempio ODMatrixHW
+     */
     
+    
+    public static void main(String[] args) throws Exception {
+    	draw("ODMatrixHW_file_pls_piem","ODMatrixHW_file_pls_piem",false,"file_pls_piem");
+    }
+    
+    
+    public static String draw(String title, String od_dir, boolean directed, String osm_region) throws Exception {
+    	
+    	RegionMap rm = new RegionMap(title);
+    	BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().base_folder+"/ODMatrix/"+od_dir+"/latlon.csv"));
+    	String line;
+    	while((line = br.readLine())!=null) {
+    		String[] e = line.split("\t");
+    		String name = e[0];
+    		String[] latlon = e[1].split(",");
+    		double lat = Double.parseDouble(latlon[0]);
+    		double lon = Double.parseDouble(latlon[1]);
+    		rm.add(new Placemark(name,new double[]{lat,lon},1));
+    	}
+    	br.close();
+    	
+    	Map<Move,Double> list_od = new HashMap<Move,Double>();
+    	br = new BufferedReader(new FileReader(Config.getInstance().base_folder+"/ODMatrix/"+od_dir+"/od.csv"));
+    	
+    	String[] header = br.readLine().split("\t");
+    	while((line = br.readLine())!=null) {
+    		String[] e = line.split("\t");
+    		for(int i=1;i<e.length;i++) {
+    			double v = Double.parseDouble(e[i]);
+    			if(v > 0)
+    				list_od.put(new Move(rm.getRegion(e[0]),rm.getRegion(header[i])), v);
+    		}
+    	}
+    	br.close();
+    	
+    	
+    	return draw(title,list_od,directed,osm_region,rm);
+    }
     
     public static String draw(String title, Map<Move,Double> list_od, boolean directed, String osm_region, RegionMap rm) throws Exception {
     	

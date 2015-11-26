@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cdraggregated.densityANDflows.flows.ODMatrixVisual;
 import cdrindividual.Constraints;
 import cdrindividual.dataset.EventFilesFinderI;
 import cdrindividual.dataset.impl.DataFactory;
@@ -89,11 +90,11 @@ public class ODMatrixHW {
 				}
 			}
 			
+			// save result in od matrix files
+			ODMatrixPrinter.print("ODMatrixHW_"+region,list_od,rm);
+			return ODMatrixVisual.draw("ODMatrixHW_"+region,"ODMatrixHW_"+region,false,region);
 			// prepare for drawing
-			
-			
-			
-			return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region,rm);
+			//return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region,rm);
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

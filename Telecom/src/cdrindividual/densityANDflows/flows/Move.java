@@ -7,9 +7,9 @@ import region.Region;
 import region.RegionI;
 
 public class Move {
-	RegionI s;
-	RegionI d;
-	boolean directed;
+	public RegionI s;
+	public RegionI d;
+	public boolean directed;
 	
 	
 	public Move(RegionI s, RegionI d) {
