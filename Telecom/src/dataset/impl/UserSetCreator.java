@@ -42,8 +42,9 @@ public class UserSetCreator extends BufferAnalyzerConstrained {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-		
 	}
+	
+	
 	
 	
 	public static void main(String[] args) {
@@ -64,4 +65,21 @@ public class UserSetCreator extends BufferAnalyzerConstrained {
 		ba.run();
 		Logger.logln("Done!");
 	}
+	
+	
+	/*
+	 * This main serve to convert from UsersCSVCreator files (one file per user) in a UserSetCreator file (one file with all the users)
+	 */
+	
+	public static void main2(String[] args) throws Exception {
+		File dir = new File(Config.getInstance().base_folder+"/UsersCSVCreator/file_pls_piem_users_200_10000");
+		PrintWriter out = new PrintWriter(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_lomb.csv");
+		for(String f: dir.list()) {
+			out.println(f.substring(0,f.indexOf(".csv")));
+		}
+		out.close();
+		System.out.println("Done");
+	}
+	
+	
 }

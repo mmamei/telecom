@@ -107,8 +107,8 @@ public class UserFinder {
 				double new_val = Math.min(0.5,Math.log10(1+map.get(u)));		
 				
 				
-				if(u.equals("7ccd23c665344f7c82079a9017b21961de5afef05b5e4171db8b7c13bed2d8")) System.out.println("7ccd.. ==> "+s+" count = "+map.get(u)+" log = "+new_val);
-				if(u.equals("7f3e4f68105e863aa369e5c39ab5789975f0788386b45954829346b7ca63")) System.out.println("7f3e.. ==> "+s+" count = "+map.get(u)+" log = "+new_val);
+				//if(u.equals("7ccd23c665344f7c82079a9017b21961de5afef05b5e4171db8b7c13bed2d8")) System.out.println("7ccd.. ==> "+s+" count = "+map.get(u)+" log = "+new_val);
+				//if(u.equals("7f3e4f68105e863aa369e5c39ab5789975f0788386b45954829346b7ca63")) System.out.println("7f3e.. ==> "+s+" count = "+map.get(u)+" log = "+new_val);
 				
 				tot_map.put(u, prev_count == null ? new_val : prev_count+new_val);
 			}
@@ -222,6 +222,8 @@ public class UserFinder {
 		System.out.println(uf.find(q));
 		*/
 		
+		
+		/*
 		String slucia = "((45.44080378864188,12.32151042933514), (45.44080378864188,12.32151042933514));";
 		String smarco = "((45.43367746627466,12.33969676659992), (45.43367746627466,12.33969676659992));";
 		String hfirenze = "((45.43330167128715,12.33636341730171), (45.43330167128715,12.33636341730171));";
@@ -237,6 +239,27 @@ public class UserFinder {
 				   "2014-03-26;11:56;2014-03-26;12:00;false;"+psusa+
 				   "2014-03-26;13:56;2014-03-26;14:00;false;"+tilab+
 				   "2014-03-26;17:28;2014-03-26;17:32;false;"+pnuova;
+		*/
+		
+		// 27 marzo - 22 maggio 2015 (ER time frame)
+		String h  = "((44.62632605546068, 10.866033464526367), (44.63272399896701, 10.873741205310125));";
+		String w = "((44.68500891420083, 10.661512871936111), (44.68954130108541, 10.670121834948759));";
+		String ym = "2015-05-";
+		String q = 	"2015-04-01;2015-05-22;"+
+					ym+"01;19:00;"+ym+"02;8:00;true;"+h+
+					ym+"02;19:00;"+ym+"03;8:00;true;"+h+
+					ym+"03;19:00;"+ym+"04;8:00;true;"+h+
+					ym+"04;19:00;"+ym+"05;8:00;true;"+h+
+					ym+"05;19:00;"+ym+"06;8:00;true;"+h+
+					ym+"06;19:00;"+ym+"07;8:00;true;"+h+
+					ym+"07;19:00;"+ym+"08;8:00;true;"+h+
+				   
+					ym+"04;9:30;"+ym+"04;17:00;true;"+w+
+					ym+"5;9:30;"+ym+"05;17:00;true;"+w+
+					ym+"06;9:30;"+ym+"06;17:00;true;"+w+
+					ym+"07;9:30;"+ym+"07;17:00;true;"+w+
+					ym+"08;9:30;"+ym+"08;17:00;true;"+w;	
+		
 		System.out.println(uf.find(q));
 		
 		

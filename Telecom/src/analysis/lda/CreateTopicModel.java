@@ -50,7 +50,7 @@ public class CreateTopicModel {
 	public static final double beta = 0.01; // the higher the more word per topic (1 uniform distrib)
 	
 	
-	static RegionMap RM = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/TorinoArea.ser"));
+	static RegionMap RM = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/MilanoArea.ser"));
 	
 	static final DecimalFormat F = new DecimalFormat("#.##",new DecimalFormatSymbols(Locale.US));
     

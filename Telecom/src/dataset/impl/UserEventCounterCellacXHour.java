@@ -105,11 +105,16 @@ public class UserEventCounterCellacXHour extends BufferAnalyzerConstrained {
 		 * Questo mi serve per le operazioni density and flows perchè vedo le tracce degli utenti e quindi la loro density/flow
 		 * all'interno della città.
 		 */
-		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/file_pls_piem"; 
-		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.APRIL,1,0,0,0);
-		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.APRIL,30,23,59,59);
-		process(Placemark.getPlacemark("Torino"),false);
+		//Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/file_pls_piem"; 
+		//Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.APRIL,1,0,0,0);
+		//Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.APRIL,30,23,59,59);
+		//process(Placemark.getPlacemark("Torino"),false);
 		
+		
+		//Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/file_pls_lomb"; 
+		//Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.MARCH,1,0,0,0);
+		//Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.MARCH,30,23,59,59);
+		//process(Placemark.getPlacemark("Milano"),false);
 		
 		/*********************************************************************************************************************************/
 		
@@ -138,8 +143,13 @@ public class UserEventCounterCellacXHour extends BufferAnalyzerConstrained {
 		Config.getInstance().pls_start_time = new GregorianCalendar(2013,Calendar.JUNE,21,0,0,0);
 		Config.getInstance().pls_end_time = new GregorianCalendar(2013,Calendar.JULY,31,23,59,59);
 		PLSParser.REMOVE_BOGUS = false;
-		process(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP.csv",false);
+		process(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_piem.csv",false);
 		*/
+		
+		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/file_pls_lomb"; 
+		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.MARCH,1,0,0,0);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.MARCH,30,23,59,59);
+		process(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_lomb.csv",false);
 		
 		/*
 		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/file_pls_fi"; 

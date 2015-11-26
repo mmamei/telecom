@@ -16,7 +16,7 @@ public class CreatorRegionMapGrid {
 	public static void main(String[] args) throws Exception {
 		
 		
-		
+		/*
 		// since Lecce placemrk is defined as a list of celllcs it is important to set the time proprely	
 		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.AUGUST,1,0,0,0);
 		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.AUGUST,31,23,59,59);
@@ -31,7 +31,10 @@ public class CreatorRegionMapGrid {
 		
 		
 		//run("Puglia",0,50,"Puglia");
+		*/
 		
+		
+		run("Milano",30000,11,"MilanoArea");
 	
 		
 	}
