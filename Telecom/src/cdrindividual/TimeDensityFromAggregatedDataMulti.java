@@ -18,7 +18,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
-import cdrindividual.istat.MEF_IRPEF_BLOG;
+import otherdata.MEF_IRPEF_BLOG;
 import JavaMI.Entropy;
 import region.RegionI;
 import region.RegionMap;

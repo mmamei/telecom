@@ -1,11 +1,28 @@
 package region;
 
 
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import utils.Config;
 import utils.CopyAndSerializationUtils;
@@ -21,6 +38,13 @@ public class CreatorRegionMapFromGIS {
 
 	
 	public static void main(String[] args) throws Exception {
+		
+		new CreatorRegionMapFromGISGUI();
+		
+		/****************************************************************************************************************/
+		/*											MAIN TELECOM DATA CHALLENGE 2015 									*/
+		
+		
 		/*
 		//WKT,id,
 		String[] cities = new String[]{"venezia","milano","torino","napoli","roma","palermo","bari"};
@@ -67,10 +91,15 @@ public class CreatorRegionMapFromGIS {
 		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2014.ser";
 		//processWTK("comuni2014",input_file,output_obj_file,new int[]{8});
 		
-		
+		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
+		//String input_file = Config.getInstance().dataset_folder+"/GEO/comuni2012.csv";
+		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2012.ser";
+		//processWTK("comuni2012",input_file,output_obj_file,new int[]{5});
 		
 		/****************************************************************************************************************/
-		/*											MAIN PROGETTO MATRICI OD 2015 										*/
+		
+		/****************************************************************************************************************/
+		/*											MAIN PROGETTO MATRICI OD 2015 										
 		
 		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
 		String input_file = Config.getInstance().dataset_folder+"/GEO/telecom-2015-od/piemonte/piemonte.csv";
@@ -84,10 +113,6 @@ public class CreatorRegionMapFromGIS {
 		
 		/****************************************************************************************************************/
 		
-		//WKT	OBJECTID	COD_REG	COD_PRO	COD_ISTAT	PRO_COM	NOME	SHAPE_Leng	SHAPE_Area
-		//String input_file = Config.getInstance().dataset_folder+"/GEO/comuni2012.csv";
-		//String output_obj_file=Config.getInstance().base_folder+"/RegionMap/comuni2012.ser";
-		//processWTK("comuni2012",input_file,output_obj_file,new int[]{5});
 		
 		
 		/*
@@ -197,3 +222,186 @@ public class CreatorRegionMapFromGIS {
 	}
 	
 }
+
+
+/************************************************************************/
+
+
+class CreatorRegionMapFromGISGUI {
+	
+	
+	JFrame win;
+	JButton input_file_button;
+	JTextPane input_text_pane;
+	JLabel jl_wtk;
+	JTextField jtf_wtk;
+	JLabel jl_id;
+	JTextField jtf_id;
+	JLabel jl_title;
+	JTextField jtf_title;
+	JButton output_file_button;
+	JTextPane output_text_pane;
+	JButton go;
+	File input_file = null; 
+	File output_obj_file = null; 
+	
+	
+	
+	public CreatorRegionMapFromGISGUI() {
+		win = new JFrame("CreatorRegionMapFromGIS");
+		Container c = win.getContentPane();
+		c.setLayout(new FlowLayout());
+
+				
+		input_file_button = new JButton("Select Input SHP CSV File"); input_file_button.setPreferredSize(new Dimension(300, 50));
+		input_text_pane = new JTextPane(); input_text_pane.setPreferredSize(new Dimension(1000, 200));
+		
+		jl_wtk = new JLabel("wtk index"); jl_wtk.setPreferredSize(new Dimension(80, 20));jl_wtk.setHorizontalAlignment(SwingConstants.RIGHT);
+		jtf_wtk = new JTextField("0"); jtf_wtk.setPreferredSize(new Dimension(40, 20));
+		
+		jl_id = new JLabel("id index"); jl_id.setPreferredSize(new Dimension(80, 20));jl_id.setHorizontalAlignment(SwingConstants.RIGHT);
+		jtf_id = new JTextField(); jtf_id.setPreferredSize(new Dimension(40, 20));
+		
+		
+		jl_title = new JLabel("map title"); jl_title.setPreferredSize(new Dimension(80, 20));jl_title.setHorizontalAlignment(SwingConstants.RIGHT);
+		jtf_title = new JTextField(""); jtf_title.setPreferredSize(new Dimension(500, 20));
+		
+		output_file_button = new JButton("Select Output SER File"); output_file_button.setPreferredSize(new Dimension(300, 50));
+		output_text_pane = new JTextPane(); output_text_pane.setPreferredSize(new Dimension(1000, 40));
+		
+		go = new JButton("Go!"); go.setPreferredSize(new Dimension(60, 50)); go.setBackground(Color.RED);
+		
+		
+		input_file_button.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				try {
+					
+					input_file = null;
+		        	input_text_pane.setText("");
+					
+					JFileChooser fileChooser = new JFileChooser(new File(Config.getInstance().dataset_folder+"/GEO"));
+					int n = fileChooser.showOpenDialog(win);
+			        if (n == JFileChooser.APPROVE_OPTION) {
+			        	input_file = fileChooser.getSelectedFile();
+			        	StyledDocument doc = input_text_pane.getStyledDocument();
+			        	
+			        	
+			        	SimpleAttributeSet keyWord = new SimpleAttributeSet();
+			        	StyleConstants.setForeground(keyWord, Color.RED);
+			        	StyleConstants.setBold(keyWord, true);
+			        	
+			        	int max_char_to_show = 100;
+			        	
+			        	doc.insertString(0, "SELECTED FILE: "+input_file.getAbsolutePath()+"\n",keyWord);
+			            BufferedReader read = new BufferedReader(new FileReader(input_file));
+			            int cont = 0;
+			            String line;
+			            while((line = read.readLine())!=null) {
+			              int nchar = Math.min(line.length(), max_char_to_show);
+			              int start = nchar < line.length() ? line.length()-nchar : 0;
+			              line = (start>0?"...":"")+ line.substring(start,line.length())+"\n";
+			              doc.insertString(doc.getLength(),line,null);
+			              cont++;
+			              if(cont > 10) break;
+			            }
+			            read.close();
+			        }
+			        else {
+			        	input_file = null;
+			        	input_text_pane.setText("");
+			        }
+				} catch(Exception exc) {
+					exc.printStackTrace();
+				}
+			}
+		});
+		
+		 
+		output_file_button.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				try {
+					JFileChooser fileChooser = new JFileChooser(new File(Config.getInstance().base_folder+"/RegionMap"));
+					int n = fileChooser.showOpenDialog(win);
+			        if (n == JFileChooser.APPROVE_OPTION) {
+			        	output_obj_file = fileChooser.getSelectedFile();
+			        	StyledDocument doc = output_text_pane.getStyledDocument();
+			        	
+			        	SimpleAttributeSet keyWord = new SimpleAttributeSet();
+			        	StyleConstants.setForeground(keyWord, Color.RED);
+			        	StyleConstants.setBold(keyWord, true);
+			        	
+			        	doc.insertString(0, "SELECTED FILE: "+output_obj_file.getAbsolutePath()+"\n",keyWord);
+			        }
+			        else {
+			        	output_obj_file = null;
+			        	output_text_pane.setText("");
+			        }
+				} catch(Exception exc) {
+					exc.printStackTrace();
+				}
+			}
+		});
+		
+		
+		go.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) {
+				
+				System.out.println("input = "+input_file.getAbsolutePath());
+				System.out.println("output = "+output_obj_file.getAbsolutePath());
+				System.out.println("wtk index = "+jtf_wtk.getText());
+				
+				int id = Integer.parseInt(jtf_id.getText());
+				String title = jtf_title.getText();
+				
+				System.out.println("id index = "+id);
+				System.out.println("title = "+title);
+				
+				try {
+					CreatorRegionMapFromGIS.processWTK(title,input_file.getAbsolutePath(),output_obj_file.getAbsolutePath(),new int[]{id});
+					
+					input_file = null;
+					input_text_pane.setText("");
+					output_obj_file = null;
+					output_text_pane.setText("");
+					jtf_wtk.setText("0");
+					jtf_id.setText("");
+					jtf_title.setText("");
+					
+				} catch (Exception exc) {
+					exc.printStackTrace();
+					
+					input_file = null;
+					input_text_pane.setText(exc.toString());
+					output_obj_file = null;
+					output_text_pane.setText(exc.toString());
+					jtf_wtk.setText("0");
+					jtf_id.setText("");
+					jtf_title.setText("");
+					
+				}
+				
+				
+			}
+		});
+		
+		
+		c.add(input_file_button);
+		c.add(input_text_pane);
+		c.add(jl_wtk);
+		c.add(jtf_wtk);
+		c.add(jl_id);
+		c.add(jtf_id);
+		c.add(jl_title);
+		c.add(jtf_title);
+		c.add(output_file_button);
+		c.add(output_text_pane);
+		c.add(go);
+		
+		win.setResizable(false);
+		win.setSize(1010,500);
+		win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		win.setVisible(true);
+	}
+}
+
+

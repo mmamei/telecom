@@ -105,6 +105,11 @@ public class ODMatrixVisual {
     	Map<Move,Double> list_od = new HashMap<Move,Double>();
     	br = new BufferedReader(new FileReader(Config.getInstance().base_folder+"/ODMatrix/"+od_dir+"/od.csv"));
     	
+    	//skip header -- read until empty line
+    	while((line = br.readLine())!=null){
+    		if(line.length()==0) break;
+    	}
+    	
     	String[] header = br.readLine().split("\t");
     	while((line = br.readLine())!=null) {
     		String[] e = line.split("\t");

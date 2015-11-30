@@ -91,7 +91,7 @@ public class ODMatrixHW {
 			}
 			
 			// save result in od matrix files
-			ODMatrixPrinter.print("ODMatrixHW_"+region,list_od,rm);
+			ODMatrixPrinter.print("ODMatrixHW_"+region,list_od,rm,"HW");
 			return ODMatrixVisual.draw("ODMatrixHW_"+region,"ODMatrixHW_"+region,false,region);
 			// prepare for drawing
 			//return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region,rm);

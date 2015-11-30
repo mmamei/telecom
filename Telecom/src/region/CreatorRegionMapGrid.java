@@ -34,7 +34,7 @@ public class CreatorRegionMapGrid {
 		*/
 		
 		
-		run("Milano",30000,11,"MilanoArea");
+		run("Milano",10000,5,"MilanoArea");
 	
 		
 	}

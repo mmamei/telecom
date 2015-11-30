@@ -11,7 +11,7 @@ import utils.Config;
 
 public class ODMatrixPrinter {
 	
-	public static void print(String basedir, Map<Move,Double> list_od, RegionMap rm) {
+	public static void print(String basedir, Map<Move,Double> list_od, RegionMap rm, String method) {
 		try {
 			File dir = new File(Config.getInstance().base_folder+"/ODMatrix/"+basedir);
 			dir.mkdirs();
@@ -26,8 +26,9 @@ public class ODMatrixPrinter {
 			
 			out = new PrintWriter(new FileWriter(dir+"/od.csv"));
 			
-			// print header
-			out.print("O\\D");
+			printHeader(out,method,rm.getName());
+			
+			// print first line
 			for(RegionI d: rm.getRegions())
 				out.print("\t"+d.getName());
 			out.println();
@@ -49,6 +50,24 @@ public class ODMatrixPrinter {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	
+	public static void printHeader(PrintWriter out, String method, String region) {
+		out.println("--------------------------------------------------------------");
+		out.println("Matrice Origine Destinazione");
+		out.println("--------------------------------------------------------------");
+		out.println("- Metodo: "+method);
+		out.println("- Zona interessata: "+region);
+		out.println("- Istante di inizio: Mon, 14 Sep 2015 23:00");
+		out.println("- Soglia per italiani: 8");
+		out.println("- Applicato filtro privacy: 1");
+		out.println("- # di utenti su utenti del campione: 32300 su 631560");
+		out.println("- Tipologia utenti: Tutti");
+		out.println(" - Istante di fine: Tue, 15 Sep 2015 00:00");
+		out.println("- Soglia per stranieri: 8");
+		out.println("--------------------------------------------------------------");
+		out.println(); // la quattordicesima riga del file è vuota
 	}
 	
 	

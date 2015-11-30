@@ -72,8 +72,9 @@ public class UserSetCreator extends BufferAnalyzerConstrained {
 	 */
 	
 	public static void main2(String[] args) throws Exception {
-		File dir = new File(Config.getInstance().base_folder+"/UsersCSVCreator/file_pls_piem_users_200_10000");
-		PrintWriter out = new PrintWriter(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_lomb.csv");
+		String area = "lomb";
+		File dir = new File(Config.getInstance().base_folder+"/UsersCSVCreator/file_pls_"+area+"_users_200_10000");
+		PrintWriter out = new PrintWriter(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_"+area+".csv");
 		for(String f: dir.list()) {
 			out.println(f.substring(0,f.indexOf(".csv")));
 		}

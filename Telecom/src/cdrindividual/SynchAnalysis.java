@@ -16,7 +16,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
-import cdrindividual.istat.MEF_IRPEF_BLOG;
+import otherdata.MEF_IRPEF_BLOG;
 import region.RegionI;
 import region.RegionMap;
 import utils.AddMap;

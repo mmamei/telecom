@@ -1,4 +1,4 @@
-package cdrindividual.istat;
+package otherdata;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

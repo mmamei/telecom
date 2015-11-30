@@ -13,8 +13,11 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import cdrindividual.lda.bow.Bow;
 import region.Placemark;
+import region.RegionMap;
 import utils.Config;
+import utils.CopyAndSerializationUtils;
 import utils.Logger;
 import utils.Mail;
 
@@ -98,12 +101,19 @@ public class UserEventCounter extends BufferAnalyzerConstrained {
 	}
 	
 	
-	public static void main2(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 		String region = "file_pls_lomb";
 		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/"+region;
 		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.MARCH,1);
-		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.MARCH,30);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.MARCH,2);
+		
+		Placemark p = Placemark.getPlacemark("Milano");
+		p.changeRadius(p.getRadius()+10000);		
+		
+		new UserEventCounter(p,null).run();
 		percentAnalysis(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv"));
+		//extractUsersAboveThreshold(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv"),new File(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_lomb.csv"), 700, -1);
+		
 	}
 	
 	public static void getBogus() throws Exception {
@@ -145,7 +155,7 @@ public class UserEventCounter extends BufferAnalyzerConstrained {
 		Mail.send("UserEventCounter completed!");
 	}
 	
-	public static void main(String[] args) throws Exception{
+	public static void main2(String[] args) throws Exception{
 		getBogus();
 	}
 	
