@@ -1,4 +1,4 @@
-package cdrindividual.densityANDflows.density;
+package cdraggregated.dataset;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cdrindividual.TimeDensityFromAggregatedData;
+import cdraggregated.TimeDensityFromAggregatedData;
 import region.RegionI;
 import region.RegionMap;
 import utils.Config;

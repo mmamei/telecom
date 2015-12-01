@@ -1,4 +1,4 @@
-package d4d.afripop;
+package otherdata.TIbigdatachallenge2015.d4d.afripop;
 
 import java.io.File;
 import java.io.FileWriter;

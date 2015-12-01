@@ -81,6 +81,8 @@ public class IstatComparator {
 		Map<String,UserPlaces> up = UserPlaces.readUserPlaces(places_file);
 		
 		PopulationDensityPlaces pdp = new PopulationDensityPlaces();
+		
+		// questo in teoria lo dovrei leggere da un file, o comque computeSpaceDensity dpvrebbe essre un serivzio remoto a cui posso accedere 
 		Map<String,Double> density = pdp.computeSpaceDensity(rm,up,kind_of_place,exclude_kind_of_place,new Constraints(""));
 		
 		

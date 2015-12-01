@@ -1,11 +1,11 @@
-package otherdata;
+package otherdata.TIbigdatachallenge2015;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import cdrindividual.SynchAnalysis;
+import cdraggregated.SynchAnalysis;
 import utils.Config;
 import visual.r.RPlotter;
 

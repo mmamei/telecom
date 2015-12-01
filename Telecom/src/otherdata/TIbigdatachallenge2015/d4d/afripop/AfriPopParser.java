@@ -1,4 +1,4 @@
-package d4d.afripop;
+package otherdata.TIbigdatachallenge2015.d4d.afripop;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;

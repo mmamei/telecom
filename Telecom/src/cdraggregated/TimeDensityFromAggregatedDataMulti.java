@@ -1,4 +1,4 @@
-package cdrindividual;
+package cdraggregated;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,7 +18,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
-import otherdata.MEF_IRPEF_BLOG;
+import otherdata.TIbigdatachallenge2015.MEF_IRPEF_BLOG;
 import JavaMI.Entropy;
 import region.RegionI;
 import region.RegionMap;

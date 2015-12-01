@@ -1,4 +1,4 @@
-package otherdata;
+package otherdata.TIbigdatachallenge2015;
 
 import java.io.BufferedReader;
 import java.io.File;

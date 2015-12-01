@@ -1,4 +1,4 @@
-package cdrindividual;
+package cdraggregated;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,7 +16,10 @@ import java.util.Set;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
-import otherdata.MEF_IRPEF_BLOG;
+import otherdata.TIbigdatachallenge2015.IstatCensus2011;
+import otherdata.TIbigdatachallenge2015.MEF_IRPEF;
+import otherdata.TIbigdatachallenge2015.MEF_IRPEF_BLOG;
+import otherdata.TIbigdatachallenge2015.SocialCapital;
 import region.RegionI;
 import region.RegionMap;
 import utils.AddMap;
@@ -45,7 +48,7 @@ public class SynchAnalysis {
 	
 	
 	
-	public static boolean CAPOLUOGO_ONLY = true; 
+	public static boolean CAPOLUOGO_ONLY = false; 
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
@@ -290,17 +293,17 @@ public class SynchAnalysis {
 		//RPlotter.drawScatter(lx, ly, ln, "cities", "dist", "R^2", Config.getInstance().base_folder+"/Images/scatter-"+type+"-synch3.pdf",null);
 		//RPlotter.drawBar(names, values, "cities", "R^2", Config.getInstance().base_folder+"/Images/bar-"+type+"-synch3.pdf",null);
 		//RPlotter.drawBoxplot(lvalues_caps,ln,"caps",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-caps-"+type+"-"+USE_FEATURE+".pdf",null);
-		RPlotter.drawBoxplot(lvalues_comuni2012,ln,"province",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
+		//RPlotter.drawBoxplot(lvalues_comuni2012,ln,"province",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
 		//RPlotter.drawBoxplot(lvalues_comuni2014,ln,"comuni2014",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2014-"+type+"-"+USE_FEATURE+".pdf",null);
-		RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
-		RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
+		//RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
+		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
 		
-		if(!CAPOLUOGO_ONLY) System.exit(0);
+		//if(!CAPOLUOGO_ONLY) System.exit(0);
 		
-		/*
 		
-		Deprivation dp = Deprivation.getInstance();
-		plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png");
+		
+		//Deprivation dp = Deprivation.getInstance();
+		//plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png");
 		
 		//for(String k: all_density_regioni.keySet())
 		//	System.out.println("deprivazione..................... "+k+""+" "+all_density_regioni.get(k)+" .... "+dp.getDepriv().get(k));
@@ -310,6 +313,7 @@ public class SynchAnalysis {
 		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name);
 		//plotCorrelation(all_density_comuni2014,mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-gini.pdf",id2name);
 		
+		System.exit(0);
 		
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
 		int[] indices = new int[]{46,51,59,61};
@@ -324,17 +328,17 @@ public class SynchAnalysis {
 		
 		//for(String k: all_density_prov2011.keySet())
 		//	System.out.println("blood..................... "+k+""+" "+all_density_prov2011.get(k)+" .... "+sc.getBlood().get(k));
-		*/
 		
-		Map<String,Double> company_size_entropy = new HashMap<String,Double>();
-		company_size_entropy.put("TORINO",0.5508074048631459);
-		company_size_entropy.put("MILANO",0.6672230369732484);
-		company_size_entropy.put("VENEZIA",0.7115197865582921);
-		company_size_entropy.put("ROMA",0.5005666299625349);
-		company_size_entropy.put("NAPOLI",0.4354609564522476);
-		company_size_entropy.put("BARI",0.5043454658301506);
-		company_size_entropy.put("PALERMO",0.4642571074232869);
-		plotCorrelation(all_density_prov2011,company_size_entropy,USE_FEATURE,"companies size entropy",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-companysizeentropy.png");
+		
+		//Map<String,Double> company_size_entropy = new HashMap<String,Double>();
+		//company_size_entropy.put("TORINO",0.5508074048631459);
+		//company_size_entropy.put("MILANO",0.6672230369732484);
+		//company_size_entropy.put("VENEZIA",0.7115197865582921);
+		//company_size_entropy.put("ROMA",0.5005666299625349);
+		//company_size_entropy.put("NAPOLI",0.4354609564522476);
+		//company_size_entropy.put("BARI",0.5043454658301506);
+		//company_size_entropy.put("PALERMO",0.4642571074232869);
+		//plotCorrelation(all_density_prov2011,company_size_entropy,USE_FEATURE,"companies size entropy",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-companysizeentropy.png");
 		
 		
 		
@@ -800,6 +804,7 @@ public class SynchAnalysis {
 			double x = h0.calculateRSquared();
 			USE_FEATURE = TYPE == DEMOGRAPHIC_RES ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
 			
+			//System.out.println("-----> "+x);
 			
 	        
 			return x;

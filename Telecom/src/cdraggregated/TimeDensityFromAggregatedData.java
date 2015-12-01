@@ -1,4 +1,4 @@
-package cdrindividual;
+package cdraggregated;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,6 @@ import region.RegionI;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.r.RPlotter;
@@ -146,7 +146,9 @@ public class TimeDensityFromAggregatedData {
 				map = (Map<String,double[]>)CopyAndSerializationUtils.restore(f);
 			}
 			else {
-			
+				
+				new File(Config.getInstance().base_folder+"/TIC2015/cache/single/").mkdirs();
+				
 				if(file.endsWith(".tar.gz")) {
 					TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new FileInputStream(file)));
 					TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
@@ -159,6 +161,7 @@ public class TimeDensityFromAggregatedData {
 					tarInput.close();
 				}
 				else {
+					System.out.println(file);
 					processFile(new BufferedReader(new FileReader(file)),readIndexes,constraint);
 				}
 				
@@ -184,21 +187,26 @@ public class TimeDensityFromAggregatedData {
 	
 	private void processFile(BufferedReader br,int[] readIndexes, SynchConstraints constraint) {
 		
-		
 		String line = null;
 		try {
 			while ((line = br.readLine()) != null) {
 			       String[] x = line.split("\t");
+			       
+			       if(x.length < 4) {
+			    	   System.err.println(line);
+			    	   continue;
+			       }
+			       
 			       long time = Long.parseLong(x[readIndexes[0]]) * 1000;
 			       String cell = x[readIndexes[1]];   
 			       double value = Double.parseDouble(x[readIndexes[2]]);
 			       String meta = x[readIndexes[3]];
+
 			       if(constraint == null || constraint.ok(meta)) {
 			       
 			    	   if(rm != null) {
 				    	   // convert from grid representation (gridMap) to another region map (rm)
-				    	   
-			    		   
+				    	   			    		   
 			    		   float[] areas = rm.computeAreaIntersection(gridMap.getRegion(cell));
 			    		   for(int i=0; i<areas.length;i++)
 			    			   if(areas[i] > 0) {
@@ -208,7 +216,7 @@ public class TimeDensityFromAggregatedData {
 			    					   v = new double[tc.getTimeSize()];
 			    					   map.put(r.getName(), v);
 			    				   }
-			    				   //System.out.println(time+" --> "+new Date(time));
+			    				   //System.out.println(time+" --> "+new Date(time)+" .... "+value * areas[i]);
 			    				   v[tc.time2index(time)]+= value * areas[i];
 			    			   }
 				       }
@@ -223,6 +231,7 @@ public class TimeDensityFromAggregatedData {
 			    	   }
 			       }
 			}
+			System.out.println();
 			//br.close();
 		}catch(Exception e) {
 			System.err.println(line);
