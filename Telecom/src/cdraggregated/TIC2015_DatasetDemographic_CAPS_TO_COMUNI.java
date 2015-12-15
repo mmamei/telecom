@@ -23,21 +23,40 @@ public class TIC2015_DatasetDemographic_CAPS_TO_COMUNI {
 		
 		cap2comuni = cap2comuni();
 		
-		String[] cities = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
+		String[] cities = new String[]{
+				//"caltanissetta",
+				//"siracusa",
+				//"benevento",
+				//"palermo",
+				//"campobasso",
+				//"napoli",
+				//"asti",
+				//"bari",
+				//"ferrara",
+				//"venezia",
+				//"torino",
+				"ravenna",
+				//"modena",
+				//"roma",
+				//"siena",
+				//"milano"
+		};
+		
+		
+		
 		for(String city: cities)
-			process(city);
+			process( Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_CAP");
+		
+		
 		System.out.println("Done!");
 	}
 	
 	
 	
 	
-	public static void process(String city) throws Exception {
+	public static void process(String caps_file) throws Exception {
 		
-		String caps_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_CAP";
-		
-		
-		
+
 		System.out.println("Processing..."+caps_file);
 		
 		int zero = 0;
@@ -46,7 +65,7 @@ public class TIC2015_DatasetDemographic_CAPS_TO_COMUNI {
 		Set<String> caps_not_found = new HashSet<String>();
 		
 		
-		PrintWriter pw = new PrintWriter(new FileWriter(caps_file.replaceAll("CAP", "COMUNI2012")));
+		PrintWriter pw = new PrintWriter(new FileWriter(caps_file.replaceAll("_CAP", "_COMUNI2012")));
 		
 		BufferedReader br = new BufferedReader(new FileReader(caps_file));
 		String line;

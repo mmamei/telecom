@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
+import otherdata.TIbigdatachallenge2015.Deprivation;
 import otherdata.TIbigdatachallenge2015.IstatCensus2011;
 import otherdata.TIbigdatachallenge2015.MEF_IRPEF;
 import otherdata.TIbigdatachallenge2015.MEF_IRPEF_BLOG;
@@ -31,6 +32,7 @@ import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.kml.KMLHeatMap;
 import visual.r.RPlotter;
+import JavaMI.Entropy;
 
 public class SynchAnalysis {
 	
@@ -46,8 +48,7 @@ public class SynchAnalysis {
 	 */
 	
 	
-	
-	
+
 	public static boolean CAPOLUOGO_ONLY = false; 
 	
 	public static boolean PRINT_CORR_MATRIX = false;
@@ -55,21 +56,37 @@ public class SynchAnalysis {
 	public static final String[] COMPANY_CONSTRAINTS = null;//new String[]{"01-32","grande",""};
 	public static final int LIMIT = -1;
 	
-	public static final int CALLOUT_IT = 0;
-	public static final int CALLOUT_IT_VS_NON_IT = 1;
-	public static final int DEMOGRAPHIC_RES = 2;
-	public static final int DEMOGRAPHIC_RES_VS_NON_RES = 3;
-	public static final int DEMOGRAPHIC_IT_VS_NON_IT = 4;
-	public static final int DEMOGRAPHIC_ALL = 5;
 	
-	public static final int TYPE = DEMOGRAPHIC_RES;
+	private enum Analysis {CALLOUT_IT,CALLOUT_IT_VS_NON_IT,DEMOGRAPHIC_RES,DEMOGRAPHIC_RES_VS_NON_RES,DEMOGRAPHIC_IT_VS_NON_IT,DEMOGRAPHIC_ALL};
+	public static final Analysis TYPE = Analysis.DEMOGRAPHIC_RES;
 	
 
-	
+	private enum Feature {RSQ, I};
+	public static final Feature USEF = Feature.RSQ;
 	
 	
 	public static void main(String[] args) throws Exception {
-		String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
+		//String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
+		
+		String[] city = new String[]{
+				"caltanissetta",
+				"siracusa",
+				"benevento",
+				"palermo",
+				"campobasso",
+				"napoli",
+				"asti",
+				"bari",
+				"ravenna",
+				"ferrara",
+				"venezia",
+				"torino",
+				"modena",
+				"roma",
+				"siena",
+				"milano"
+		};
+		
 		String[] files = new String[city.length];
 		
 		Map<String, List<SynchConstraints>> map_constraints = new HashMap<String,List<SynchConstraints>>();
@@ -84,9 +101,21 @@ public class SynchAnalysis {
 		id2capolouogo.put("napoli", "63049");
 		id2capolouogo.put("bari", "72006");
 		id2capolouogo.put("palermo", "82053");
+
+		id2capolouogo.put("benevento", "62008");
+		id2capolouogo.put("caltanissetta", "85004");
+		id2capolouogo.put("modena", "36023");
+		id2capolouogo.put("siena", "52032");
+		id2capolouogo.put("siracusa", "89017");
+		id2capolouogo.put("asti", "5005");
+		id2capolouogo.put("campobasso", "70006");
+		id2capolouogo.put("ferrara", "38008");
+		id2capolouogo.put("ravenna", "39014");
 		
 		
-		if(TYPE == CALLOUT_IT) {
+		
+		
+		if(TYPE.equals(Analysis.CALLOUT_IT)) {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
 			for(int i=0; i<city.length;i++)
@@ -104,7 +133,7 @@ public class SynchAnalysis {
 			
 		}
 		
-		if(TYPE == CALLOUT_IT_VS_NON_IT) {
+		if(TYPE.equals(Analysis.CALLOUT_IT_VS_NON_IT)) {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
 			for(int i=0; i<city.length;i++)
@@ -123,7 +152,7 @@ public class SynchAnalysis {
 			
 		}
 		
-		if(TYPE == DEMOGRAPHIC_RES) {
+		if(TYPE.equals(Analysis.DEMOGRAPHIC_RES)) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
@@ -145,7 +174,7 @@ public class SynchAnalysis {
 			}
 		}
 		
-		if(TYPE == DEMOGRAPHIC_RES_VS_NON_RES) {
+		if(TYPE.equals(Analysis.DEMOGRAPHIC_RES_VS_NON_RES)) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
@@ -167,7 +196,7 @@ public class SynchAnalysis {
 		}
 		
 		
-		if(TYPE == DEMOGRAPHIC_IT_VS_NON_IT) {
+		if(TYPE.equals(Analysis.DEMOGRAPHIC_IT_VS_NON_IT)) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
@@ -183,7 +212,7 @@ public class SynchAnalysis {
 		}
 		
 		
-		if(TYPE == DEMOGRAPHIC_ALL) {
+		if(TYPE.equals(Analysis.DEMOGRAPHIC_ALL)) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
@@ -224,10 +253,10 @@ public class SynchAnalysis {
 		List<double[]> lvalues_prov2011 = new ArrayList<double[]>();
 		List<double[]> lvalues_regioni = new ArrayList<double[]>();
 		
-		Map<String,Double> all_density_comuni2012 = new HashMap<String,Double>();
-		Map<String,Double> all_density_comuni2014 = new HashMap<String,Double>();
-		Map<String,Double> all_density_prov2011 = new HashMap<String,Double>();
-		Map<String,Double> all_density_regioni = new HashMap<String,Double>();
+		AddMap all_density_comuni2012 = new AddMap();
+		AddMap all_density_comuni2014 = new AddMap();
+		AddMap all_density_prov2011 = new AddMap();
+		AddMap all_density_regioni = new AddMap();
 		
 		
 		RegionMap prov2011 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-prov2011.ser"));
@@ -235,9 +264,12 @@ public class SynchAnalysis {
 		
 		
 		
-		
 		for(int i=0; i<city.length;i++) {
-			names[i] = city[i].substring(0, 1).toUpperCase() + city[i].substring(1,2); // capitalize first letter and consider only the first two letters
+			
+			System.out.println("\n\n*************************************************** START PROCESSING "+city[i].toUpperCase());
+			
+			
+			names[i] = city[i].substring(0, 1).toUpperCase() + city[i].substring(1,3); // capitalize first letter and consider only the first two letters
 			
 			RegionMap rm_comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city[i]+".ser"));
 			List<TimeDensityFromAggregatedData> tds_comuni2012 = loadTimeDensityFromAggregatedData(city[i],type,files[i],readIndexes,rm_comuni2012,map_constraints.get(city[i]));
@@ -251,7 +283,7 @@ public class SynchAnalysis {
 			Map<String,Double> density_prov2011 = null;
 			Map<String,Double> density_regioni = null;
 			
-			if(TYPE == DEMOGRAPHIC_RES) {
+			if(TYPE.equals(Analysis.DEMOGRAPHIC_RES)) {
 				density_prov2011 = reproject2map(density_comuni2012,city[i],rm_comuni2012,prov2011);
 				density_regioni = reproject2map(density_comuni2012,city[i],rm_comuni2012,regioni);
 			}
@@ -261,7 +293,7 @@ public class SynchAnalysis {
 				
 			}
 			
-			
+
 			
 			if(CAPOLUOGO_ONLY) {
 				// keep only the capoluogo
@@ -275,10 +307,10 @@ public class SynchAnalysis {
 			
 			
 			
-			all_density_comuni2012.putAll(density_comuni2012);
-			all_density_comuni2014.putAll(density_comuni2014);
-			all_density_prov2011.putAll(density_prov2011);
-			all_density_regioni.putAll(density_regioni);
+			all_density_comuni2012.addAll(density_comuni2012);
+			all_density_comuni2014.addAll(density_comuni2014);
+			all_density_prov2011.addAll(density_prov2011);
+			all_density_regioni.addAll(density_regioni);
 			
 			ln.add(names[i]);
 			
@@ -287,23 +319,28 @@ public class SynchAnalysis {
 			lvalues_prov2011.add(density2array(density_prov2011));
 			lvalues_regioni.add(density2array(density_regioni));
 			
-			//System.out.println(names[i]+" --> "+values[i]);
-			//RPlotter.drawScatter(x, y, "dist (km)", "pearson", Config.getInstance().base_folder+"/Images/scatter-"+names[i]+"-"+type+"-synch3.pdf",null);
+			
+			System.out.println("*************************************************** END PROCESSING "+city[i].toUpperCase());
+			
 		}
-		//RPlotter.drawScatter(lx, ly, ln, "cities", "dist", "R^2", Config.getInstance().base_folder+"/Images/scatter-"+type+"-synch3.pdf",null);
-		//RPlotter.drawBar(names, values, "cities", "R^2", Config.getInstance().base_folder+"/Images/bar-"+type+"-synch3.pdf",null);
-		//RPlotter.drawBoxplot(lvalues_caps,ln,"caps",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-caps-"+type+"-"+USE_FEATURE+".pdf",null);
-		//RPlotter.drawBoxplot(lvalues_comuni2012,ln,"province",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
-		//RPlotter.drawBoxplot(lvalues_comuni2014,ln,"comuni2014",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2014-"+type+"-"+USE_FEATURE+".pdf",null);
-		//RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
-		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",null);
+		
+		// regioni is the only one that can have multiple data. Therefore it is important to compute the mean otherwise I can have R^2 > 1
+		all_density_regioni.mean();
+		
+		
+		RPlotter.drawBoxplot(lvalues_comuni2014,ln,"comuni2014",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2014-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
+		RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
+		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		
 		//if(!CAPOLUOGO_ONLY) System.exit(0);
 		
 		
 		
-		//Deprivation dp = Deprivation.getInstance();
-		//plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png");
+		
+		Deprivation dp = Deprivation.getInstance();
+		plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png");
+		
+		
 		
 		//for(String k: all_density_regioni.keySet())
 		//	System.out.println("deprivazione..................... "+k+""+" "+all_density_regioni.get(k)+" .... "+dp.getDepriv().get(k));
@@ -313,7 +350,6 @@ public class SynchAnalysis {
 		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name);
 		//plotCorrelation(all_density_comuni2014,mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-gini.pdf",id2name);
 		
-		System.exit(0);
 		
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
 		int[] indices = new int[]{46,51,59,61};
@@ -470,28 +506,44 @@ public class SynchAnalysis {
 		System.out.println(">>>>> REPROJECT DENSITY "+city+" FROM "+rm_from.getName()+" TO "+rm_to.getName());
 		AddMap res = new AddMap();
 		
+		
+		HashMap<String,String> city2region = new HashMap<String,String>();
+		city2region.put("torino", "PIEMONTE");
+		city2region.put("milano", "LOMBARDIA");
+		city2region.put("venezia", "VENETO");
+		city2region.put("roma", "LAZIO");
+		city2region.put("napoli", "CAMPANIA");
+		city2region.put("bari", "PUGLIA");
+		city2region.put("palermo", "SICILIA");
+		
+		city2region.put("campobasso", "MOLISE");
+		city2region.put("siracusa", "SICILIA");
+		city2region.put("benevento", "CAMPANIA");
+		city2region.put("caltanissetta", "SICILIA");
+		city2region.put("modena", "EMILIA-ROMAGNA");
+		city2region.put("siena", "TOSCANA");
+		city2region.put("asti", "PIEMONTE");
+		city2region.put("ferrara", "EMILIA-ROMAGNA");
+		city2region.put("ravenna", "EMILIA-ROMAGNA");
+		
+		HashMap<String,String> city2province = new HashMap<String,String>();
+		for(String province: new String[]{"torino","milano","venezia","roma","napoli","bari","palermo","campobasso","siracusa","benevento","caltanissetta","modena","siena","asti","ferrara","ravenna"})
+			city2province.put(province,province.toUpperCase());
+		
 		for(String f : map.keySet()) {
 			double value = map.get(f);
 			
+			
 			if(rm_to.getName().contains("regioni")) {
-				if(city.equals("torino")) res.add("PIEMONTE", value); 
-				else if(city.equals("milano")) res.add("LOMBARDIA", value); 
-				else if(city.equals("venezia")) res.add("VENETO", value); 
-				else if(city.equals("roma")) res.add("LAZIO", value); 
-				else if(city.equals("napoli"))  res.add("CAMPANIA", value); 
-				else if(city.equals("bari"))  res.add("PUGLIA", value); 
-				else if(city.equals("palermo")) res.add("SICILIA", value); 
+				String region = city2region.get(city);
+				if(region!=null) res.add(region, value); 
 				else System.err.println("ERROR IN "+city);
 			}
 			
+			
 			if(rm_to.getName().contains("prov2011")) {
-				if(city.equals("torino")) res.add("TORINO", value); 
-				else if(city.equals("milano")) res.add("MILANO", value); 
-				else if(city.equals("venezia")) res.add("VENEZIA", value); 
-				else if(city.equals("roma")) res.add("ROMA", value); 
-				else if(city.equals("napoli"))  res.add("NAPOLI", value); 
-				else if(city.equals("bari"))  res.add("BARI", value); 
-				else if(city.equals("palermo"))  res.add("PALERMO", value); 
+				String province = city2province.get(city);
+				if(province!=null) res.add(province, value); 
 				else System.err.println("ERROR IN "+city);
 			}
 			
@@ -794,18 +846,19 @@ public class SynchAnalysis {
 			
 			
 			//double x = StatsUtils.r((fseries1), (fseries2)); USE_FEATURE = TYPE == DEMOGRAPHIC_RES ? "expression(avg[i]~R~'('~res[r]~','~res[i!=r]~')')" : "expression(R~'(res,!res)')";
-			//double x = Entropy.calculateEntropy(fseries1) - Entropy.calculateConditionalEntropy(fseries1, fseries2); ; USE_FEATURE = TYPE == DEMOGRAPHIC_RES ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
+			double x = 0;
 			
+			if(USEF.equals(Feature.I))
+				x = Entropy.calculateEntropy(fseries1) - Entropy.calculateConditionalEntropy(fseries1, fseries2); ; USE_FEATURE = (TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
 			
-			int L = 1;
-			OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
-			h0.setNoIntercept(true);
-			h0.newSampleData(GrangerTest.strip(L, fseries1), GrangerTest.createLaggedSide(L, fseries2));
-			double x = h0.calculateRSquared();
-			USE_FEATURE = TYPE == DEMOGRAPHIC_RES ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
-			
-			//System.out.println("-----> "+x);
-			
+			if(USEF.equals(Feature.RSQ)) {
+				int L = 1;
+				OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
+				h0.setNoIntercept(true);
+				h0.newSampleData(GrangerTest.strip(L, fseries1), GrangerTest.createLaggedSide(L, fseries2));
+				x = h0.calculateRSquared();
+				USE_FEATURE = (TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
+			}
 	        
 			return x;
 			
@@ -813,7 +866,6 @@ public class SynchAnalysis {
 			e.printStackTrace();
 		}
 		return 0;
-		
 	}
 	
 	

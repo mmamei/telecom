@@ -87,32 +87,53 @@ public class TimeDensityFromAggregatedData {
 		res.tc = tc;
 		res.rm = rm_to;
 		res.map = new HashMap<String,double[]>();
+		
+		
+		
+		
+		HashMap<String,String> city2region = new HashMap<String,String>();
+		city2region.put("torino", "PIEMONTE");
+		city2region.put("milano", "LOMBARDIA");
+		city2region.put("venezia", "VENETO");
+		city2region.put("roma", "LAZIO");
+		city2region.put("napoli", "CAMPANIA");
+		city2region.put("bari", "PUGLIA");
+		city2region.put("palermo", "SICILIA");
+		
+		city2region.put("campobasso", "MOLISE");
+		city2region.put("siracusa", "SICILIA");
+		city2region.put("benevento", "CAMPANIA");
+		city2region.put("caltanissetta", "SICILIA");
+		city2region.put("modena", "EMILIA-ROMAGNA");
+		city2region.put("siena", "TOSCANA");
+		city2region.put("asti", "PIEMONTE");
+		city2region.put("ferrara", "EMILIA-ROMAGNA");
+		city2region.put("ravenna", "EMILIA-ROMAGNA");
+		
+		HashMap<String,String> city2province = new HashMap<String,String>();
+		for(String province: new String[]{"torino","milano","venezia","roma","napoli","bari","palermo","campobasso","siracusa","benevento","caltanissetta","modena","siena","asti","ferrara","ravenna"})
+			city2province.put(province,province.toUpperCase());
+		
+		
 		for(String f : map.keySet()) {
 			double[] value = map.get(f);
 			
+			
+			
 			if(rm_to.getName().contains("regioni")) {
-				if(rm.getName().contains("torino")) add(res.map,"PIEMONTE", value); 
-				else if(rm.getName().contains("milano")) add(res.map,"LOMBARDIA", value); 
-				else if(rm.getName().contains("venezia")) add(res.map,"VENETO", value); 
-				else if(rm.getName().contains("roma")) add(res.map,"LAZIO", value); 
-				else if(rm.getName().contains("napoli"))  add(res.map,"CAMPANIA", value); 
-				else if(rm.getName().contains("bari"))  add(res.map,"PUGLIA", value); 
-				else if(rm.getName().contains("palermo"))  add(res.map,"SICILIA", value); 
-				else System.err.println("ERROR IN "+rm.getName());
+				String region = city2region.get(city);
+				if(region!=null) add(res.map,region, value); 
+				else System.err.println("ERROR IN "+city);
 			}
+			
 			
 			if(rm_to.getName().contains("prov2011")) {
-				if(rm.getName().contains("torino")) add(res.map,"TORINO", value); 
-				else if(rm.getName().contains("milano")) add(res.map,"MILANO", value); 
-				else if(rm.getName().contains("venezia")) add(res.map,"VENEZIA", value); 
-				else if(rm.getName().contains("roma")) add(res.map,"ROMA", value); 
-				else if(rm.getName().contains("napoli"))  add(res.map,"NAPOLI", value); 
-				else if(rm.getName().contains("bari"))  add(res.map,"BARI", value); 
-				else if(rm.getName().contains("palermo"))  add(res.map,"PALERMO", value); 
-				else System.err.println("ERROR IN "+rm.getName());
+				String province = city2province.get(city);
+				if(province!=null) add(res.map,province, value); 
+				else System.err.println("ERROR IN "+city);
 			}
 			
-			
+						
 			
 		}
 		//System.out.println("---------------------> "+res.map.size());
@@ -134,7 +155,7 @@ public class TimeDensityFromAggregatedData {
 		this.rm = rm;
 		if(rm!=null) {
 			// load the grid map to be used for conversion
-			gridMap = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
+			gridMap = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-grid.ser"));
 		}
 		
 		try {
@@ -161,7 +182,7 @@ public class TimeDensityFromAggregatedData {
 					tarInput.close();
 				}
 				else {
-					System.out.println(file);
+					//System.out.println(file);
 					processFile(new BufferedReader(new FileReader(file)),readIndexes,constraint);
 				}
 				
@@ -187,17 +208,32 @@ public class TimeDensityFromAggregatedData {
 	
 	private void processFile(BufferedReader br,int[] readIndexes, SynchConstraints constraint) {
 		
+		long tot_lines = 0;
+		long skipped_lines = 0;
+		
 		String line = null;
 		try {
 			while ((line = br.readLine()) != null) {
 			       String[] x = line.split("\t");
-			       
+			 
 			       if(x.length < 4) {
 			    	   System.err.println(line);
 			    	   continue;
 			       }
 			       
+			       
+			       tot_lines ++;
+			       
 			       long time = Long.parseLong(x[readIndexes[0]]) * 1000;
+			       //long time = Long.parseLong(x[readIndexes[0]]);
+			       
+			       // extra time constraint
+			       if(time < TimeConverter.getInstance().startTime || time > TimeConverter.getInstance().endTime) {
+			    	   skipped_lines ++;
+			    	   continue;
+			       }
+			       
+			       
 			       String cell = x[readIndexes[1]];   
 			       double value = Double.parseDouble(x[readIndexes[2]]);
 			       String meta = x[readIndexes[3]];
@@ -231,7 +267,7 @@ public class TimeDensityFromAggregatedData {
 			    	   }
 			       }
 			}
-			System.out.println();
+			if(skipped_lines > 0) System.out.println("Skipped "+skipped_lines+" out of "+tot_lines+" due to time restrictions - TimeDensityFromAggregatedData");
 			//br.close();
 		}catch(Exception e) {
 			System.err.println(line);

@@ -421,7 +421,7 @@ public class RPlotter {
 	/************************************************************************************************************/
 	/************************************************************************************************************/
 	
-	public static void drawBoxplot(List<double []> y, List<String> names, String xlab, String ylab, String file, String opts) {
+	public static void drawBoxplot(List<double []> y, List<String> names, String xlab, String ylab, String file, int width, String opts) {
 		try {
 			file = file.replaceAll("_", "-");
             c = new RConnection();// make a new local connection on default port (6311)
@@ -450,7 +450,7 @@ public class RPlotter {
             
             	     code += "z <- rbind("+sby.substring(1)+");"   
             	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot() + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
-            	          + "ggsave('"+file+"',width=10);"
+            	          + "ggsave('"+file+"',width="+width+");"
             	          + "dev.off();";
             
             System.out.println(code.replaceAll(";", ";\n"));
@@ -490,7 +490,7 @@ public class RPlotter {
 		
 		//drawBar(new String[]{"a","b","c","d"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
 		//drawLine(new String[]{"3","2","1","0"},l,names,"types","x","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
-		drawBoxplot(l,names,"expression(avg[i]~R^{2}~'('~res[r]~','~res[i!=r]~')')","y",Config.getInstance().base_folder+"/Images/test.pdf",null);
+		drawBoxplot(l,names,"expression(avg[i]~R^{2}~'('~res[r]~','~res[i!=r]~')')","y",Config.getInstance().base_folder+"/Images/test.pdf",10,null);
 		
 		
 		/*

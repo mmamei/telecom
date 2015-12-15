@@ -356,7 +356,7 @@ public class TimeDensityFromAggregatedDataMulti {
 			lv.add(SynchAnalysis.density2array(density));
 		}
 		
-		RPlotter.drawBoxplot(lv,ln,"comuni2012","multi",Config.getInstance().base_folder+"/Images/boxplot-multi-"+meta_rm.getName()+".pdf",null);
+		RPlotter.drawBoxplot(lv,ln,"comuni2012","multi",Config.getInstance().base_folder+"/Images/boxplot-multi-"+meta_rm.getName()+".pdf",10,null);
 	
 		System.out.println("Done!");
 	}

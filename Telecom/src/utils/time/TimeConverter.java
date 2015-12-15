@@ -9,7 +9,7 @@ import java.util.GregorianCalendar;
 public abstract class TimeConverter implements Serializable {
 	public static final SimpleDateFormat F = new SimpleDateFormat("yyyy-MM-dd:HH:mm:ss");
 	
-	public static final String start_date = "2015-03-01:0:0:0";
+	public static final String start_date = "2015-03-31:0:0:0";
 	public static final String end_date = "2015-04-30:23:59:59";
 	
 	public Calendar start;
@@ -38,7 +38,11 @@ public abstract class TimeConverter implements Serializable {
 
 	public abstract int getTimeSize();
 	public abstract long index2time(int index);
+	
 	public abstract int time2index(long time); 
+	
+	
+	
 	public abstract SimpleDateFormat getSDF();
 	
 	public String print(long time) {

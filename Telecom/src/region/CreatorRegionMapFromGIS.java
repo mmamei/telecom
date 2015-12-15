@@ -143,17 +143,7 @@ public class CreatorRegionMapFromGIS {
 	
 	
 	public static RegionMap processWTK(String name, String input_file, String output_obj_file, int[] name_indexes) throws Exception {
-		
-		
-		//Set<String> tdc2015 = new HashSet<String>();
-		//tdc2015.add("TORINO");
-		//tdc2015.add("MILANO");
-		//tdc2015.add("VENEZIA");
-		//tdc2015.add("ROMA");
-		//tdc2015.add("BARI");
-		//tdc2015.add("NAPOLI");
-		//tdc2015.add("PALERMO");
-		
+			
 		
 		RegionMap rm = new RegionMap(name);
 		
@@ -170,13 +160,7 @@ public class CreatorRegionMapFromGIS {
 			String n = "";
 			for(int i: name_indexes)
 				n = n + e[i];
-			
-			//if(!tdc2015.contains(n)) continue;
-			
-			
-			
-			//System.out.println(n);
-			
+					
 			
 			String[] polys = wtk_shape.split("\\),\\(");
 			
