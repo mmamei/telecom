@@ -19,16 +19,17 @@ public class TIC2015_SplitDemographicFile {
 	public static void main(String[] args) throws Exception {
 		
 		
-		String[] grid_files = new String[]{
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Benevento.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Caltanissetta.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Modena.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Siena.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Siracusa.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Asti.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Campobasso.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Ferrara.csv",
-			Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID2/Ravenna.csv",
+		
+		String[] cities = new String[]{
+				"caltanissetta",
+				"siracusa",
+				"benevento",
+				"campobasso",
+				"asti",
+				"ravenna",
+				"ferrara",
+				"modena",
+				"siena",	
 		};
 		
 		
@@ -37,34 +38,32 @@ public class TIC2015_SplitDemographicFile {
 		
 		
 		Map<String,String> gridcell2province = new HashMap<String,String>();
-		for(String gf: grid_files) {
-			File f = new File(gf);
+		for(String city: cities) {
+			File f = new File(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/GRID/tic-"+city+"-grid.csv");
 			if(!f.exists()) {
-				System.err.println(gf+" not found!");
+				System.err.println(f+" not found!");
 				continue;
 			}
-			String province = f.getName().substring(0,f.getName().indexOf(".")).toLowerCase();
+			
 			
 			BufferedReader br = new BufferedReader(new FileReader(f));
 			String line;
 			br.readLine(); // skip header
 			while((line=br.readLine())!=null) {
 				String gridcell = line.split("\t")[1];
-				gridcell2province.put(gridcell, province);
+				gridcell2province.put(gridcell, city);
 			}
 			br.close();
 		}
 		
 		
-		// create directories a nd files
+		// create directories  and files
 		
 		Map<String,PrintWriter> province2printwriter = new HashMap<String,PrintWriter>();
-		for(String gf: grid_files) {
-			File f = new File(gf);
-			String province = f.getName().substring(0,f.getName().indexOf(".")).toLowerCase();
-			File dir = new File(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+province);
+		for(String city: cities) {
+			File dir = new File(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city);
 			dir.mkdirs();
-			province2printwriter.put(province, new PrintWriter(new FileWriter(dir+"/callsLM_"+province.substring(0,2).toUpperCase()+"_CAP")));
+			province2printwriter.put(city, new PrintWriter(new FileWriter(dir+"/callsLM_"+city.substring(0,2).toUpperCase()+"_CAP")));
 		}
 		
 		

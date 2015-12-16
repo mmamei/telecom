@@ -31,6 +31,18 @@ import visual.html.GoogleChartGraph;
 import visual.kml.KMLHeatMap;
 import visual.r.RPlotter;
 
+
+/*
+ * This class analyzes telecom big data challenge demographic dataset.
+ * For each region (e.g., comune) of the associated region map (mr) it group the calls from that region by the regions of a second region map (meta_rm).
+ * In this way it is possible to see that the calls from a given comune are generate primarily by redident of the comunui x,y,z.
+ * The class produces a KML showing this.
+ * In addition it computes a mesure for each region associated to the entorty of regions comprising the calls
+ * 
+ */
+
+
+
 public class TimeDensityFromAggregatedDataMulti {
 	
 	private String city;
@@ -52,7 +64,7 @@ public class TimeDensityFromAggregatedDataMulti {
 		this.meta_rm = meta_rm;
 		if(rm!=null) {
 			// load the grid map to be used for conversion
-			gridMap = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-gird.ser"));
+			gridMap = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-grid.ser"));
 		}
 		
 		try {
@@ -60,7 +72,8 @@ public class TimeDensityFromAggregatedDataMulti {
 			
 			String constr_title = constraint == null ? "" : constraint.title;
 			
-			File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/multi/multi-"+city+"-"+type+"-"+rm.getName()+"-"+meta_rm.getName()+"-"+constr_title+".ser");
+			File dir = new File(Config.getInstance().base_folder+"/TIC2015/cache/multi");
+			File f = new File(dir+"/multi-"+city+"-"+type+"-"+rm.getName()+"-"+meta_rm.getName()+"-"+constr_title+".ser");
 			if(f.exists()) {
 				map = (Map<String,Map<String,double[]>>)CopyAndSerializationUtils.restore(f);
 			}
@@ -80,7 +93,7 @@ public class TimeDensityFromAggregatedDataMulti {
 				else {
 					processFile(new BufferedReader(new FileReader(file)),readIndexes,constraint);
 				}
-				
+				dir.mkdirs();
 				CopyAndSerializationUtils.save(f, map);
 				
 			}
@@ -140,6 +153,14 @@ public class TimeDensityFromAggregatedDataMulti {
 			while ((line = br.readLine()) != null) {
 			       String[] x = line.split("\t");
 			       long time = Long.parseLong(x[readIndexes[0]]) * 1000;
+			       
+			       
+			       // extra time constraint
+			       if(time < TimeConverter.getInstance().startTime || time > TimeConverter.getInstance().endTime) {
+			    	   continue;
+			       }
+			       
+			       
 			       String cell = x[readIndexes[1]];   
 			       double value = Double.parseDouble(x[readIndexes[2]]);
 			       String meta = x[readIndexes[3]];
@@ -241,7 +262,7 @@ public class TimeDensityFromAggregatedDataMulti {
 			int i=0;
 			Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 			for(String m: sum.keySet()) {
-				names[i] = meta_rm.getName().equals("comuni2012")? m+":"+id2name.get(m).replaceAll("'", "") : m;
+				names[i] = meta_rm.getName().equals("comuni2012") && id2name.get(m)!=null ? m+":"+id2name.get(m).replaceAll("'", "") : m;
 				v[i] = sum.get(m);
 				i++;
 				if(i >= names.length) break;
@@ -340,8 +361,24 @@ public class TimeDensityFromAggregatedDataMulti {
 		String type = "Demo";
 		int[] readIndexes = new int[]{0,1,3,2};
 		
-		String[] cities = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
-		
+		String[] cities = new String[]{
+				"caltanissetta",
+				"siracusa",
+				"benevento",
+				"palermo",
+				"campobasso",
+				"napoli",
+				"asti",
+				"bari",
+				"ravenna",
+				"ferrara",
+				"venezia",
+				"torino",
+				"modena",
+				"roma",
+				"siena",
+				"milano"
+		};
 		
 		List<String> ln = new ArrayList<String>();
 		List<double[]> lv = new ArrayList<double[]>();

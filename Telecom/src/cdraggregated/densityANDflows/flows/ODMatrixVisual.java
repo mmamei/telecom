@@ -26,7 +26,9 @@ import cdrindividual.densityANDflows.flows.Move;
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
+import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.EncodingManager;
+import com.graphhopper.util.EdgeBase;
 import com.graphhopper.util.PointList;
 
 public class ODMatrixVisual {
@@ -36,12 +38,25 @@ public class ODMatrixVisual {
 	
     
     // main for testing purposes
-    public static void main2(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
     	String ghLoc = "C:/DATASET/osm/piem";
 	    String testOsm = "C:/DATASET/osm/piem/piem.pbf";
     	GraphHopper gh = new GraphHopper().setInMemory(true, true).setEncodingManager(new EncodingManager(TRASPORTATION_MODE)).setGraphHopperLocation(ghLoc).setOSMFile(testOsm);
 		gh.setPreciseIndexResolution(10000); // to be set about the grid size
 		gh.importOrLoad();
+		
+		
+		
+		// test to add a new road to the road network
+		EdgeBase e = gh.getGraph().edge(24791, 57030, 1, true);
+		e.setName("Via Marco Mamei");
+		PointList points = new PointList();
+		points.add(45.077157, 7.629951);
+		points.add(45.0, 7.622);
+		points.add(44.968199, 7.621368);
+		e.setWayGeometry(points);
+		
+		
 		
 		double start_lat = 45.077157;
 		double start_lon = 7.629951;
@@ -51,9 +66,13 @@ public class ODMatrixVisual {
 		
 		
 		
+		System.out.println(gh.getIndex().findID(start_lat,start_lon));
+		System.out.println(gh.getIndex().findID(end_lat,end_lon));
+		
 		
 		GHResponse ph = gh.route(new GHRequest(start_lat,start_lon,end_lat,end_lon));
 		if(ph.isFound()) {
+			
 	        PointList list = ph.getPoints();
 	        for(int i=1; i<list.getSize();i++) {
 	        	
@@ -61,13 +80,18 @@ public class ODMatrixVisual {
 	        	double prevlon = list.getLongitude(i-1);
 	        	double lat = list.getLatitude(i);
 	        	double lon = list.getLongitude(i);
-	        	
+	        
 	        	int previndex = gh.getIndex().findID(prevlat, prevlon);
 	        	int index = gh.getIndex().findID(lat, lon);
 	        	
-	        	//int edge = gh.getGraph().createEdgeExplorer().
+	        	EdgeBase f = gh.getGraph().getEdgeProps(previndex, index);
+	        	if(f!=null)
+	        	System.out.println(f.getName());
+	
 	        	
-	        	System.out.println("("+prevlat+","+prevlon+") ==> ("+lat+","+lon+") ==> "+gh.route(new GHRequest(list.getLatitude(i-1),list.getLongitude(i-1),list.getLatitude(i),list.getLongitude(i))).getInstructions().toString());
+	        	
+	        	
+	        	//System.out.println("("+prevlat+","+prevlon+") ==> ("+lat+","+lon+") ==> "+gh.route(new GHRequest(list.getLatitude(i-1),list.getLongitude(i-1),list.getLatitude(i),list.getLongitude(i))).getInstructions().toString());
 	        } 
 		}
     }
@@ -82,7 +106,7 @@ public class ODMatrixVisual {
      */
     
     
-    public static void main(String[] args) throws Exception {
+    public static void main2(String[] args) throws Exception {
     	draw("ODMatrixHW_file_pls_piem","ODMatrixHW_file_pls_piem",false,"file_pls_piem");
     }
     

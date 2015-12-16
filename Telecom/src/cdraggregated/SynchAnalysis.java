@@ -49,7 +49,7 @@ public class SynchAnalysis {
 	
 	
 
-	public static boolean CAPOLUOGO_ONLY = false; 
+	public static boolean CAPOLUOGO_ONLY = true; 
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
@@ -58,7 +58,7 @@ public class SynchAnalysis {
 	
 	
 	private enum Analysis {CALLOUT_IT,CALLOUT_IT_VS_NON_IT,DEMOGRAPHIC_RES,DEMOGRAPHIC_RES_VS_NON_RES,DEMOGRAPHIC_IT_VS_NON_IT,DEMOGRAPHIC_ALL};
-	public static final Analysis TYPE = Analysis.DEMOGRAPHIC_RES;
+	public static final Analysis TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
 	
 
 	private enum Feature {RSQ, I};
@@ -332,7 +332,7 @@ public class SynchAnalysis {
 		RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		
-		//if(!CAPOLUOGO_ONLY) System.exit(0);
+		if(!CAPOLUOGO_ONLY) System.exit(0);
 		
 		
 		
@@ -456,50 +456,6 @@ public class SynchAnalysis {
 			return conv;
 	}
 	
-	/*
-	private static Map<String,Double> reproject2map(String city, String type, Map<String,Double> density,RegionMap rm_from,RegionMap rm_to, boolean print) {
-		System.out.println(">>>>> REPROJECT "+city+" "+type+" FROM "+rm_from.getName()+" TO "+rm_to.getName());
-		AddMap res = new AddMap();
-		
-		for(String name: density.keySet()) {
-			double value = density.get(name);
-			
-			if(rm_to.getName().contains("regioni")) {
-				if(rm_from.getName().contains("torino")) res.add("PIEMONTE", value); 
-				else if(rm_from.getName().contains("milano")) res.add("LOMBARDIA", value); 
-				else if(rm_from.getName().contains("venezia")) res.add("VENETO", value); 
-				else if(rm_from.getName().contains("roma")) res.add("LAZIO", value); 
-				else if(rm_from.getName().contains("napoli"))  res.add("CAMPANIA", value); 
-				else if(rm_from.getName().contains("bari"))  res.add("PUGLIA", value); 
-				else if(rm_from.getName().contains("palermo"))  res.add("SICILIA", value); 
-				else System.err.println("ERROR IN "+rm_from.getName());
-			}
-			
-			if(rm_to.getName().contains("prov2011")) {
-				if(rm_from.getName().contains("torino")) res.add("TORINO", value); 
-				else if(rm_from.getName().contains("milano")) res.add("MILANO", value); 
-				else if(rm_from.getName().contains("venezia")) res.add("VENEZIA", value); 
-				else if(rm_from.getName().contains("roma")) res.add("ROMA", value); 
-				else if(rm_from.getName().contains("napoli"))  res.add("NAPOLI", value); 
-				else if(rm_from.getName().contains("bari"))  res.add("BARI", value); 
-				else if(rm_from.getName().contains("palermo"))  res.add("PALERMO", value); 
-				else System.err.println("ERROR IN "+rm_from.getName());
-			}
-			
-		}
-		
-		if(print) {
-			try {
-				rm_to.setName(city+"-"+type+"-"+USE_FEATURE+"-reprojected");
-				KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+type+"-correlation.kml",res,rm_to,"",false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return res;
-	}
-	*/
 	
 	
 	private static Map<String,Double> reproject2map(Map<String,Double> map, String city, RegionMap rm_from, RegionMap rm_to) {
@@ -571,59 +527,6 @@ public class SynchAnalysis {
 		return res;
 	}
 	
-	/*
-	private static Map<String,Double> reproject2map2(String city, String type, Map<String,Double> density,RegionMap rm_from,RegionMap rm_to, boolean print) {
-		
-		System.out.println(">>>>> REPROJECT "+city+" "+type+" FROM "+rm_from.getName()+" TO "+rm_to.getName());
-		
-	
-		AddMap res = new AddMap();
-		
-		
-		for(String name: density.keySet()) {
-			double value = density.get(name);
-			RegionI r = rm_from.getRegion(name);
-			
-			if(rm_to.getName().contains("regioni")) {
-				if(rm_from.getName().contains("torino")) res.add("PIEMONTE", value); 
-				else if(rm_from.getName().contains("milano")) res.add("LOMBARDIA", value); 
-				else if(rm_from.getName().contains("venezia")) res.add("VENETO", value); 
-				else if(rm_from.getName().contains("roma")) res.add("LAZIO", value); 
-				else if(rm_from.getName().contains("napoli"))  res.add("CAMPANIA", value); 
-				else if(rm_from.getName().contains("bari"))  res.add("PUGLIA", value); 
-				else if(rm_from.getName().contains("palermo"))  res.add("SICILIA", value); 
-				else System.err.println("ERROR IN "+rm_from.getName());
-			}
-			else {
-				//System.out.println("Processing... "+name+" "+r.getLatLon()[0]+", "+r.getLatLon()[1]);
-				float[] areas = rm_to.computeAreaIntersection(r);
-				boolean interesction = false;
-				for(int i=0; i<areas.length;i++)
-	 			   if(areas[i] > 0) {
-	 				  interesction = true;
-	 				  RegionI r_to = rm_to.getRegion(i);
-	 				  String name_to = r_to.getName();
-	 				  res.add(name_to, value * areas[i]); 
-	 			   }
-				
-				if(interesction == false) {
-					System.err.println(name+" not found");
-				}
-			}
-		}
-		
-		if(print) {
-			try {
-				rm_to.setName(city+"-"+type+"-"+USE_FEATURE+"-reprojected");
-				KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+type+"-correlation.kml",res,rm_to,"",false);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return res;
-	}
-	*/
 	
 	private static Set<String> getComuni2012FromCity(String city) {
 		Set<String> comuni = new HashSet<String>();
@@ -654,32 +557,7 @@ public class SynchAnalysis {
 	
 	
 	public static Map<String,Double> process(List<TimeDensityFromAggregatedData> tds) throws Exception {
-		
-		//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/regioni.ser"));
-		
-		// select the regions to be considered
-		
-		/*
-		LinkedHashMap<String, Double> company_map = LoadDensityFromCompanyData.getInstance(city,rm,COMPANY_CONSTRAINTS);
-		String[] regions = new String[LIMIT > 0 ? Math.min(LIMIT, company_map.size()) : company_map.size()];
-		int i = 0;
-		for(String key: company_map.keySet()) {
-			regions[i] = key;
-			i++;
-			if(LIMIT > 0 && i >= LIMIT) break;
-		}
-		*/
-		
-		
-		/*
-		System.out.println("Regions to be analyzed");
-		for(String region: regions)
-			System.out.println("- "+region);
-		*/
-		
-		
-		
-		
+			
 		
 		String suffix = LIMIT > 0 ? "limited to "+LIMIT : "";
 		System.out.println("processign "+tds.get(0).getCity()+" -- regions size --> "+tds.get(0).rm.getNumRegions()+" "+suffix);
@@ -704,6 +582,7 @@ public class SynchAnalysis {
 	
 	
 	
+	// Questo si usa per DEMOGRAPHIC_RES
 	
 	public static Map<String,Double> getDistCorr(String[] regions, TimeDensityFromAggregatedData td) {
 		
@@ -742,6 +621,11 @@ public class SynchAnalysis {
 		return density;
 	}
 	
+	
+	// Questo si usa per DEMOGRAPHIC_RES_VS_NON_RES
+	
+	static boolean KML_PLOT_Z = false;
+	
 	public static Map<String,Double> getDistCorr(String city, String[] regions, List<TimeDensityFromAggregatedData> tds) {
 		TimeConverter tc = null;
 		try {
@@ -767,7 +651,7 @@ public class SynchAnalysis {
 					double[] seriesb = tds.get(b).get(regions[i]);
 					double avga = avg(seriesa);
 					double avgb = avg(seriesb);
-					if(avga > 10 && avgb > 10) {
+					if(avga > 10 && avgb > 0) {
 						double f = computeFeature(seriesa,seriesb); 
 						if(!Double.isNaN(f)) corrs.add(f);
 					}
@@ -785,7 +669,7 @@ public class SynchAnalysis {
 			for(TimeDensityFromAggregatedData td:tds) {
 				if(td.get(regions[i])!=null) {
 					names.add(td.getType());
-					y.add(StatsUtils.getZH(td.get(regions[i]),tc));
+					y.add(KML_PLOT_Z ? StatsUtils.getZH(td.get(regions[i]),tc) : td.get(regions[i]));
 				}
 			}
 			
@@ -822,6 +706,9 @@ public class SynchAnalysis {
 	}
 	
 	private static String USE_FEATURE = "F";
+	
+	
+	
 	private static double computeFeature(double[] series1, double[] series2) {
 		try {
 			TimeConverter tc = TimeConverter.getInstance();
@@ -842,30 +729,56 @@ public class SynchAnalysis {
 			fseries1 = BIN > 0 ? bin(fseries1,BIN) : fseries1;
 			fseries2 = BIN > 0 ? bin(fseries2,BIN) : fseries2;
 			
+			
+			//return reallyComputeFeature(fseries1,fseries2); // original
+			
 			/********************************************************************/
 			
 			
-			//double x = StatsUtils.r((fseries1), (fseries2)); USE_FEATURE = TYPE == DEMOGRAPHIC_RES ? "expression(avg[i]~R~'('~res[r]~','~res[i!=r]~')')" : "expression(R~'(res,!res)')";
-			double x = 0;
+			int size = 12;
+			double[] reduced1 = new double[size];
+			double[] reduced2 = new double[size];
 			
-			if(USEF.equals(Feature.I))
-				x = Entropy.calculateEntropy(fseries1) - Entropy.calculateConditionalEntropy(fseries1, fseries2); ; USE_FEATURE = (TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
+			double num = 0;
+			double den = 0;
 			
-			if(USEF.equals(Feature.RSQ)) {
-				int L = 1;
-				OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
-				h0.setNoIntercept(true);
-				h0.newSampleData(GrangerTest.strip(L, fseries1), GrangerTest.createLaggedSide(L, fseries2));
-				x = h0.calculateRSquared();
-				USE_FEATURE = (TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
-			}
-	        
-			return x;
+			for(int i=0; i<fseries1.length; i=i+size) {
+				System.arraycopy(fseries1, i, reduced1, 0, reduced1.length);
+				System.arraycopy(fseries2, i, reduced2, 0, reduced2.length);
+				num += reallyComputeFeature(reduced1,reduced2);
+				den ++;
+			}	
+			
+			return num/den;
+	    
+			
+			
 			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 		return 0;
+	}
+	
+	
+	private static double reallyComputeFeature(double[] s1, double[] s2) {
+		double x = 0;
+		
+		if(USEF.equals(Feature.I))
+			x = Entropy.calculateEntropy(s1) - Entropy.calculateConditionalEntropy(s1, s2); ; USE_FEATURE = (TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
+		
+		if(USEF.equals(Feature.RSQ)) {
+			//int L = 1;
+			//OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
+			//h0.setNoIntercept(true);
+			//h0.newSampleData(GrangerTest.strip(L, s1), GrangerTest.createLaggedSide(L, s2));
+			//x = h0.calculateRSquared();
+		
+			x = StatsUtils.r2(s1,s2);
+			
+			USE_FEATURE = (TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
+		}
+		return x;
 	}
 	
 	

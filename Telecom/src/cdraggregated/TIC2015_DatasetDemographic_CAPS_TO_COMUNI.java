@@ -24,22 +24,22 @@ public class TIC2015_DatasetDemographic_CAPS_TO_COMUNI {
 		cap2comuni = cap2comuni();
 		
 		String[] cities = new String[]{
-				//"caltanissetta",
-				//"siracusa",
-				//"benevento",
-				//"palermo",
-				//"campobasso",
-				//"napoli",
-				//"asti",
-				//"bari",
-				//"ferrara",
-				//"venezia",
-				//"torino",
+				"caltanissetta",
+				"siracusa",
+				"benevento",
+				"palermo",
+				"campobasso",
+				"napoli",
+				"asti",
+				"bari",
+				"ferrara",
+				"venezia",
+				"torino",
 				"ravenna",
-				//"modena",
-				//"roma",
-				//"siena",
-				//"milano"
+				"modena",
+				"roma",
+				"siena",
+				"milano"
 		};
 		
 		
