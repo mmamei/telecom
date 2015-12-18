@@ -228,14 +228,18 @@ public class RPlotter {
             c.assign("x", x);
             c.assign("y", y);
             
+            if(!xlab.startsWith("expression")) xlab = "'"+xlab+"'";
+            if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
+            
+            
             String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
             String code = 
             		   "library(ggplot2);"
             	     + "z <- data.frame(x,y);"
-            	     + "ggplot(z,aes(x=x,y=y)) + geom_point() + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"')"+end
+            	     + "ggplot(z,aes(x=x,y=y))"+(opts.contains("geom_point")?"":"+ geom_point()")+ " + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
             	     + "ggsave('"+file+"');"
             	     + "dev.off();";
-            //System.out.println(code);
+            System.out.println(code);
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -262,12 +266,6 @@ public class RPlotter {
             c.assign("l", labels);
             
             
-            
-            for(int i=0; i<labels.length;i++)
-            	System.out.print(labels[i]+";");
-            System.out.println();
-            
-            
             if(!xlab.startsWith("expression")) xlab = "'"+xlab+"'";
             if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
             
@@ -278,7 +276,7 @@ public class RPlotter {
             	     + "ggplot(z,aes(x=x,y=y)) + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+") + geom_text(aes(label=l), size=3)"+end
             	     + "ggsave('"+file+"');"
             	     + "dev.off();";
-            System.out.println(code);
+            //System.out.println(code);
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -307,6 +305,9 @@ public class RPlotter {
             for(int i=0; i<y.size();i++)
             	c.assign("y"+i, y.get(i));
                       
+            
+            if(!xlab.startsWith("expression")) xlab = "'"+xlab+"'";
+            if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
             
             String end = opts==null || opts.length()==0 ? ";\n" : " + "+opts+";\n";
             String code = 

@@ -102,9 +102,9 @@ public class MEF_IRPEF_BLOG {
 		MEF_IRPEF mef_instance = MEF_IRPEF.getInstance();
 		
 		
-		SynchAnalysis.plotCorrelation(blog_instance.redditoPC(false), mef_instance.redditoPC(false), "blog-reddito", "mef-reddito", Config.getInstance().base_folder+"/Images/corr-blog-mef-reddito.pdf");
+		SynchAnalysis.plotCorrelation(blog_instance.redditoPC(false), mef_instance.redditoPC(false), "blog-reddito", "mef-reddito", Config.getInstance().base_folder+"/Images/corr-blog-mef-reddito.pdf",null,false);
 
-		SynchAnalysis.plotCorrelation(blog_instance.gini(false), mef_instance.gini(false), "blog-gini", "mef-gini", Config.getInstance().base_folder+"/Images/corr-blog-mef-gini.pdf");
+		SynchAnalysis.plotCorrelation(blog_instance.gini(false), mef_instance.gini(false), "blog-gini", "mef-gini", Config.getInstance().base_folder+"/Images/corr-blog-mef-gini.pdf",null,false);
 
 		
 		

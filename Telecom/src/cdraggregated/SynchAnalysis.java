@@ -332,13 +332,13 @@ public class SynchAnalysis {
 		RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		
-		if(!CAPOLUOGO_ONLY) System.exit(0);
+		//if(!CAPOLUOGO_ONLY) System.exit(0);
 		
 		
 		
 		
 		Deprivation dp = Deprivation.getInstance();
-		plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png");
+		plotCorrelation(all_density_regioni,dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png",null,true);
 		
 		
 		
@@ -347,20 +347,20 @@ public class SynchAnalysis {
 		
 		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 		MEF_IRPEF mi = MEF_IRPEF.getInstance();
-		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name);
+		plotCorrelation(all_density_comuni2014,mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name,CAPOLUOGO_ONLY);
 		//plotCorrelation(all_density_comuni2014,mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-gini.pdf",id2name);
 		
 		
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
 		int[] indices = new int[]{46,51,59,61};
 		for(int i: indices)
-			plotCorrelation(all_density_comuni2012,ic.computeDensity(i, true, false),USE_FEATURE,IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-"+IstatCensus2011.DIMENSIONS[i]+".png",id2name);
+			plotCorrelation(all_density_comuni2012,ic.computeDensity(i, true, false),USE_FEATURE,IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-"+IstatCensus2011.DIMENSIONS[i]+".png",id2name,CAPOLUOGO_ONLY);
 		
 		
 		SocialCapital sc = SocialCapital.getInstance();
-		plotCorrelation(all_density_prov2011,sc.getAssoc(),USE_FEATURE,"assoc",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-assoc.png");
-		plotCorrelation(all_density_prov2011,sc.getReferendum(),USE_FEATURE,"referendum",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-referendum.png");
-		plotCorrelation(all_density_prov2011,sc.getBlood(),USE_FEATURE,"blood",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-blood.png");
+		plotCorrelation(all_density_prov2011,sc.getAssoc(),USE_FEATURE,"assoc",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-assoc.png",null,true);
+		plotCorrelation(all_density_prov2011,sc.getReferendum(),USE_FEATURE,"referendum",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-referendum.png",null,true);
+		plotCorrelation(all_density_prov2011,sc.getBlood(),USE_FEATURE,"blood",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-blood.png",null,true);
 		
 		//for(String k: all_density_prov2011.keySet())
 		//	System.out.println("blood..................... "+k+""+" "+all_density_prov2011.get(k)+" .... "+sc.getBlood().get(k));
@@ -393,11 +393,7 @@ public class SynchAnalysis {
 	private static final boolean LM = false;
 	
 	
-	public static void plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file) {
-		plotCorrelation(mapx,mapy,titx,tity,file,null);
-	}
-	
-	public static void plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file, Map<String,String> name2name) {
+	public static void plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file, Map<String,String> name2name, boolean use_labels) {
 		
 		
 		List<Double> lx = new ArrayList<Double>();
@@ -435,8 +431,9 @@ public class SynchAnalysis {
 		double r = StatsUtils.r(x, y);
 		String r2 = "annotate(\"text\", parse=TRUE, size=10, fontface='bold', x="+(r > 0 ? "-" : "")+"Inf, y=Inf, label=\"r^2 == "+DF.format(r*r)+"\", hjust="+(r > 0 ? "-0.2" : "1.2")+", vjust=1.2)";
 		
-		//RPlotter.drawScatter(x,y,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(size = 5) + "+r2);
-		RPlotter.drawScatterWLabels(x,y,l,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + "+r2);
+		if(use_labels) RPlotter.drawScatterWLabels(x,y,l,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + "+r2);
+		else RPlotter.drawScatter(x,y,titx, tity, file,"stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(alpha=0.2,size = 5) + "+r2);
+		
 
 	}
 	
