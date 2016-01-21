@@ -17,10 +17,9 @@ public class ODMatrixPrinter {
 			dir.mkdirs();
 			
 			PrintWriter out = new PrintWriter(new FileWriter(dir+"/latlon.csv"));
-			for(RegionI r: rm.getRegions()) {
-				double[] latlon = r.getLatLon();
-				out.println(r.getName()+"\t"+latlon[0]+","+latlon[1]);
-			}
+			out.println("WTK\tID");
+			for(RegionI r: rm.getRegions()) 
+				out.println("\""+r.getGeom()+"\"\t"+r.getName());
 			out.close();
 			
 			

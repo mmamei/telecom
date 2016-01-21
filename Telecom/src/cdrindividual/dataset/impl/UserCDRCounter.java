@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -13,19 +14,17 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import cdrindividual.lda.bow.Bow;
 import region.Placemark;
-import region.RegionMap;
 import utils.Config;
-import utils.CopyAndSerializationUtils;
 import utils.Logger;
 import utils.Mail;
+import visual.r.RPlotter;
 
-public class UserEventCounter extends BufferAnalyzerConstrained {
+public class UserCDRCounter extends BufferAnalyzerConstrained {
 	
 	private Map<String,Integer> users_events;
 	
-	UserEventCounter(Placemark placemark, String user_list_name) {
+	UserCDRCounter(Placemark placemark, String user_list_name) {
 		super(placemark,user_list_name);
 		users_events = new HashMap<String,Integer>();
 	}
@@ -76,7 +75,7 @@ public class UserEventCounter extends BufferAnalyzerConstrained {
 	}
 	
 	
-	public static void percentAnalysis(File f) throws Exception {
+	public static double[] percentAnalysis(File f) throws Exception {
 		
 		DescriptiveStatistics stats = new DescriptiveStatistics();
 		BufferedReader br = new BufferedReader(new FileReader(f));
@@ -93,25 +92,69 @@ public class UserEventCounter extends BufferAnalyzerConstrained {
 		
 		int ndays = (int)((Config.getInstance().pls_end_time.getTimeInMillis() - Config.getInstance().pls_start_time.getTimeInMillis()) / (1000 * 3600 * 24)); 
 		
-		
-		for(int i=1; i<100;i++)
-			System.out.println(i+","+stats.getPercentile(i)+" ==> "+stats.getPercentile(i)/ndays);
+		double[] valXday = new double[100];
+		System.out.println("Percentile;CDR count;CDR X Day Count");
+		for(int i=1; i<=100;i++) {
+			System.out.println(i+"%;"+stats.getPercentile(i)+";"+stats.getPercentile(i)/ndays);
+			valXday[i-1] = stats.getPercentile(i)/ndays;
+		}
 		System.out.println("TOT DAYS = "+ndays);
 		System.out.println("TOT USERS = "+stats.getN());
+		return valXday;
 	}
 	
 	
 	public static void main(String[] args) throws Exception {
-		String region = "file_pls_lomb";
+		PLSParser.REMOVE_BOGUS = false;
+		List<String> names = new ArrayList<String>();
+		List<double[]> y = new ArrayList<double[]>();
+		
+		System.out.println("************************* 2012");
+		
+		String region = "file_pls_piem";
 		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/"+region;
-		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.MARCH,1);
-		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.MARCH,2);
+		Config.getInstance().pls_start_time = new GregorianCalendar(2012,Calendar.MARCH,11);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2012,Calendar.MARCH,17);
+		new UserCDRCounter(null,null).run();
+		y.add(percentAnalysis(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv")));
+		names.add("2012");
 		
-		Placemark p = Placemark.getPlacemark("Milano");
-		p.changeRadius(p.getRadius()+10000);		
+		System.out.println("************************* 2013");
 		
-		new UserEventCounter(p,null).run();
-		percentAnalysis(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv"));
+		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/"+region;
+		Config.getInstance().pls_start_time = new GregorianCalendar(2013,Calendar.JUNE,23);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2013,Calendar.JUNE,29);
+		new UserCDRCounter(null,null).run();
+		y.add(percentAnalysis(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv")));
+		names.add("2013");
+		
+		System.out.println("************************* 2014");
+		
+		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/"+region;
+		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.MARCH,16);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.MARCH,22);
+		new UserCDRCounter(null,null).run();
+		y.add(percentAnalysis(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv")));
+		names.add("2014");
+		
+		System.out.println("************************* 2015");
+		
+		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/"+region;
+		Config.getInstance().pls_start_time = new GregorianCalendar(2015,Calendar.JUNE,7);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2015,Calendar.JUNE,13);
+		new UserCDRCounter(null,null).run();
+		y.add(percentAnalysis(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv")));
+		names.add("2015");
+		
+		
+		String[] x = new String[100];
+		for(int i=1;i<=100;i++)
+			x[i-1] = String.valueOf(i);
+		
+		
+		RPlotter.drawLine(x, y, names, "year", "percentile", "cdr x day", Config.getInstance().base_folder+"/Images/cdrXdayYearTrend.pdf", null);
+		
+		
 		//extractUsersAboveThreshold(new File(Config.getInstance().base_folder+"/UserEventCounter/"+region+"_count_timeframe_"+PLSParser.MIN_HOUR+"_"+PLSParser.MAX_HOUR+".csv"),new File(Config.getInstance().base_folder+"/UserSetCreator/LDAPOP_lomb.csv"), 700, -1);
 		
 	}

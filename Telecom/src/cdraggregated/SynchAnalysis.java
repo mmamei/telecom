@@ -65,6 +65,8 @@ public class SynchAnalysis {
 	public static final Feature USEF = Feature.RSQ;
 	
 	
+	public static boolean KML_PLOT_Z = true;
+	
 	public static void main(String[] args) throws Exception {
 		//String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
 		
@@ -72,19 +74,19 @@ public class SynchAnalysis {
 				"caltanissetta",
 				"siracusa",
 				"benevento",
-				"palermo",
+				//"palermo",
 				"campobasso",
-				"napoli",
+				//"napoli",
 				"asti",
-				"bari",
+				//"bari",
 				"ravenna",
 				"ferrara",
-				"venezia",
-				"torino",
+				//"venezia",
+				//"torino",
 				"modena",
-				"roma",
+				//"roma",
 				"siena",
-				"milano"
+				//"milano"
 		};
 		
 		String[] files = new String[city.length];
@@ -621,7 +623,7 @@ public class SynchAnalysis {
 	
 	// Questo si usa per DEMOGRAPHIC_RES_VS_NON_RES
 	
-	static boolean KML_PLOT_Z = false;
+	
 	
 	public static Map<String,Double> getDistCorr(String city, String[] regions, List<TimeDensityFromAggregatedData> tds) {
 		TimeConverter tc = null;
@@ -705,7 +707,7 @@ public class SynchAnalysis {
 	private static String USE_FEATURE = "F";
 	
 	
-	
+	private static int TIME_WINDOW = 24;
 	private static double computeFeature(double[] series1, double[] series2) {
 		try {
 			TimeConverter tc = TimeConverter.getInstance();
@@ -726,20 +728,19 @@ public class SynchAnalysis {
 			fseries1 = BIN > 0 ? bin(fseries1,BIN) : fseries1;
 			fseries2 = BIN > 0 ? bin(fseries2,BIN) : fseries2;
 			
-			
-			//return reallyComputeFeature(fseries1,fseries2); // original
+			if(TIME_WINDOW == -1)
+				return reallyComputeFeature(fseries1,fseries2); // original
 			
 			/********************************************************************/
 			
 			
-			int size = 12;
-			double[] reduced1 = new double[size];
-			double[] reduced2 = new double[size];
+			double[] reduced1 = new double[TIME_WINDOW];
+			double[] reduced2 = new double[TIME_WINDOW];
 			
 			double num = 0;
 			double den = 0;
 			
-			for(int i=0; i<fseries1.length; i=i+size) {
+			for(int i=0; i<fseries1.length; i=i+TIME_WINDOW) {
 				System.arraycopy(fseries1, i, reduced1, 0, reduced1.length);
 				System.arraycopy(fseries2, i, reduced2, 0, reduced2.length);
 				num += reallyComputeFeature(reduced1,reduced2);

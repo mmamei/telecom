@@ -13,9 +13,10 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import region.Placemark;
+import region.Region;
 import region.RegionMap;
 import utils.Config;
+import utils.GeomUtils;
 import utils.Logger;
 import visual.html.ArrowsGoogleMaps;
 import visual.kml.KML;
@@ -26,10 +27,10 @@ import cdrindividual.densityANDflows.flows.Move;
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
 import com.graphhopper.GraphHopper;
-import com.graphhopper.routing.util.AllEdgesIterator;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.util.EdgeBase;
 import com.graphhopper.util.PointList;
+import com.vividsolutions.jts.geom.Geometry;
 
 public class ODMatrixVisual {
 		
@@ -116,13 +117,12 @@ public class ODMatrixVisual {
     	RegionMap rm = new RegionMap(title);
     	BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().base_folder+"/ODMatrix/"+od_dir+"/latlon.csv"));
     	String line;
+    	br.readLine(); // skip header
     	while((line = br.readLine())!=null) {
     		String[] e = line.split("\t");
-    		String name = e[0];
-    		String[] latlon = e[1].split(",");
-    		double lat = Double.parseDouble(latlon[0]);
-    		double lon = Double.parseDouble(latlon[1]);
-    		rm.add(new Placemark(name,new double[]{lat,lon},1));
+    		Geometry g = GeomUtils.openGis2Geom(e[0].replaceAll("\"", ""));
+    		String name = e[1];
+    		rm.add(new Region(name,g));
     	}
     	br.close();
     	
