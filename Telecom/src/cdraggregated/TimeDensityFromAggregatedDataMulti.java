@@ -390,15 +390,118 @@ public class TimeDensityFromAggregatedDataMulti {
 			Map<String,Double> density = td.plot();
 			
 			ln.add(city);
-			lv.add(SynchAnalysis.density2array(density));
+			lv.add(density2array(density));
 		}
 		
 		RPlotter.drawBoxplot(lv,ln,"comuni2012","multi",Config.getInstance().base_folder+"/Images/boxplot-multi-"+meta_rm.getName()+".pdf",10,null);
 	
 		System.out.println("Done!");
 	}
+	
+	
+	public static double[] density2array(Map<String,Double> density) {
+		double[] y = new double[density.size()];
+		int c = 0;
+		for(double v: density.values())
+			y[c++] = v; 
+		return y;
+	}
 		
 		
 		
 }
+
+class TIC2015_ComuniProvincieRegioniConverter {
+	
+	
+	private Map<String,String> comuni_to_provincie;
+	private Map<String,String> comuni_to_regioni;
+	
+	
+	private static TIC2015_ComuniProvincieRegioniConverter instance = null;
+	
+	static TIC2015_ComuniProvincieRegioniConverter getInstance() {
+		if(instance == null)
+			instance = new TIC2015_ComuniProvincieRegioniConverter();
+		return instance;
+	}
+	
+	private TIC2015_ComuniProvincieRegioniConverter() {
+		
+		comuni_to_provincie = new HashMap<String,String>();
+		comuni_to_regioni = new HashMap<String,String>();
+		
+		try {
+		
+		    Map<String,String> id2prov = new HashMap<String,String>();
+		    BufferedReader br = new BufferedReader(new FileReader("C:/DATASET/GEO/prov2011.csv"));
+		    String line;
+		    while((line=br.readLine())!=null) {
+		    	String[] e = line.split("\t");
+		    	String id = e[2];
+		    	String name = e[4];
+		    	id2prov.put(id, name);
+		    }
+		    br.close();
+		    
+		    
+		    Map<String,String> id2region = new HashMap<String,String>();
+		    br = new BufferedReader(new FileReader("C:/DATASET/GEO/regioni.csv"));
+		    while((line=br.readLine())!=null) {
+		    	String[] e = line.split("\t");
+		    	String id = e[1];
+		    	String name = e[2];
+		    	id2region.put(id, name);
+		    }
+		    br.close();
+		    
+		    
+		    br = new BufferedReader(new FileReader("C:/DATASET/GEO/comuni2012.csv"));
+		    while((line=br.readLine())!=null) {
+		    	String[] e = line.split("\t");
+		    	String id = e[5];
+		    	String prov = e[3];
+		    	String reg = e[2];
+		    	comuni_to_provincie.put(id, id2prov.get(prov));
+		    	comuni_to_regioni.put(id, id2region.get(reg));
+		    }
+		    br.close();
+		    
+		    
+		    /*
+		    br = new BufferedReader(new FileReader("C:/DATASET/GEO/comuni2014.csv"));
+		    while((line=br.readLine())!=null) {
+		    	String[] e = line.split("\t");
+		    	String id = e[1];
+		    	String prov = e[3];
+		    	String reg = e[2];
+		    	comuni_to_provincie.put(id, id2prov.get(prov));
+		    	comuni_to_regioni.put(id, id2region.get(reg));
+		    }
+		    br.close();
+		    */
+		    
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	String comuni2provincie(String c) {
+		if(c.equals("0")) return c;
+		if(c.equals("108033")) return "MI";
+		if(c.equals("108023")) return "MI";
+		return comuni_to_provincie.get(c);
+	}
+	
+	String comuni2regioni(String c) {
+		if(c.equals("0")) return c;
+		return comuni_to_regioni.get(c);
+	}	
+}
+
+
+
+
+
 

@@ -450,11 +450,11 @@ public class RPlotter {
             	sby.append(",yy"+i);
             
             	     code += "z <- rbind("+sby.substring(1)+");"   
-            	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot() + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
+            	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot(notch = TRUE) + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
             	          + "ggsave('"+file+"',width="+width+");"
             	          + "dev.off();";
             
-            System.out.println(code.replaceAll(";", ";\n"));
+            //System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));

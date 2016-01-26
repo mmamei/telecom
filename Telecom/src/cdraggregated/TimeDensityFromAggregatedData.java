@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +20,7 @@ import region.RegionI;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.r.RPlotter;
@@ -45,39 +45,7 @@ public class TimeDensityFromAggregatedData {
 	private TimeDensityFromAggregatedData() {
 		
 	}
-	
-	/*
-	public TimeDensityFromAggregatedData reproject2Map(RegionMap rm_to) {
-		TimeDensityFromAggregatedData res = new TimeDensityFromAggregatedData();
-		res.city = city;
-		res.type = type;
-		res.tc = tc;
-		res.rm = rm_to;
-		res.map = new HashMap<String,double[]>();
-		for(String f : map.keySet()) {
-			double[] value = map.get(f);
-			RegionI from = rm.getRegion(f);
-			float[] areas = rm_to.computeAreaIntersection(from);
-			//boolean interesction = false;
-			for(int i=0; i<areas.length;i++)
- 			   if(areas[i] > 0) {
- 				  //interesction = true;
- 				  RegionI to = rm_to.getRegion(i);
- 				  String name_to = to.getName();
- 				  
- 				  double[] v = res.map.get(name_to);
- 				  if(v == null) {
- 					  v = new double[value.length];
- 	 				  res.map.put(name_to,v);  
- 				  }
- 				  
- 				  for(int k=0; k<v.length;k++)
- 					  v[k] += value[k] * areas[i];
- 			   }
-		}
-		return res;
-	}
-	*/
+
 	
 	
 	public TimeDensityFromAggregatedData reproject2Map(RegionMap rm_to) {
@@ -87,32 +55,6 @@ public class TimeDensityFromAggregatedData {
 		res.tc = tc;
 		res.rm = rm_to;
 		res.map = new HashMap<String,double[]>();
-		
-		
-		
-		
-		HashMap<String,String> city2region = new HashMap<String,String>();
-		city2region.put("torino", "PIEMONTE");
-		city2region.put("milano", "LOMBARDIA");
-		city2region.put("venezia", "VENETO");
-		city2region.put("roma", "LAZIO");
-		city2region.put("napoli", "CAMPANIA");
-		city2region.put("bari", "PUGLIA");
-		city2region.put("palermo", "SICILIA");
-		
-		city2region.put("campobasso", "MOLISE");
-		city2region.put("siracusa", "SICILIA");
-		city2region.put("benevento", "CAMPANIA");
-		city2region.put("caltanissetta", "SICILIA");
-		city2region.put("modena", "EMILIA-ROMAGNA");
-		city2region.put("siena", "TOSCANA");
-		city2region.put("asti", "PIEMONTE");
-		city2region.put("ferrara", "EMILIA-ROMAGNA");
-		city2region.put("ravenna", "EMILIA-ROMAGNA");
-		
-		HashMap<String,String> city2province = new HashMap<String,String>();
-		for(String province: new String[]{"torino","milano","venezia","roma","napoli","bari","palermo","campobasso","siracusa","benevento","caltanissetta","modena","siena","asti","ferrara","ravenna"})
-			city2province.put(province,province.toUpperCase());
 		
 		
 		for(String f : map.keySet()) {
@@ -121,19 +63,17 @@ public class TimeDensityFromAggregatedData {
 			
 			
 			if(rm_to.getName().contains("regioni")) {
-				String region = city2region.get(city);
+				String region = SynchAnalysis.city2region.get(city);
 				if(region!=null) add(res.map,region, value); 
 				else System.err.println("ERROR IN "+city);
 			}
 			
 			
 			if(rm_to.getName().contains("prov2011")) {
-				String province = city2province.get(city);
+				String province = SynchAnalysis.city2province.get(city);
 				if(province!=null) add(res.map,province, value); 
 				else System.err.println("ERROR IN "+city);
 			}
-			
-						
 			
 		}
 		//System.out.println("---------------------> "+res.map.size());
@@ -187,7 +127,8 @@ public class TimeDensityFromAggregatedData {
 				}
 				
 				CopyAndSerializationUtils.save(f, map);
-				
+				saveCSV(f.getAbsolutePath().replaceAll(".ser", ".csv"),map);
+				saveARFF(f.getAbsolutePath().replaceAll(".ser", ".arff"),map);
 			}
 			
 			
@@ -195,6 +136,59 @@ public class TimeDensityFromAggregatedData {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}	
+	}
+	
+	static boolean Z = true;
+	
+	public static void saveCSV(String file, Map<String,double[]> map) {
+		try {
+			PrintWriter out = new PrintWriter(new FileWriter(new File(file)));
+			TimeConverter tc = TimeConverter.getInstance();
+			for(String k: map.keySet()) {
+				out.print(k);
+				double[] series = map.get(k);
+				double[] fseries = Z ? (StatsUtils.getZH(series,tc)) : series;
+				for(double v: fseries)
+					out.print(";"+v);
+				out.println();
+			}			
+			out.close();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	public static void saveARFF(String fn, Map<String,double[]> map) {
+		try {
+			File file = new File(fn);
+			PrintWriter out = new PrintWriter(new FileWriter(file));
+			
+			out.println("@RELATION "+file.getName().replaceAll(".arff", (Z?"_Z":"")));
+			
+			out.println("@ATTRIBUTE region STRING");
+			
+			int size = map.values().iterator().next().length-1;
+			for(int i=0; i<size;i++)
+			out.println("@ATTRIBUTE v"+i+" NUMERIC");
+			out.println("@DATA");
+			
+			
+			TimeConverter tc = TimeConverter.getInstance();
+			
+			
+			for(String k: map.keySet()) {
+				out.print("'"+k+"'");
+				double[] series = map.get(k);
+				double[] fseries = Z ? (StatsUtils.getZH(series,tc)) : series;
+				for(double v: fseries)
+					out.print(","+v);
+				out.println();
+			}			
+			out.close();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
