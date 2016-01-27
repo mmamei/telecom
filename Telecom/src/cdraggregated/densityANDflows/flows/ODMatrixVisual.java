@@ -90,8 +90,6 @@ public class ODMatrixVisual {
 	        	System.out.println(f.getName());
 	
 	        	
-	        	
-	        	
 	        	//System.out.println("("+prevlat+","+prevlon+") ==> ("+lat+","+lon+") ==> "+gh.route(new GHRequest(list.getLatitude(i-1),list.getLongitude(i-1),list.getLatitude(i),list.getLongitude(i))).getInstructions().toString());
 	        } 
 		}

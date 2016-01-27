@@ -22,7 +22,6 @@
 	<classpathentry kind="lib" path="lib/REngine.jar"/>
 	<classpathentry kind="lib" path="lib/Rserve.jar"/>
 	<classpathentry kind="lib" path="lib/JavaMI.jar"/>
-	<classpathentry kind="lib" path="lib/jmathplot-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/tsne.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

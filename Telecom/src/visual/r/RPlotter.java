@@ -244,6 +244,8 @@ public class RPlotter {
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
         } catch (Exception e) {
+        	e.printStackTrace();
+        	/*
         	if(e.getMessage().startsWith("Cannot connect")) {
              	System.err.println("You must launch the following code in R");
              	System.err.println("library(Rserve)");
@@ -253,6 +255,7 @@ public class RPlotter {
             	c.close();
             	e.printStackTrace();
             }
+            */
         }      
 	}
 	

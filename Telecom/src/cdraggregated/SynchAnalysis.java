@@ -34,24 +34,16 @@ import JavaMI.Entropy;
 
 public class SynchAnalysis {
 	
-	/*
-	 * Fare un bello studio sulla composizione in termini di caos del traffico generato in ogni comune.
-	 * Potremmo misurare l'entropia di quella distribuzione e vedre quanta eterogeneità c'è in quella zona.
-	 * Anche quetsa feature si potrebbe correlare con i dati economici.
-	 * nota: i caps potrebbero essere aggragti a livello di comune-privincia-regione in modo da avere distribuzioni migliori.
-	 * forse è meglio fare un altra classe ed agire su time density from aggregated data
-	 */
+	
+	public static boolean PLOT = true;
 	
 
 	public static boolean CAPOLUOGO_ONLY = true; 
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
-	public static final String[] COMPANY_CONSTRAINTS = null;//new String[]{"01-32","grande",""};
-	public static final int LIMIT = -1;
-	
-	
 	private enum Analysis {CALLOUT_IT,CALLOUT_IT_VS_NON_IT,DEMOGRAPHIC_RES,DEMOGRAPHIC_RES_VS_NON_RES,DEMOGRAPHIC_IT_VS_NON_IT,DEMOGRAPHIC_ALL};
+	
 	//public static Analysis TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
 	public static Analysis TYPE = Analysis.DEMOGRAPHIC_RES;
 
@@ -63,24 +55,39 @@ public class SynchAnalysis {
 	
 	//This parameter is a threshold on the synch region. It is used with DEMOGRAPHIC_RES
 	//Only regions with an avg value above this threshold are considered
-	public static int DEMOGRAPHIC_RES_THRESHOLD = 200;
+	public static int DEMOGRAPHIC_RES_THRESHOLD = 100;
 	
 	//These parameters are thresholds on the synch region. It is used with DEMOGRAPHIC_RES_VS_NON_RES
 	//Only regions with an avg value above these thresholds are considered.
 	//DEMOGRAPHIC_RES_THRESHOLD is used for residetns. DEMOGRAPHIC_NOT_RES_THRESHOLD is used for non residents
 	public static int  DEMOGRAPHIC_NOT_RES_THRESHOLD = 20;
 	
+	
+	
+	/*
+	 * This is used in the computeFeature method
+	 * The TIME_WINDOW parameter is used to divide the time series 1 and 2 into chunks of TIME_WINDOW eelememnts.
+	 * chuncks are compared 2-by-2 all the results are placed in List<Double> output.
+	 * If TIME_WINDOW is set to -1 all the time serie is considered at once.
+	 * So, with TIME_WINDOW = -1, I compute the synchrnization of two regions for the whole data period
+	 * With TIME_WINDOW = 24, I compute the synchrnization of two regions for each day (24 h) all place the values seprately on the output list
+	 */
+	
+	private static int TIME_WINDOW = -1;
+	//private static int TIME_WINDOW = 24;
+	
 	public static void main(String[] args) throws Exception {
-		batch();
-		//go();
+		//batch();
+		go();
 	}
 	
 	public static void batch() throws Exception {
+		PLOT = false;
 		PrintWriter out = null;
 		
-		/*
+		TIME_WINDOW = -1;
 		TYPE = Analysis.DEMOGRAPHIC_RES;
-		out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/TIC2015/batch_demographic_res.csv"));
+		out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/TIC2015/batch_demographic_res_tw_minus1.csv"));
 		for(DEMOGRAPHIC_RES_THRESHOLD = 50; DEMOGRAPHIC_RES_THRESHOLD <= 600;DEMOGRAPHIC_RES_THRESHOLD+=50) {
 			List<Double> all_r2 = go();
 			out.print(DEMOGRAPHIC_RES_THRESHOLD);
@@ -89,10 +96,11 @@ public class SynchAnalysis {
 			out.println();
 		}
 		out.close();
-		*/
 		
-		TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
-		out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/TIC2015/batch_demographic_res_not_res.csv"));
+		
+		TIME_WINDOW = 24;
+		TYPE = Analysis.DEMOGRAPHIC_RES;
+		out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/TIC2015/batch_demographic_res_tw_24.csv"));
 		for(DEMOGRAPHIC_RES_THRESHOLD = 50; DEMOGRAPHIC_RES_THRESHOLD <= 600;DEMOGRAPHIC_RES_THRESHOLD+=50) {
 			List<Double> all_r2 = go();
 			out.print(DEMOGRAPHIC_RES_THRESHOLD);
@@ -101,31 +109,59 @@ public class SynchAnalysis {
 			out.println();
 		}
 		out.close();
+		
+		TIME_WINDOW = -1;
+		TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
+		out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/TIC2015/batch_demographic_res_not_res_tw_minus1.csv"));
+		for(DEMOGRAPHIC_RES_THRESHOLD = 50; DEMOGRAPHIC_RES_THRESHOLD <= 600;DEMOGRAPHIC_RES_THRESHOLD+=50) {
+			List<Double> all_r2 = go();
+			out.print(DEMOGRAPHIC_RES_THRESHOLD);
+			for(double r: all_r2)
+				out.print(";"+r);
+			out.println();
+		}
+		out.close();
+		
+		TIME_WINDOW = 24;
+		TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
+		out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/TIC2015/batch_demographic_res_not_res_tw24.csv"));
+		for(DEMOGRAPHIC_RES_THRESHOLD = 50; DEMOGRAPHIC_RES_THRESHOLD <= 600;DEMOGRAPHIC_RES_THRESHOLD+=50) {
+			List<Double> all_r2 = go();
+			out.print(DEMOGRAPHIC_RES_THRESHOLD);
+			for(double r: all_r2)
+				out.print(";"+r);
+			out.println();
+		}
+		out.close();
+		
 	}
 	
+	
+	
+	static String[] CITIES = new String[]{
+			"napoli",
+			"bari",
+			"caltanissetta",
+			"siracusa",
+			"benevento",
+			"palermo",
+			"campobasso",
+			"roma",
+			"siena",
+			"ravenna",
+			"ferrara",
+			//"modena",
+			"venezia",
+			"torino",
+			"asti",
+			"milano"
+	};
+	
 	public static List<Double> go() throws Exception {
-		//String[] city = new String[]{"torino","milano","venezia","roma","napoli","bari","palermo"};
 		
-		String[] city = new String[]{
-				"caltanissetta",
-				"siracusa",
-				"benevento",
-				//"palermo",
-				"campobasso",
-				//"napoli",
-				"asti",
-				//"bari",
-				"ravenna",
-				"ferrara",
-				//"venezia",
-				//"torino",
-				"modena",
-				//"roma",
-				"siena",
-				//"milano"
-		};
 		
-		String[] files = new String[city.length];
+		
+		String[] files = new String[CITIES.length];
 		
 		Map<String, List<SynchConstraints>> map_constraints = new HashMap<String,List<SynchConstraints>>();
 		String type = "";
@@ -156,16 +192,16 @@ public class SynchAnalysis {
 		if(TYPE.equals(Analysis.CALLOUT_IT)) {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
-			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
+			for(int i=0; i<CITIES.length;i++)
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+CITIES[i]+"/"+type+".tar.gz";
 				
 			
-			for(int i=0; i<city.length;i++) {
+			for(int i=0; i<CITIES.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
 				Set<String> ok = new HashSet<String>();
 				ok.add("39");
 				constraints.add(new SynchConstraints("IT",ok));
-				map_constraints.put(city[i],constraints);
+				map_constraints.put(CITIES[i],constraints);
 				
 			}
 			
@@ -174,17 +210,17 @@ public class SynchAnalysis {
 		if(TYPE.equals(Analysis.CALLOUT_IT_VS_NON_IT)) {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
-			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city[i]+"/"+type+".tar.gz";
+			for(int i=0; i<CITIES.length;i++)
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+CITIES[i]+"/"+type+".tar.gz";
 				
 			
-			for(int i=0; i<city.length;i++) {
+			for(int i=0; i<CITIES.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
 				Set<String> ok = new HashSet<String>();
 				ok.add("39");
 				constraints.add(new SynchConstraints("IT",ok));
 				constraints.add(new SynchConstraints("NOT-IT",ok,true));
-				map_constraints.put(city[i],constraints);
+				map_constraints.put(CITIES[i],constraints);
 				
 			}
 			
@@ -194,13 +230,13 @@ public class SynchAnalysis {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
-			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
+			for(int i=0; i<CITIES.length;i++)
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+CITIES[i]+"/callsLM_"+CITIES[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
-			for(int i=0; i<city.length;i++) {
+			for(int i=0; i<CITIES.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
 				
-				Set<String> caps = getComuni2012FromCity(city[i]);
+				Set<String> caps = getComuni2012FromCity(CITIES[i]);
 				
 				//Set<String> caps = new HashSet<String>();
 				//caps.add(id2name.get(city[i]));
@@ -208,7 +244,7 @@ public class SynchAnalysis {
 				
 				constraints.add(new SynchConstraints("resident",caps));
 				//constraints.add(new SynchConstraints("not-resident",caps,true));
-				map_constraints.put(city[i],constraints);
+				map_constraints.put(CITIES[i],constraints);
 			}
 		}
 		
@@ -216,20 +252,20 @@ public class SynchAnalysis {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
-			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
+			for(int i=0; i<CITIES.length;i++)
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+CITIES[i]+"/callsLM_"+CITIES[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
-			for(int i=0; i<city.length;i++) {
+			for(int i=0; i<CITIES.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
 				
-				Set<String> caps = getComuni2012FromCity(city[i]);
+				Set<String> caps = getComuni2012FromCity(CITIES[i]);
 				
 				//Set<String> caps = new HashSet<String>();
 				//caps.add(id2name.get(city[i]));
 				
 				constraints.add(new SynchConstraints("resident",caps));
 				constraints.add(new SynchConstraints("not-resident",caps,true));
-				map_constraints.put(city[i],constraints);
+				map_constraints.put(CITIES[i],constraints);
 			}
 		}
 		
@@ -238,14 +274,14 @@ public class SynchAnalysis {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
-			for(int i=0; i<city.length;i++)
-				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
+			for(int i=0; i<CITIES.length;i++)
+				files[i] = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+CITIES[i]+"/callsLM_"+CITIES[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
-			for(int i=0; i<city.length;i++) {
+			for(int i=0; i<CITIES.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
 				constraints.add(new SynchConstraints("0"));
 				constraints.add(new SynchConstraints("0",true));
-				map_constraints.put(city[i],constraints);
+				map_constraints.put(CITIES[i],constraints);
 			}
 		}
 		
@@ -254,16 +290,16 @@ public class SynchAnalysis {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
 			
-			for(int i=0; i<city.length;i++)
-				files[i] =Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city[i]+"/callsLM_"+city[i].substring(0,2).toUpperCase()+"_COMUNI2012";
+			for(int i=0; i<CITIES.length;i++)
+				files[i] =Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+CITIES[i]+"/callsLM_"+CITIES[i].substring(0,2).toUpperCase()+"_COMUNI2012";
 			
-			for(int i=0; i<city.length;i++) {
+			for(int i=0; i<CITIES.length;i++) {
 				List<SynchConstraints> constraints = new ArrayList<SynchConstraints>();
 				
 				//Set<String> caps = getComuni2012FromCity(city[i]);
 				
 				Set<String> caps = new HashSet<String>();
-				caps.add(id2capolouogo.get(city[i]));
+				caps.add(id2capolouogo.get(CITIES[i]));
 				
 				
 				
@@ -274,7 +310,7 @@ public class SynchAnalysis {
 					if(cont >= 3) break;
 				}
 				
-				map_constraints.put(city[i],constraints);
+				map_constraints.put(CITIES[i],constraints);
 			}
 		}
 		
@@ -282,8 +318,8 @@ public class SynchAnalysis {
 		
 		
 
-		String[] names = new String[city.length];
-		double[] values = new double[city.length];
+		String[] names = new String[CITIES.length];
+		double[] values = new double[CITIES.length];
 		List<String> ln = new ArrayList<String>();
 		
 		List<double[]> lvalues_comuni2012 = new ArrayList<double[]>();
@@ -302,20 +338,21 @@ public class SynchAnalysis {
 		
 		
 		
-		for(int i=0; i<city.length;i++) {
+		for(int i=0; i<CITIES.length;i++) {
 			
-			System.out.println("\n\n*************************************************** START PROCESSING "+city[i].toUpperCase());
+			System.out.println("\n\n*************************************************** START PROCESSING "+CITIES[i].toUpperCase());
 			
 			
-			names[i] = city[i].substring(0, 1).toUpperCase() + city[i].substring(1,3); // capitalize first letter and consider only the first two letters
+			names[i] = CITIES[i].substring(0, 1).toUpperCase() + CITIES[i].substring(1,3); // capitalize first letter and consider only the first two letters
 			
-			RegionMap rm_comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city[i]+".ser"));
-			List<TimeDensityFromAggregatedData> tds_comuni2012 = loadTimeDensityFromAggregatedData(city[i],type,files[i],readIndexes,rm_comuni2012,map_constraints.get(city[i]));
+			RegionMap rm_comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+CITIES[i]+".ser"));
+			List<TimeDensityFromAggregatedData> tds_comuni2012 = loadTimeDensityFromAggregatedData(CITIES[i],type,files[i],readIndexes,rm_comuni2012,map_constraints.get(CITIES[i]));
+			
 			Map<String,List<Double>> density_comuni2012 = process(tds_comuni2012);
 			
 			
-			RegionMap rm_comuni2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-"+city[i]+".ser"));
-			List<TimeDensityFromAggregatedData> tds_comuni2014 = loadTimeDensityFromAggregatedData(city[i],type,files[i],readIndexes,rm_comuni2014,map_constraints.get(city[i])); 
+			RegionMap rm_comuni2014 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-"+CITIES[i]+".ser"));
+			List<TimeDensityFromAggregatedData> tds_comuni2014 = loadTimeDensityFromAggregatedData(CITIES[i],type,files[i],readIndexes,rm_comuni2014,map_constraints.get(CITIES[i])); 
 			Map<String,List<Double>> density_comuni2014 = process(tds_comuni2014);
 			
 			Map<String,List<Double>> density_prov2011 = null;
@@ -324,8 +361,8 @@ public class SynchAnalysis {
 			
 			
 			if(TYPE.equals(Analysis.DEMOGRAPHIC_RES)) {
-				density_prov2011 = reproject2map(density_comuni2012,city[i],rm_comuni2012,prov2011);
-				density_regioni = reproject2map(density_comuni2012,city[i],rm_comuni2012,regioni);
+				density_prov2011 = reproject2map(density_comuni2012,CITIES[i],rm_comuni2012,prov2011);
+				density_regioni = reproject2map(density_comuni2012,CITIES[i],rm_comuni2012,regioni);
 			}
 			else {
 				density_prov2011 = process(reproject2map(tds_comuni2012,prov2011));
@@ -337,12 +374,12 @@ public class SynchAnalysis {
 			
 			if(CAPOLUOGO_ONLY) {
 				// keep only the capoluogo
-				List<Double> value2012 =  density_comuni2012.get(id2capolouogo.get(city[i]));
-				List<Double> value2014 =  density_comuni2014.get(id2capolouogo.get(city[i]));
+				List<Double> value2012 =  density_comuni2012.get(id2capolouogo.get(CITIES[i]));
+				List<Double> value2014 =  density_comuni2014.get(id2capolouogo.get(CITIES[i]));
 				density_comuni2012.clear();
 				density_comuni2014.clear();
-				density_comuni2012.put(id2capolouogo.get(city[i]), value2012);
-				density_comuni2014.put(id2capolouogo.get(city[i]), value2014);
+				density_comuni2012.put(id2capolouogo.get(CITIES[i]), value2012);
+				density_comuni2014.put(id2capolouogo.get(CITIES[i]), value2014);
 			}
 			
 			
@@ -360,16 +397,16 @@ public class SynchAnalysis {
 			lvalues_regioni.add(density2array(density_regioni));
 			
 			
-			System.out.println("*************************************************** END PROCESSING "+city[i].toUpperCase());
+			System.out.println("*************************************************** END PROCESSING "+CITIES[i].toUpperCase());
 			
 		}
 		
 		// regioni is the only one that can have multiple data. Therefore it is important to compute the mean otherwise I can have R^2 > 1
 		//all_density_regioni.mean();
 		
-		RPlotter.drawBoxplot(lvalues_comuni2012,ln,"comuni2012",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
+		if(PLOT) RPlotter.drawBoxplot(lvalues_comuni2012,ln,"comuni2012",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		//RPlotter.drawBoxplot(lvalues_comuni2014,ln,"comuni2014",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2014-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
-		RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
+		if(PLOT) RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		
 		//if(!CAPOLUOGO_ONLY) System.exit(0);
@@ -380,7 +417,7 @@ public class SynchAnalysis {
 		List<Double> all_r2 = new ArrayList<Double>();
 		
 		Deprivation dp = Deprivation.getInstance();
-		plotCorrelation(avg(all_density_regioni),dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png",null,true);
+		if(PLOT) plotCorrelation(avg(all_density_regioni),dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png",null,true);
 		
 		
 		
@@ -389,8 +426,8 @@ public class SynchAnalysis {
 		
 		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 		MEF_IRPEF mi = MEF_IRPEF.getInstance();
-		all_r2.add(plotCorrelation(avg(all_density_comuni2014),mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name,CAPOLUOGO_ONLY));
-		//plotCorrelation(all_density_comuni2014,mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE+"-gini.pdf",id2name);
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_comuni2014),mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name,CAPOLUOGO_ONLY));
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_comuni2014),mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-gini.png",id2name,CAPOLUOGO_ONLY));
 		
 		
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
@@ -479,9 +516,10 @@ public class SynchAnalysis {
 		double r2v = StatsUtils.r2(x, y);
 		String r2 = "annotate(\"text\", parse=TRUE, size=10, fontface='bold', x="+(r > 0 ? "-" : "")+"Inf, y=Inf, label=\"r^2 == "+DF.format(r2v)+"\", hjust="+(r > 0 ? "-0.2" : "1.2")+", vjust=1.2)";
 		
-		if(use_labels) RPlotter.drawScatterWLabels(x,y,l,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + "+r2);
-		else RPlotter.drawScatter(x,y,titx, tity, file,"stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(alpha=0.2,size = 5) + "+r2);
-		
+		if(PLOT) {
+			if(use_labels) RPlotter.drawScatterWLabels(x,y,l,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + "+r2);
+			else RPlotter.drawScatter(x,y,titx, tity, file,"stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(alpha=0.2,size = 5) + "+r2);
+		}
 		return r2v;
 
 	}
@@ -533,12 +571,7 @@ public class SynchAnalysis {
 	private static Map<String,List<Double>> reproject2map(Map<String,List<Double>> map, String city, RegionMap rm_from, RegionMap rm_to) {
 		System.out.println(">>>>> REPROJECT DENSITY "+city+" FROM "+rm_from.getName()+" TO "+rm_to.getName());
 		AddMapL res = new AddMapL();
-		
-		
-		for(String f : map.keySet()) {
-			List<Double> value = map.get(f);
-			
-			
+		for(List<Double> value : map.values()) {
 			if(rm_to.getName().contains("regioni")) {
 				String region = city2region.get(city);
 				if(region!=null) res.add(region, value); 
@@ -607,22 +640,19 @@ public class SynchAnalysis {
 	
 	public static Map<String,List<Double>> process(List<TimeDensityFromAggregatedData> tds) throws Exception {
 			
-		
-		String suffix = LIMIT > 0 ? "limited to "+LIMIT : "";
-		System.out.println("processign "+tds.get(0).getCity()+" -- regions size --> "+tds.get(0).rm.getNumRegions()+" "+suffix);
+		System.out.println("processign "+tds.get(0).getCity()+" -- regions size --> "+tds.get(0).rm.getNumRegions());
 		for(int i=0; i<tds.size();i++)
-			System.out.println("	processing "+tds.get(i).getCity()+" -- "+tds.get(i).getType()+" size --> "+tds.get(i).size()+" "+suffix);
+			System.out.println("	processing "+tds.get(i).getCity()+" -- "+tds.get(i).getType()+" size --> "+tds.get(i).size());
 		
 		//LoadDensityFromAggregatedData.process(city, tds, COMPANY_CONSTRAINTS, LIMIT);
 		
 		
-		String[] regions = new String[LIMIT > 0 ? Math.min(LIMIT, tds.get(0).rm.getNumRegions()) : tds.get(0).rm.getNumRegions()];
+		String[] regions = new String[tds.get(0).rm.getNumRegions()];
 		System.out.println(tds.get(0).getCity()+" regions = "+regions.length);
 		int i=0;
 		for(RegionI r : tds.get(0).rm.getRegions()) {
 			regions[i] = r.getName();
 			i++;
-			if(LIMIT > 0 && i >= LIMIT) break;
 		}
 		
 		if(tds.size() == 1) return getDistCorr(tds.get(0).getCity(),regions,tds.get(0));
@@ -672,9 +702,30 @@ public class SynchAnalysis {
 			
 			if(corrs.size() > 0) {
 				density.put(regions[i], corrs);	
-				tot+= corrs.size();
+				//if(regions[i].equals("36039")) System.err.println(regions[i]+" = "+corrs);
+				tot++;
 			}
 		}
+		
+		try {
+			String orig_name = td.rm.getName();
+			td.rm.setName(city+"-"+td.getType()+"-"+td.rm.getName()+"-correlation-res");
+			Map<String, Double> ad = avg(density);		
+			KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+td.rm.getName()+".kml",ad,td.rm,"",false);
+			td.rm.setName(orig_name);
+			//Map<String,Double> rdensity = reproject2map(city,tds.get(0).getType()+"-correlation",density,rm,comuni,false);
+			//Map<String,String> rdesc = new HashMap<String,String>();
+			//for(String k: desc.keySet())
+			//	rdesc.put(map_converter.get(k), desc.get(k));
+			
+			//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+city+"-"+tds.get(0).getType()+"-correlation.kml",rdensity,comuni,rdesc,false);
+			
+			
+			//printCSV(Config.getInstance().base_folder+"/TIC2015/"+city+"-raw.csv",rawDesc,map_converter);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		System.err.println(city+": N. Regions = "+regions.length +"; N. Combination = "+ regions.length*(regions.length-1)+"; Actual Comb. = "+tot);
 		return density;
 	}
@@ -688,6 +739,7 @@ public class SynchAnalysis {
 		
 		Map<String,List<Double>> density = new HashMap<String,List<Double>>();
 		
+		int tot = 0;
 		
 		
 		Map<String,String> desc = new HashMap<String,String>();
@@ -703,8 +755,10 @@ public class SynchAnalysis {
 					double[] seriesb = tds.get(b).get(regions[i]);
 					double avga = avg(seriesa);
 					double avgb = avg(seriesb);
-					if(avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_NOT_RES_THRESHOLD) 
+					if(avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_NOT_RES_THRESHOLD) { 
 						corrs.addAll(computeFeature(seriesa,seriesb));
+						tot++;
+					}
 				}
 			}
 			
@@ -737,7 +791,7 @@ public class SynchAnalysis {
 
 		try {
 			String orig_name = tds.get(0).rm.getName();
-			tds.get(0).rm.setName(city+"-"+tds.get(0).getType()+"-"+tds.get(0).rm.getName()+"-correlation");
+			tds.get(0).rm.setName(city+"-"+tds.get(0).getType()+"-"+tds.get(0).rm.getName()+"-correlation-resVSnonres");
 			KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+tds.get(0).rm.getName()+".kml",avg(density),tds.get(0).rm,desc,false);
 			tds.get(0).rm.setName(orig_name);
 			//Map<String,Double> rdensity = reproject2map(city,tds.get(0).getType()+"-correlation",density,rm,comuni,false);
@@ -752,22 +806,14 @@ public class SynchAnalysis {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+		System.err.println(city+": N. Regions = "+regions.length +"; N. Combination = "+ regions.length*(regions.length-1)+"; Actual Comb. = "+tot);
 		return density;
 	}
 	
 	private static String USE_FEATURE = "F";
 	
 	
-	/*
-	 * The TIME_WINDOW parameter is used to divide the time series 1 and 2 into chunks of TIME_WINDOW eelememnts.
-	 * chuncks are compared 2-by-2 all the results are placed in List<Double> output.
-	 * If TIME_WINDOW is set to -1 all the time serie is considered at once.
-	 * So, with TIME_WINDOW = -1, I compute the synchrnization of two regions for the whole data period
-	 * With TIME_WINDOW = 24, I compute the synchrnization of two regions for each day (24 h) all place the values seprately on the output list
-	 */
 	
-	private static int TIME_WINDOW = 24;
 	private static List<Double> computeFeature(double[] series1, double[] series2) {
 		
 		
@@ -842,8 +888,9 @@ public class SynchAnalysis {
 	
 	private static Map<String,Double> avg(Map<String,List<Double>> x) {
 		Map<String,Double> d = new HashMap<String,Double>();
-		for(String k: x.keySet())
+		for(String k: x.keySet()) {
 			d.put(k, avg(x.get(k)));
+		}
 		return d;
 	}
 	

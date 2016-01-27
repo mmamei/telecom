@@ -22,8 +22,10 @@ public class AddMapL extends HashMap<String,List<Double>> {
 	
 	
 	public void addAll(Map<String, List<Double>> map) {
-		for(String k: map.keySet())
-			this.add(k, map.get(k));
+		for(String k: map.keySet()) {
+			if(map.get(k) != null)
+				this.add(k, map.get(k));
+		}
 	}	
 	
 	public static void main(String[] args) {

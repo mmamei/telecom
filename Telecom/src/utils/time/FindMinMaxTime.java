@@ -11,6 +11,9 @@ public class FindMinMaxTime {
 	public static void main(String[] args) throws Exception {
 		
 		String input_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/NEWCAP/Social_capital_CAP.csv";
+		//String input_file = Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/palermo/callsLM_PA_CAP";
+		
+		
 		BufferedReader br = new BufferedReader(new FileReader(input_file));
 		String line;
 		

@@ -8,6 +8,9 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,8 +130,11 @@ public class TimeDensityFromAggregatedData {
 				}
 				
 				CopyAndSerializationUtils.save(f, map);
-				saveCSV(f.getAbsolutePath().replaceAll(".ser", ".csv"),map);
-				saveARFF(f.getAbsolutePath().replaceAll(".ser", ".arff"),map);
+				saveCSV(f.getAbsolutePath().replaceAll(".ser", ".csv"),map,false);
+				saveARFF(f.getAbsolutePath().replaceAll(".ser", ".arff"),map,false);
+				
+				saveCSV(f.getAbsolutePath().replaceAll(".ser", "Z.csv"),map,true);
+				saveARFF(f.getAbsolutePath().replaceAll(".ser", "Z.arff"),map,true);
 			}
 			
 			
@@ -138,9 +144,9 @@ public class TimeDensityFromAggregatedData {
 		}	
 	}
 	
-	static boolean Z = true;
 	
-	public static void saveCSV(String file, Map<String,double[]> map) {
+	
+	public static void saveCSV(String file, Map<String,double[]> map, boolean Z) {
 		try {
 			PrintWriter out = new PrintWriter(new FileWriter(new File(file)));
 			TimeConverter tc = TimeConverter.getInstance();
@@ -159,7 +165,7 @@ public class TimeDensityFromAggregatedData {
 	}
 	
 	
-	public static void saveARFF(String fn, Map<String,double[]> map) {
+	public static void saveARFF(String fn, Map<String,double[]> map, boolean Z) {
 		try {
 			File file = new File(fn);
 			PrintWriter out = new PrintWriter(new FileWriter(file));
@@ -219,7 +225,9 @@ public class TimeDensityFromAggregatedData {
 			       tot_lines ++;
 			       
 			       long time = Long.parseLong(x[readIndexes[0]]) * 1000;
-			       //long time = Long.parseLong(x[readIndexes[0]]);
+			       if(time > 2527282800000l) // 2527282800000l = 1/1/2050
+			    	   time = Long.parseLong(x[readIndexes[0]]);
+			    	   
 			       
 			       // extra time constraint
 			       if(time < TimeConverter.getInstance().startTime || time > TimeConverter.getInstance().endTime) {
