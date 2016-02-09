@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import visual.kml.KMLPath;
@@ -42,10 +42,10 @@ public class ProfilesKMLPlotter {
 			if(pusers.get(profile).size() < HOW_MANY) pusers.get(profile).add(user);  
 		}
 		
-		Map<String,List<PLSEvent>> traces = new HashMap<String,List<PLSEvent>>();
+		Map<String,List<CDR>> traces = new HashMap<String,List<CDR>>();
 		for(List<String> users: pusers.values())
 			for(String u : users)
-				traces.put(u, new ArrayList<PLSEvent>());
+				traces.put(u, new ArrayList<CDR>());
 		
 		BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().base_folder+"/UserEventCounter/file_pls_ve_"+PLACEMARK+"_cellXHour_July2013.csv"));
 		String line;
@@ -53,7 +53,7 @@ public class ProfilesKMLPlotter {
 			String[] p = line.split(",");
 			String user_id = p[0];
 			if(traces.containsKey(user_id)) 
-				traces.put(user_id, PLSEvent.getDataFormUserEventCounterCellacXHourLine(line));
+				traces.put(user_id, CDR.getDataFormUserEventCounterCellacXHourLine(line));
 		}
 		br.close();
 		

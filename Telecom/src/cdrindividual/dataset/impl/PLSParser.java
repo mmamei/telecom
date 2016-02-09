@@ -36,7 +36,18 @@ public class PLSParser {
 	private static long sTime,eTime;
 	private static int mins;
 	
-	static void parse(BufferAnalyzer ba) throws Exception {
+	
+	private static PLSParser instance = null;
+	private PLSParser() {
+		
+	}
+	public static PLSParser getInstance() {
+		if(instance == null) 
+			instance = new PLSParser();
+		return instance;
+	}
+	
+	void parse(BufferAnalyzer ba) throws Exception {
 		
 		startTime = ba.getStartTime();
 		endTime = ba.getEndTime();	
@@ -58,7 +69,7 @@ public class PLSParser {
 	
 	//private static Map<String,String> allDays = new TreeMap<String,String>();
 	
-	private static void analyzeDirectory(File directory, BufferAnalyzer analyzer, Set<String> bogus) throws Exception{	
+	private void analyzeDirectory(File directory, BufferAnalyzer analyzer, Set<String> bogus) throws Exception{	
 		
 
 		if(REMOVE_BOGUS && bogus == null) {
@@ -67,16 +78,17 @@ public class PLSParser {
 			System.out.println(directory.getAbsolutePath());
 			String d = directory.getAbsolutePath().substring(Config.getInstance().pls_root_folder.length()+1);
 			if(d.indexOf("\\") > 0) d = d.substring(0,d.indexOf("\\"));
-			File f = new File(Config.getInstance().base_folder+"/UserEventCounter/"+d+"_bogus.txt");
+			File f = new File(Config.getInstance().base_folder+"/UserCDRCounter/"+d+"_bogus.csv");
 			if(f.exists()) {
 				BufferedReader br = new BufferedReader(new FileReader(f));
 				String line;
 				while((line=br.readLine())!=null) 
-					bogus.add(line);
+					bogus.add(line.split(",")[0]);
 				br.close();
+				System.out.println(bogus.size()+" BOGUS USERS FOUND");
 			}
 			else {
-				System.err.println(Config.getInstance().base_folder+"/UserEventCounter/"+d+"_bogus.txt NOT FOUND");
+				System.err.println(Config.getInstance().base_folder+"/UserEventCounter/"+d+"_bogus.csv NOT FOUND");
 			}
 		}
 		
@@ -128,7 +140,7 @@ public class PLSParser {
 	}
 	
 	
-	private static void analyzeFile(File plsFile, BufferAnalyzer analyzer, Set<String> bogus) {	
+	private void analyzeFile(File plsFile, BufferAnalyzer analyzer, Set<String> bogus) {	
 		//System.out.println(plsFile.getAbsolutePath());
 		ZipFile zf = null;
 		BufferedReader br = null;
@@ -153,72 +165,4 @@ public class PLSParser {
 			e.printStackTrace();
 		}
 	}
-	
-	/*
-	private static ZipFile zf = null;
-	private static InputStreamReader isr = null;
-	private static ZipEntry ze;
-	private static char[] read_buffer,buffer;
-	private static int charRead,x,remainedChars;
-	
-	
-	private static void analyzeFile(File plsFile, BufferAnalyzer analyzer, Set<String> bogus) {	
-		
-		//System.out.println(">>> "+plsFile.getAbsolutePath());
-		try {
-			zf = new ZipFile(plsFile);
-			ze = (ZipEntry) zf.entries().nextElement();
-			isr = new InputStreamReader(zf.getInputStream(ze));
-			charRead = 0;
-			read_buffer = new char[BUFFER_SIZE];
-			buffer = new char[3*BUFFER_SIZE];
-			x = -1;
-			remainedChars = 0;
-			while(((charRead = isr.read(read_buffer)) > 0)){
-				if(x==-1){
-						x = process(analyzer,bogus,read_buffer, charRead);
-						remainedChars = (charRead-x);
-						System.arraycopy(read_buffer, x, buffer, 0, remainedChars);
-				}
-				else{
-					System.arraycopy(read_buffer, 0, buffer, remainedChars, charRead);
-					x = process(analyzer,bogus,buffer, (charRead+remainedChars));
-					remainedChars = (charRead+remainedChars-x);
-					System.arraycopy(buffer, x, buffer, 0, remainedChars);
-				}
-							
-			}
-		}catch(Exception e) {
-			System.err.println("Problems wirh file: "+plsFile.getAbsolutePath());
-			e.printStackTrace();
-		}
-		
-		try {
-			isr.close();
-			zf.close();
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	
-	private static int process(BufferAnalyzer analyzer, Set<String> bogus, char[] buffer, int length){
-		int start = 0;
-		String s,u;
-		for(int i=0; i<length; i++){
-			if(buffer[i]=='\n'){ // QUESTO A VOLTE GENERA UN BUG NEL CASO LA LINEA TERMINA CON CR-LF PIUTTOSTO CHE SOLO LF
-				s = new String(buffer, start, i-start);
-				try {
-					u = s.substring(0,s.indexOf("\t"));
-					if(!bogus.contains(u))
-						analyzer.analyze(s);
-				} catch(Exception e) {
-					System.err.println("BAD READ = "+s);
-				}
-				start = i+1;
-			}
-		}
-		return start;
-	}
-	*/
 }

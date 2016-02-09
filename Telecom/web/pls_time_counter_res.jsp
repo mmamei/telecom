@@ -1,6 +1,6 @@
 <html>
 <head>
-<jsp:useBean id="pbia" scope="application" class="cdrindividual.PLSTimeDensity"/>
+<jsp:useBean id="pbia" scope="application" class="cdrindividual.CDRTimeDensity"/>
 <%@include file="includes/head.html" %>
 
 

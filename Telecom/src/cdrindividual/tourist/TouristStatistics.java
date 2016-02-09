@@ -21,7 +21,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.RadiusOfGyration;
 import cdrindividual.tourist.profiles.Resident;
 import region.Placemark;
@@ -75,7 +75,7 @@ public class TouristStatistics {
 		long prevTime = -1; // the last time the user entered the city
 		int max_dh = -1; // the maximum time interval (in hours) in which the user has been in the city
 		
-		List<PLSEvent> pe = new ArrayList<PLSEvent>();
+		List<CDR> pe = new ArrayList<CDR>();
 		
 		for(int i=5;i<p.length;i++) {
 			try {
@@ -93,7 +93,7 @@ public class TouristStatistics {
 				cal.set(Calendar.HOUR_OF_DAY, h);
 				long time = cal.getTimeInMillis();
 				
-				pe.add(new PLSEvent(user_id,mnt,String.valueOf(celllac),String.valueOf(time)));
+				pe.add(new CDR(user_id,mnt,String.valueOf(celllac),String.valueOf(time)));
 				
 				if(placemark.contains(celllac)) {
 					days_in_area.add(x[0]);

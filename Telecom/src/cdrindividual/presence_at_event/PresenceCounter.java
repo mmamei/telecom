@@ -18,7 +18,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 
 import cdrindividual.Constraints;
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.dataset.DataFactory;
 import cdrindividual.dataset.PLSEventsAroundAPlacemarkI;
 import region.CityEvent;
@@ -154,8 +154,8 @@ public class PresenceCounter {
 		CityEvent e2 = new CityEvent(event.spot.clone(),start,end,event.head_count);
 		e2.spot.changeRadius(o_radius);
 		
-		Map<String,List<PLSEvent>> usr_pls = getUsersPLS(file_event,userPresentDuringEvent);
-		Map<String,List<PLSEvent>> usr_other_pls = getUsersPLS(file_other,userPresentDuringEvent);
+		Map<String,List<CDR>> usr_pls = getUsersPLS(file_event,userPresentDuringEvent);
+		Map<String,List<CDR>> usr_other_pls = getUsersPLS(file_other,userPresentDuringEvent);
 		
 		
 		double prob = 0;
@@ -226,19 +226,19 @@ public class PresenceCounter {
 	}
 	
 	
-	public static Map<String,List<PLSEvent>> getUsersPLS(File file, Set<String> users) throws Exception {
+	public static Map<String,List<CDR>> getUsersPLS(File file, Set<String> users) throws Exception {
 		
-		Map<String,List<PLSEvent>> usr_pls = new HashMap<String,List<PLSEvent>>();
+		Map<String,List<CDR>> usr_pls = new HashMap<String,List<CDR>>();
 		for(String u: users)
-			usr_pls.put(u, new ArrayList<PLSEvent>());
+			usr_pls.put(u, new ArrayList<CDR>());
 		
 		String line;
 		BufferedReader in = new BufferedReader(new FileReader(file));
 		while((line = in.readLine()) != null){
 			String[] splitted = line.split(",");
-			List<PLSEvent> list = usr_pls.get(splitted[0]);
+			List<CDR> list = usr_pls.get(splitted[0]);
 			try{
-			if(list!=null) list.add(new PLSEvent(splitted[0],splitted[2],splitted[3],splitted[1]));
+			if(list!=null) list.add(new CDR(splitted[0],splitted[2],splitted[3],splitted[1]));
 			}catch(NumberFormatException e) {
 				System.err.println(line);
 				continue;
@@ -250,7 +250,7 @@ public class PresenceCounter {
 	
 	
 	
-	public static double fractionOfTimeInWhichTheUserWasAtTheEvent(List<PLSEvent> plsEvents, CityEvent event, CityEvent exclude, boolean verbose) {
+	public static double fractionOfTimeInWhichTheUserWasAtTheEvent(List<CDR> plsEvents, CityEvent event, CityEvent exclude, boolean verbose) {
 		Calendar first = null;
 		Calendar last = null;
 		boolean inEvent = false;
@@ -260,7 +260,7 @@ public class PresenceCounter {
 			System.out.println("EXCLUDE = "+exclude);
 		}
 		
-		for(PLSEvent pe: plsEvents) {	
+		for(CDR pe: plsEvents) {	
 			
 			Calendar cal = pe.getCalendar();
 			
@@ -321,14 +321,14 @@ public class PresenceCounter {
 		
 		if(fract<=0) {
 			System.err.println(event+"  "+exclude+"  "+first.getTime()+" - "+last.getTime());
-			for(PLSEvent pe: plsEvents)
+			for(CDR pe: plsEvents)
 				System.err.println("\t"+pe);
 		}
 		
 		return fract;
 	}
 	
-	public static int getAvgInterEventTime(List<PLSEvent> plsEvents, CityEvent e) {
+	public static int getAvgInterEventTime(List<CDR> plsEvents, CityEvent e) {
 		
 		Calendar startTime = e.st;
 		Calendar endTime = e.et;

@@ -46,7 +46,7 @@ public class InterEventDistribution {
 			File f = files[i];	
 			if(!f.isFile()) continue;
 			
-			List<PLSEvent> events = PLSEvent.readEvents(f);
+			List<CDR> events = CDR.readEvents(f);
 			
 			DescriptiveStatistics ustats = new DescriptiveStatistics();
 			for(int j=1;j<events.size();j++) {

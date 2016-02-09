@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.dataset.impl.DataFactory;
 import region.RegionI;
 import region.RegionMap;
@@ -45,14 +45,14 @@ public class KMLPath {
 	}
 	
 	static RegionMap nm = null;
-	public static void print(String username, List<PLSEvent> plsEvents) {
+	public static void print(String username, List<CDR> plsEvents) {
 		
 		
 		
 		nm =  DataFactory.getNetworkMapFactory().getNetworkMap(plsEvents.iterator().next().getCalendar());
 		kml.printFolder(out, username.substring(0,10)+"...");
-		List<PLSEvent> s = plsEvents;//FilterAndCounterUtils.smooth(plsEvents);
-		Map<String,List<PLSEvent>> evPerDay = splitByDay(s);
+		List<CDR> s = plsEvents;//FilterAndCounterUtils.smooth(plsEvents);
+		Map<String,List<CDR>> evPerDay = splitByDay(s);
 		
 		
 		
@@ -60,7 +60,7 @@ public class KMLPath {
 		kml.printFolder(out, "cells");
 		for(String day: evPerDay.keySet()) {
 			kml.printFolder(out, day);
-			for(PLSEvent pe: evPerDay.get(day)) {
+			for(CDR pe: evPerDay.get(day)) {
 				RegionI r = nm.getRegion(pe.getCellac());
 				if(r!=null)
 					out.println(r.toKml("#7f770077"));
@@ -76,8 +76,8 @@ public class KMLPath {
 		for(String day: evPerDay.keySet()) {
 			kml.printFolder(out, day);
 			for(int i=0; i<evPerDay.get(day).size()-1;i++) {	
-				PLSEvent pe = evPerDay.get(day).get(i);
-				PLSEvent pe1 = evPerDay.get(day).get(i+1);
+				CDR pe = evPerDay.get(day).get(i);
+				CDR pe1 = evPerDay.get(day).get(i+1);
 				int dmin =  (int)((pe1.getTimeStamp() - pe.getTimeStamp()) / 60000);
 				if(dmin < 180) {
 					
@@ -137,7 +137,7 @@ public class KMLPath {
 			boolean weekend = day.endsWith("Sat") || day.endsWith("Sun");
 			boolean weekday = !weekend;
 			
-			for(PLSEvent pe: evPerDay.get(day)) {
+			for(CDR pe: evPerDay.get(day)) {
 				RegionI r = nm.getRegion(pe.getCellac());
 				if(r!=null) {
 					
@@ -170,10 +170,10 @@ public class KMLPath {
 
 	static final String[] DAY_WEEK = new String[]{"0","Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	static final String[] MONTHS = new String[]{"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-	public static Map<String,List<PLSEvent>> splitByDay(List<PLSEvent> plsEvents ) {
-		Map<String,List<PLSEvent>> eventsPerDay = new TreeMap<String,List<PLSEvent>>();
+	public static Map<String,List<CDR>> splitByDay(List<CDR> plsEvents ) {
+		Map<String,List<CDR>> eventsPerDay = new TreeMap<String,List<CDR>>();
 		
-		for(PLSEvent pe: plsEvents) {	
+		for(CDR pe: plsEvents) {	
 			
 			int d = pe.getCalendar().get(Calendar.DAY_OF_MONTH);
 			int m = pe.getCalendar().get(Calendar.MONTH);
@@ -181,9 +181,9 @@ public class KMLPath {
 			int dow = pe.getCalendar().get(Calendar.DAY_OF_WEEK);
 			String k = d < 10 ? "0" : ""; 
 		    k = k + d+"-"+MONTHS[m]+"-"+y+"-"+DAY_WEEK[dow];
-			List<PLSEvent> de = eventsPerDay.get(k);
+			List<CDR> de = eventsPerDay.get(k);
 			if(de == null) 
-				de = new ArrayList<PLSEvent>();
+				de = new ArrayList<CDR>();
 			de.add(pe);
 			eventsPerDay.put(k, de);
 		}
@@ -198,7 +198,7 @@ public class KMLPath {
 		out.close();
 	}
 	
-	public static double jitter(PLSEvent pe) {
+	public static double jitter(CDR pe) {
 		if(!JITTER) return 0;
 		
 		Random r = new Random();
@@ -207,11 +207,11 @@ public class KMLPath {
 	}
 	
 	
-	private static List<PLSEvent> getDataFormUserEventCounterCellacXHour(String file, String username) throws Exception {
+	private static List<CDR> getDataFormUserEventCounterCellacXHour(String file, String username) throws Exception {
 		// read the UserEventCounterCellacXHour file ti find the line corresponding to the user being looked for.
 		// parse that line to create the List<PlsEvent> object
 		
-		List<PLSEvent> l = null;
+		List<CDR> l = null;
 		
 		File f = new File(Config.getInstance().base_folder+"/UserEventCounter/"+file);
 		if(f == null) {
@@ -223,7 +223,7 @@ public class KMLPath {
 		String line;
 		while((line=br.readLine())!=null) 
 			if(line.startsWith(username)) {
-				l = PLSEvent.getDataFormUserEventCounterCellacXHourLine(line);
+				l = CDR.getDataFormUserEventCounterCellacXHourLine(line);
 				break;
 			}
 		br.close();
@@ -239,7 +239,7 @@ public class KMLPath {
 		String user = "feaf164623aa5fcac0512b3b4a62496c34458ac017141a808dfe306b62759f";
 		File dir = new File(Config.getInstance().base_folder+"/UsersCSVCreator/test");
 		dir.mkdirs();
-		List<PLSEvent> data = PLSEvent.readEvents(new File(dir+"/"+user+".csv"));
+		List<CDR> data = CDR.readEvents(new File(dir+"/"+user+".csv"));
 		
 		/*
 		String user = "6f73f1939cbec78c2aa4d8da3ed44da8ed0357b46ccee4439836ec6fb7b90fe";
@@ -260,7 +260,7 @@ public class KMLPath {
 		File dir = new File(Config.getInstance().base_folder+"/UsersCSVCreator/Melpignano-22_08_2014_00_00-25_08_2014_00_00.txt_STR");
 		for(File f: dir.listFiles()) {
 			System.out.println("Processing "+f.getName());
-			print(f.getName(),PLSEvent.readEvents(f));
+			print(f.getName(),CDR.readEvents(f));
 		}
 		
 		closeFile();

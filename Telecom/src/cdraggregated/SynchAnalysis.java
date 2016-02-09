@@ -55,7 +55,7 @@ public class SynchAnalysis {
 	
 	//This parameter is a threshold on the synch region. It is used with DEMOGRAPHIC_RES
 	//Only regions with an avg value above this threshold are considered
-	public static int DEMOGRAPHIC_RES_THRESHOLD = 100;
+	public static int DEMOGRAPHIC_RES_THRESHOLD = 150;
 	
 	//These parameters are thresholds on the synch region. It is used with DEMOGRAPHIC_RES_VS_NON_RES
 	//Only regions with an avg value above these thresholds are considered.

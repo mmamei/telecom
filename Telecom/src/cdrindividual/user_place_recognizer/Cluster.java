@@ -10,20 +10,20 @@ import java.util.Map;
 import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.dataset.impl.DataFactory;
 import region.RegionI;
 import region.RegionMap;
 
 
 public class Cluster implements Serializable {
-	private List<PLSEvent> events;
+	private List<CDR> events;
 	private Map<String,Double> weights;
 	
 	private static RegionMap NM = null;
 	
 	public Cluster() {
-		events = new ArrayList<PLSEvent>();
+		events = new ArrayList<CDR>();
 		weights = new HashMap<String,Double>();
 	}
 	
@@ -37,12 +37,12 @@ public class Cluster implements Serializable {
 		if(NM == null) NM = DataFactory.getNetworkMapFactory().getNetworkMap(DataFactory.getNetworkMapFactory().getCalendar(c.getEvents().get(0).getTime()));
 	}
 	
-	public void add(PLSEvent e) {
+	public void add(CDR e) {
 		events.add(e);
 		if(NM == null) NM = DataFactory.getNetworkMapFactory().getNetworkMap(e.getTimeStamp());
 	} 
 	
-	public List<PLSEvent> getEvents() {
+	public List<CDR> getEvents() {
 		return events;
 	}
 	
@@ -61,7 +61,7 @@ public class Cluster implements Serializable {
 		return weight;
 	}
 	
-	public double w(PLSEvent e, double[][] weights) {
+	public double w(CDR e, double[][] weights) {
 		Calendar c = e.getCalendar();
 		int day = c.get(Calendar.DAY_OF_WEEK) - 1;
 		int h = c.get(Calendar.HOUR_OF_DAY);
@@ -70,7 +70,7 @@ public class Cluster implements Serializable {
 	
 	public double w(double[][] weights) {
 		double w = 0;
-		for(PLSEvent e: events)
+		for(CDR e: events)
 			w += w(e,weights);
 		return w;
 	}
@@ -78,7 +78,7 @@ public class Cluster implements Serializable {
 	public double getAvgCellRadius(double[][] weights) {
 		double tot_w = w(weights);
 		double r = 0;
-		for(PLSEvent e: events) {
+		for(CDR e: events) {
 			if(NM == null) NM = DataFactory.getNetworkMapFactory().getNetworkMap(e.getTimeStamp());
 			RegionI x = NM.getRegion(e.getCellac());
 			if(x!=null) {
@@ -96,7 +96,7 @@ public class Cluster implements Serializable {
 		double tot_w = w(weights);
 		
 		boolean ok = false;
-		for(PLSEvent e: events) {
+		for(CDR e: events) {
 			if(NM == null) NM = DataFactory.getNetworkMapFactory().getNetworkMap(e.getTimeStamp());
 			RegionI x = NM.getRegion(e.getCellac());
 			if(x!=null) {
@@ -120,7 +120,7 @@ public class Cluster implements Serializable {
 	public double calcWidth() {
 		double maxLat= -Double.MAX_VALUE, maxLon= -Double.MAX_VALUE;
 		double minLat = Double.MAX_VALUE, minLon = Double.MAX_VALUE;
-		for(PLSEvent e: events){
+		for(CDR e: events){
 			if(NM == null) NM = DataFactory.getNetworkMapFactory().getNetworkMap(e.getTimeStamp());
 			RegionI cell = NM.getRegion(String.valueOf(e.getCellac()));
 			if(cell!=null) {

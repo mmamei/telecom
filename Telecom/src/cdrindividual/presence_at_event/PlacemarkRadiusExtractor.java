@@ -14,7 +14,7 @@ import java.util.Map;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import cdrindividual.Constraints;
-import cdrindividual.PLSTimeDensity;
+import cdrindividual.CDRTimeDensity;
 import cdrindividual.dataset.DataFactory;
 import cdrindividual.dataset.PLSEventsAroundAPlacemarkI;
 import region.CityEvent;
@@ -351,7 +351,7 @@ public class PlacemarkRadiusExtractor {
 			
 			if(ring) p.changeRadiusRing(max_r);
 			else p.changeRadius(max_r);
-			PLSTimeDensity plsmap = PLSTimeDensity.getPLSTimeCounter(Config.getInstance().base_folder+"/PLSEventsAroundAPlacemark/"+subdir+"/"+p.getName()+"_"+(double)MAX_R+".txt",p);
+			CDRTimeDensity plsmap = CDRTimeDensity.getPLSTimeCounter(Config.getInstance().base_folder+"/PLSEventsAroundAPlacemark/"+subdir+"/"+p.getName()+"_"+(double)MAX_R+".txt",p);
 			
 			if(plsmap.startTime == null) {
 				for(int i=0; i<relevantEvents.size();i++) {
@@ -362,7 +362,7 @@ public class PlacemarkRadiusExtractor {
 				continue;
 			}
 			
-			DescriptiveStatistics[] stats = PLSTimeDensity.getStats(plsmap);
+			DescriptiveStatistics[] stats = CDRTimeDensity.getStats(plsmap);
 			double[] z_usr_data =  StatsUtils.getZH(stats[1],plsmap.startTime);
 			
 			if (PLOT) PLSPlotter.drawGraph(p.getName()+"_"+max_r,plsmap.getDomain(),z_usr_data,plsmap,relevantEvents);

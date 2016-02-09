@@ -6,7 +6,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import region.Placemark;
 
 public class Excursionist extends Profile {
@@ -18,7 +18,7 @@ public class Excursionist extends Profile {
 		transit = new Transit(placemark);
 	}
 
-	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<PLSEvent> list, int tot_days) {
+	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<CDR> list, int tot_days) {
 		
 		boolean is_italian = super.isItalian(mnt);
 		

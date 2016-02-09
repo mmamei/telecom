@@ -3,7 +3,7 @@ package cdrindividual.user_place_recognizer.clustering;
 import java.util.List;
 import java.util.HashMap;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.user_place_recognizer.Cluster;
 
 /**
@@ -17,11 +17,11 @@ public class CellClusterer implements Clusterer {
 	public CellClusterer() {
 	}
 	
-	public HashMap<Integer, Cluster> buildCluster(List<PLSEvent> events)  {
+	public HashMap<Integer, Cluster> buildCluster(List<CDR> events)  {
 		
 		HashMap<Integer, Cluster> result = new HashMap<Integer, Cluster>();
 		
-		for(PLSEvent e: events) {
+		for(CDR e: events) {
 			int cell = Integer.parseInt(e.getCellac());
 			Cluster ce = result.get(cell);
 			if(ce == null) {

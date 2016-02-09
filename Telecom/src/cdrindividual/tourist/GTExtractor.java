@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.tourist.profiles.Commuter;
 import cdrindividual.tourist.profiles.Excursionist;
 import cdrindividual.tourist.profiles.Profile;
@@ -111,7 +111,7 @@ public class GTExtractor {
 		//NetworkMap nm = NetworkMapFactory.getNetworkMap(Config.getInstance().pls_start_time);
 		String user_id,mnt;
 		int num_pls,num_days,days_interval;
-		List<PLSEvent> list;
+		List<CDR> list;
 		
 		Placemark placemark = Placemark.getPlacemark(placemarkName);
 		
@@ -146,7 +146,7 @@ public class GTExtractor {
 				num_pls = Integer.parseInt(p[2]);
 				num_days = Integer.parseInt(p[3]);
 				days_interval = Integer.parseInt(p[4]);
-				list = PLSEvent.getDataFormUserEventCounterCellacXHourLine(line);
+				list = CDR.getDataFormUserEventCounterCellacXHourLine(line);
 				/*
 				list = new ArrayList<PLSEvent>();
 				// 2013-5-23:Sun:13:4018542484

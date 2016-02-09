@@ -6,11 +6,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.gps.utils.LatLonPoint;
 
-import cdrindividual.PLSEvent;
+import utils.Config;
+import utils.CopyAndSerializationUtils;
+import utils.FileUtils;
+import utils.FilterAndCounterUtils;
+import utils.Logger;
+import utils.multithread.MultiWorker;
+import utils.multithread.Worker;
+import utils.multithread.WorkerCallbackI;
+import cdrindividual.CDR;
 import cdrindividual.dataset.DataFactory;
 import cdrindividual.dataset.EventFilesFinderI;
 import cdrindividual.dataset.impl.UsersCSVCreator;
@@ -20,31 +27,38 @@ import cdrindividual.user_place_recognizer.weight_functions.WeightOnDay;
 import cdrindividual.user_place_recognizer.weight_functions.WeightOnDiversity;
 import cdrindividual.user_place_recognizer.weight_functions.WeightOnTime;
 import cdrindividual.user_place_recognizer.weight_functions.Weights;
-import utils.Config;
-import utils.CopyAndSerializationUtils;
-import utils.FilterAndCounterUtils;
-import utils.Logger;
 
-public class PlaceRecognizer {
+public class PlaceRecognizer implements WorkerCallbackI<String> {
 	
 	
 	public static boolean SAVE_CLUSTERS = false;
 	
 	public static boolean VERBOSE = false;
 	
+	private static PlaceRecognizer instance = null;
 	
-	public static Object[] analyze(String username, String kind_of_place, List<PLSEvent> events, 
-			                   double alpha, double beta, double delta, double rwf) {
+	private PlaceRecognizer() {
+	}
+	
+	public static PlaceRecognizer getInstance() {
+		if(instance == null)
+			instance = new PlaceRecognizer();
+		return instance;
+	}
+	
+	
+	
+	public Object[] analyze(String username, String kind_of_place, List<CDR> events, double alpha, double beta, double delta, double rwf) {
+ 
 		
-		
-		List<PLSEvent> workingset = CopyAndSerializationUtils.clone(events);
+		List<CDR> workingset = CopyAndSerializationUtils.clone(events);
 	
 				
 		Logger.logln("Processing "+(username.length() > 5 ? username.substring(0,5) : username)+" "+kind_of_place);
 		
 		double[][] weights = Weights.get(kind_of_place);
 		
-		List<PLSEvent> refEvents = Thresholding.buildReferenceTower(workingset,weights);
+		List<CDR> refEvents = Thresholding.buildReferenceTower(workingset,weights);
 		workingset.addAll(refEvents);
 		
 		
@@ -117,7 +131,7 @@ public class PlaceRecognizer {
 	
 	
 	
-	private static final String[] KIND_OF_PLACES = new String[]{"HOME","WORK","SATURDAY_NIGHT","SUNDAY"};
+	public static final String[] KIND_OF_PLACES = new String[]{"HOME","WORK","SATURDAY_NIGHT","SUNDAY"};
 	private static final SimpleDateFormat F = new SimpleDateFormat("yyyy-MM-dd-hh");
 	public Map<String, List<LatLonPoint>> runSingle(String sday, String eday, String user, double lon1, double lat1, double lon2, double lat2) {
 		
@@ -134,7 +148,7 @@ public class PlaceRecognizer {
 			Config.getInstance().pls_folder = new File(Config.getInstance().pls_root_folder+"/"+dir).toString(); 
 			Config.getInstance().pls_start_time.setTime(F.parse(sday+"-0"));
 			Config.getInstance().pls_end_time.setTime(F.parse(eday+"-23"));
-			List<PLSEvent> events = UsersCSVCreator.process(user).getEvents(); 
+			List<CDR> events = UsersCSVCreator.process(user).getEvents(); 
 			results = new HashMap<String, List<LatLonPoint>>();
 			PlaceRecognizerLogger.openKMLFile(Config.getInstance().web_kml_folder+"/"+user+".kml");
 			for(String kind_of_place:KIND_OF_PLACES) {
@@ -158,14 +172,13 @@ public class PlaceRecognizer {
 	
 	// USED IN BATCH RUN *****
 	
-	static Map<String, List<LatLonPoint>> allResults = new HashMap<String, List<LatLonPoint>>();
-	
-	public static synchronized void process(Map<String, Object[]> res) {
+	Map<String, List<LatLonPoint>> allResults = new HashMap<String, List<LatLonPoint>>();
+	public synchronized void collect(Map<String, Object[]> res) {
 		
-		String username = res.keySet().iterator().next().split("*")[0];
+		String username = res.keySet().iterator().next().split("\\*")[0];
 		if(KML_OUTPUT) PlaceRecognizerLogger.openUserFolderKML(username);
 		for(String k: res.keySet()) {
-			String[] user_kop = k.split("*");
+			String[] user_kop = k.split("\\*");
 			String user = user_kop[0];
 			String kind_of_place = user_kop[1];
 			Object[] clusters_points = res.get(k);
@@ -179,6 +192,10 @@ public class PlaceRecognizer {
 		}
 		if(KML_OUTPUT) PlaceRecognizerLogger.closeUserFolderKML();
 	}
+	
+	
+	
+	
 	
 	
 	public String[] getComputedResults() {
@@ -204,35 +221,19 @@ public class PlaceRecognizer {
 		//Config.getInstance().changeDataset("ivory-set3");
 		//String dir = "file_pls_ivory_users_2000_10000";
 		
-		/*
-		String dir = "file_pls_piem_users_200_10000";
-		String in_dir = Config.getInstance().base_folder+"/UsersCSVCreator/"+dir;
-		String out_dir = Config.getInstance().base_folder+"/PlaceRecognizer/"+dir;
+		
+		String fileName = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour";
+		String in_file = Config.getInstance().base_folder+"/UserCellXHour/"+fileName+".csv";
+		String out_dir = Config.getInstance().base_folder+"/PlaceRecognizer/"+fileName;
 		File d = new File(out_dir);
 		if(!d.exists()) d.mkdirs();
 		
 		PlaceRecognizerLogger.openTotalCSVFile(out_dir+"/results.csv");
 		if(KML_OUTPUT) PlaceRecognizerLogger.openKMLFile(out_dir+"/results.kml");
-		File[] files = new File(in_dir).listFiles();
 		
+		PlaceRecognizer pr = PlaceRecognizer.getInstance();
 		
-		int total_size = files.length;
-		int n_thread = 8;
-		int size = total_size / n_thread;
-		Worker[] w = new Worker[n_thread];
-		for(int t = 0; t < n_thread;t++) {
-			int start = t*size;
-			int end = t == (n_thread-1) ? total_size : (t+1)*size;
-			w[t] = new Worker(KIND_OF_PLACES,files,start,end);		
-		}
-		
-		for(int t = 0; t < n_thread;t++) 
-			w[t].start();
-
-		for(int t = 0; t < n_thread;t++) 
-			w[t].join();
-		
-		System.out.println("All thread completed!");
+		MultiWorker.run(in_file,pr);
 		
 		
 		
@@ -241,13 +242,13 @@ public class PlaceRecognizer {
 		
 		//PlaceRecognizerEvaluator rs = new PlaceRecognizerEvaluator(2000);
 		//rs.evaluate(allResults);
-		*/
+		
 		
 		/**************************************************************************************************************************/
 		/**************************************   				SINGLE RUN 					***************************************/
 		/**************************************************************************************************************************/
 		
-		
+		/*
 		PlaceRecognizer pr = new PlaceRecognizer();
 		Map<String, List<LatLonPoint>> res = pr.runSingle("2012-03-06", "2012-03-07", "362f6cf6e8cfba0e09b922e21d59563d26ae0207744af2de3766c5019415af", 7.6855,45.0713,  7.6855,45.0713);
 		//pr.runSingle("2012-03-06", "2012-04-30", "7f3e4f68105e863aa369e5c39ab5789975f0788386b45954829346b7ca63", 7.6855,45.0713,  7.6855,45.0713);
@@ -256,49 +257,31 @@ public class PlaceRecognizer {
 			for(LatLonPoint p: res.get(k))
 				System.out.println(p.getLongitude()+","+p.getLatitude());
 		}
+		*/
+		
+		
+		
 		Logger.logln("Done!");
+		
+	}
+
+	
+
+	@Override
+	public void runMultiThread(String x) {
+		List<CDR> events = CDR.getDataFormUserEventCounterCellacXHourLine(x);
+		String username = events.get(0).getUsername();
+		Map<String, Object[]> res = new HashMap<String, Object[]>();
+		
+		for(String kind_of_place:KIND_OF_PLACES) {
+			
+			// if(!kind_of_place.equals("HOME")) continue;
+			
+			res.put(username+"*"+kind_of_place, analyze(username,kind_of_place,events,0.25,0.25,2000,0.6));
+		}
+		collect(res);
 		
 	}
 }
 
 
-// USED IN BATCH RUN *****
-
-class Worker extends Thread {
-	String[] KIND_OF_PLACES;
-	File[] files;
-	int start;
-	int end;
-	Worker(String[] KIND_OF_PLACES,File[] files,int start,int end) {
-		this.KIND_OF_PLACES = KIND_OF_PLACES;
-		this.files = files;
-		this.start = start;
-		this.end = end;
-	}
-	public void run() {
-		System.out.println("Thread "+start+"-"+end+" starting!");
-		for(int i=start;i<end;i++) {
-			try {
-				File f = files[i];
-				if(!f.isFile()) continue;
-				String filename = f.getName();
-				String username = filename.substring(0, filename.indexOf(".csv"));
-				
-				// if(!username.equals("699b8a4680a419d66791766828669f1a8cfedcd9087a050f994e18c0f2ad51")) continue;
-				
-				List<PLSEvent> events = PLSEvent.readEvents(f);			
-				Map<String, Object[]> res = new HashMap<String, Object[]>();
-				for(String kind_of_place:KIND_OF_PLACES) {
-					
-					// if(!kind_of_place.equals("HOME")) continue;
-					
-					res.put(username+"*"+kind_of_place, PlaceRecognizer.analyze(username,kind_of_place,events,0.25,0.25,2000,0.6));
-				}
-				PlaceRecognizer.process(res);
-			} catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
-		System.out.println("Thread "+start+"-"+end+" completed!");
-	}
-}

@@ -2,7 +2,7 @@ package cdrindividual.user_place_recognizer.weight_functions;
 
 import java.util.Calendar;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.user_place_recognizer.Cluster;
 import utils.FilterAndCounterUtils;
 
@@ -25,7 +25,7 @@ public class WeightOnDiversity implements WeightFunction {
 		
 		double[] prob = new double[7];
 		double den = 0;
-		for(PLSEvent e: c.getEvents()){
+		for(CDR e: c.getEvents()){
 			Calendar cal = e.getCalendar();
 			double w = weights[cal.get(Calendar.DAY_OF_WEEK)-1][cal.get(Calendar.HOUR_OF_DAY)];
 			if(w >= 0) {

@@ -11,18 +11,16 @@ import java.util.Map;
 import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
-import cdraggregated.densityANDflows.flows.ODMatrixVisual;
-import cdrindividual.Constraints;
-import cdrindividual.PLSSpaceDensity;
-import cdrindividual.dataset.EventFilesFinderI;
-import cdrindividual.dataset.impl.DataFactory;
-import cdrindividual.dataset.impl.LocationsXUserAroundAnEvent;
 import region.CreatorRegionMapGrid;
 import region.Placemark;
 import region.RegionI;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import cdrindividual.Constraints;
+import cdrindividual.dataset.EventFilesFinderI;
+import cdrindividual.dataset.impl.DataFactory;
+import cdrindividual.dataset.impl.LocationsXUserAroundAnEvent;
 
 public class ODMatrixTime {
 	public static void main(String[] args) throws Exception {
@@ -113,7 +111,7 @@ public class ODMatrixTime {
 			}
 			br.close();		
 			String n = file.getName();
-			allRoads = ODMatrixVisual.draw("ODMatrixTime_"+n.substring(0,n.lastIndexOf(".")), list_od,false,dir,rm);
+			//allRoads = ODMatrixVisual.draw("ODMatrixTime_"+n.substring(0,n.lastIndexOf(".")), list_od,false,dir,rm);
 
 		} catch(Exception e) {
 			e.printStackTrace();

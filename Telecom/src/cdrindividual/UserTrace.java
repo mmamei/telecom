@@ -23,20 +23,20 @@ public class UserTrace implements Serializable {
 	
 	public String username;
 	public String mnt;
-	private Set<PLSEvent> events;
+	private Set<CDR> events;
 	private boolean max_one_event_per_hour;
 	
 	public UserTrace(String username, boolean max_one_event_per_hour){
 		this.username = username;
 		this.max_one_event_per_hour = max_one_event_per_hour;
-		events = new TreeSet<PLSEvent>();
+		events = new TreeSet<CDR>();
 	}
 	
 	public void addEvent(String mnt, String cellac, String timestamp){
 		this.mnt = mnt;
 		
 		cal.setTimeInMillis(Long.parseLong(timestamp));
-		PLSEvent pe = new PLSEvent(username, mnt, cellac, timestamp,max_one_event_per_hour);
+		CDR pe = new CDR(username, mnt, cellac, timestamp,max_one_event_per_hour);
 		if(!max_one_event_per_hour || (max_one_event_per_hour && !events.contains(pe))) 
 			events.add(pe);
 	}
@@ -54,8 +54,8 @@ public class UserTrace implements Serializable {
 	} 
 	*/
 	
-	public List<PLSEvent> getEvents(){
-		List<PLSEvent> l = new ArrayList<PLSEvent>();
+	public List<CDR> getEvents(){
+		List<CDR> l = new ArrayList<CDR>();
 		l.addAll(events);
 		return l;
 	}
@@ -80,7 +80,7 @@ public class UserTrace implements Serializable {
 	
 	public Set<String> getDays() {
 		Set<String> days = new HashSet<String>();
-		for(PLSEvent p:events) {
+		for(CDR p:events) {
 			cal.setTimeInMillis(p.getTimeStamp());
 			days.add(sd.format(cal.getTime()));
 		}
@@ -99,7 +99,7 @@ public class UserTrace implements Serializable {
 		Calendar min = null;
 		Calendar max = null;
 		Calendar c = Calendar.getInstance();
-		for(PLSEvent p:events) {
+		for(CDR p:events) {
 			c.setTimeInMillis(p.getTimeStamp());
 			if(min == null || c.before(min)) {min = Calendar.getInstance(); min.setTimeInMillis(c.getTimeInMillis());}
 			if(max == null || c.after(max)) {max = Calendar.getInstance(); max.setTimeInMillis(c.getTimeInMillis());}
@@ -110,7 +110,7 @@ public class UserTrace implements Serializable {
 	
 	public String toString() {			
 		StringBuffer sb = new StringBuffer();
-		for(PLSEvent p:events) {
+		for(CDR p:events) {
 			sb.append(username+","+p.getTimeStamp()+","+mnt+","+p.getCellac()+"\n");
 		}
 		return sb.toString();
@@ -123,7 +123,7 @@ public class UserTrace implements Serializable {
 		StringBuffer sb = new StringBuffer();
 		
 		
-		for(PLSEvent p:events) {	
+		for(CDR p:events) {	
 			cal.setTimeInMillis(p.getTimeStamp());			
 			sb.append(sdh.format(cal.getTime())+":"+p.getCellac()+",");
 		}
@@ -140,7 +140,7 @@ public class UserTrace implements Serializable {
 		
 		Logger.logln("Saving "+folder+username+".csv");
 		PrintWriter out = new PrintWriter(new FileWriter(folder+username+".csv"));
-		Iterator<PLSEvent> i = events.iterator();
+		Iterator<CDR> i = events.iterator();
 		while(i.hasNext())
 			out.println(i.next().toCSV());
 		out.close();

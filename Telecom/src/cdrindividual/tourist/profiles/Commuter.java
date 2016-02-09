@@ -4,7 +4,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.tourist.GTExtractor;
 import region.Placemark;
 
@@ -17,7 +17,7 @@ public class Commuter extends Profile {
 	private static final double FR = Resident.FR;
 	
 	
-	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<PLSEvent> list, int tot_days) {
+	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<CDR> list, int tot_days) {
 		boolean other_month = otherMonthSet.contains(user_id);
 		boolean is_italian = super.isItalian(mnt);
 		boolean has_enough_days = (1.0 * days_interval / tot_days) > FR;

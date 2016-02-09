@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.gps.utils.LatLonPoint;
 
-import cdrindividual.PLSTimeDensity;
+import cdrindividual.CDRTimeDensity;
 import cdrindividual.presence_at_event.RunAll;
 import cdrindividual.user_place_recognizer.PlaceRecognizer;
 import region.Placemark;
@@ -37,7 +37,7 @@ public class Test {
 	
 	@org.junit.Test
 	public void testPLSTimeDensity() {
-		PLSTimeDensity pbia = new PLSTimeDensity();
+		CDRTimeDensity pbia = new CDRTimeDensity();
 		Object[] plsdata = pbia.process("2014-03-10","18","2014-03-11","1",11.2523,43.7687,11.2545,43.7672,"");
 		String js = pbia.getJSMap(plsdata);
 		String res = "var data = google.visualization.arrayToDataTable([['Day', 'PLS'],['10-Mon:17',  733.0],['10-Mon:18',  3965.0],['10-Mon:19',  3592.0],['10-Mon:20',  2965.0],['10-Mon:21',  2488.0],['10-Mon:22',  2227.0],['10-Mon:23',  1874.0],['11-Tue:0',  1553.0],['11-Tue:1',  1315.0]]);";
@@ -60,7 +60,7 @@ public class Test {
 		gt.get("WORK").add(new LatLonPoint(45.11202361806452,7.669145007741936));
 		
 		
-		PlaceRecognizer pr = new PlaceRecognizer();
+		PlaceRecognizer pr = PlaceRecognizer.getInstance();
 		Map<String, List<LatLonPoint>> res = pr.runSingle("2012-03-06", "2012-03-07", "362f6cf6e8cfba0e09b922e21d59563d26ae0207744af2de3766c5019415af", 7.6855,45.0713,  7.6855,45.0713);
 		
 		assertEquals("Test the result has the correct number of entries", gt.size(),res.size());

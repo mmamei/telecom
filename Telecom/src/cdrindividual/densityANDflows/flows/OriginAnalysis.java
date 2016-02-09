@@ -14,7 +14,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.dataset.impl.DataFactory;
 import region.CityEvent;
 import region.RegionI;
@@ -62,9 +62,9 @@ public class OriginAnalysis {
 		
 		for(File file: dir.listFiles()) {
 			//System.out.println("Processing "+file.getName());
-			List<PLSEvent> list = PLSEvent.readEvents(file);
-			PLSEvent f = list.get(0);
-			PLSEvent l = list.get(list.size()-1);
+			List<CDR> list = CDR.readEvents(file);
+			CDR f = list.get(0);
+			CDR l = list.get(list.size()-1);
 			long ftime = f.getTimeStamp();
 			long ltime = l.getTimeStamp();
 			

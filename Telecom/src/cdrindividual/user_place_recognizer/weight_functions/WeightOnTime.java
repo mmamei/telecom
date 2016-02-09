@@ -3,7 +3,7 @@ package cdrindividual.user_place_recognizer.weight_functions;
 import java.util.Calendar;
 import java.util.List;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.user_place_recognizer.Cluster;
 import utils.FilterAndCounterUtils;
 
@@ -21,9 +21,9 @@ public class WeightOnTime implements WeightFunction {
 	public void weight(Cluster c) {
 				
 		double w = 0;
-		List<PLSEvent> filtered = FilterAndCounterUtils.filterMultipleEventsInTheSameHour(c.getEvents());
+		List<CDR> filtered = FilterAndCounterUtils.filterMultipleEventsInTheSameHour(c.getEvents());
 		
-		for(PLSEvent e: filtered) {
+		for(CDR e: filtered) {
 			Calendar cal = e.getCalendar();
 			int day_of_week = cal.get(Calendar.DAY_OF_WEEK) - 1;
 			int hour_of_day = cal.get(Calendar.HOUR_OF_DAY);

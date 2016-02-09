@@ -21,7 +21,7 @@ public abstract class BufferAnalyzer {
 	
 	void run() {
 		try {
-		PLSParser.parse(this);
+		PLSParser.getInstance().parse(this);
 		finish();
 		} catch(Exception e) {
 			e.printStackTrace();

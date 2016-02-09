@@ -6,14 +6,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import region.Placemark;
 
 public abstract class Profile {
 	static final SimpleDateFormat F = new SimpleDateFormat("dd/MM/yyyy");
 	static final String[] DAY_WEEK = new String[]{"0","Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 	
-	public abstract boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<PLSEvent> list, int tot_days);
+	public abstract boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<CDR> list, int tot_days);
 	
 	Placemark placemark;
 	Set<String> otherMonthSet;
@@ -28,9 +28,9 @@ public abstract class Profile {
 	}
 	
 	
-	protected int countDays(List<PLSEvent> list, int cal_field, int[] interval) {
+	protected int countDays(List<CDR> list, int cal_field, int[] interval) {
 		Set<String> days = new HashSet<String>();
-		for(PLSEvent pe: list) {
+		for(CDR pe: list) {
 			Calendar c = pe.getCalendar();
 			int crit = c.get(cal_field);
 			String day = F.format(c.getTime());

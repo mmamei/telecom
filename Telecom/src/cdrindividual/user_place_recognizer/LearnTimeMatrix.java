@@ -14,7 +14,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.dataset.NetworkMapFactoryI;
 import cdrindividual.dataset.impl.DataFactory;
 import region.RegionI;
@@ -35,8 +35,8 @@ public class LearnTimeMatrix {
 		for(String f: dir.list()) {
 			String username = f.substring(0,f.indexOf("."));
 			LatLonPoint latlon = gt.get(username).get(kop);
-			List<PLSEvent> list = PLSEvent.readEvents(new File(dir+"/"+f));
-			for(PLSEvent p: list) {
+			List<CDR> list = CDR.readEvents(new File(dir+"/"+f));
+			for(CDR p: list) {
 				//System.out.println(p);
 				Calendar cal = p.getCalendar();
 				RegionI networkcell = nmf.getNetworkMap(p.getTimeStamp()).getRegion(p.getCellac());

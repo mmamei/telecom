@@ -6,7 +6,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.tourist.GTExtractor;
 import region.Placemark;
 
@@ -15,7 +15,7 @@ public class Tourist extends Profile {
 		super(placemark, otherMonthSet); 
 	}
 
-	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<PLSEvent> list, int tot_days) {
+	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<CDR> list, int tot_days) {
 		boolean other_month = otherMonthSet.contains(user_id);
 		boolean is_italian = super.isItalian(mnt);
 		int days_in_area = countDays(list,Calendar.DAY_OF_MONTH,null);

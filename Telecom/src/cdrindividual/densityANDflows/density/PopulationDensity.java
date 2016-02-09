@@ -12,10 +12,10 @@ import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
 import cdrindividual.Constraints;
-import cdrindividual.PLSSpaceDensity;
+import cdrindividual.CDRSpaceDensity;
 import cdrindividual.dataset.DataFactory;
 import cdrindividual.dataset.EventFilesFinderI;
-import cdrindividual.dataset.impl.UserEventCounterCellacXHour;
+import cdrindividual.dataset.impl.UserCellacXHour;
 import region.CityEvent;
 import region.CreatorRegionMapGrid;
 import region.Placemark;
@@ -118,7 +118,7 @@ public class PopulationDensity {
 			// Create UserEventCounterCellacXHour and PLSSpaceDenstiy files
 			// Then compute the population density.
 			
-			UserEventCounterCellacXHour.process(p,false); // file name is called as the placemark
+			UserCellacXHour.process(p,false); // file name is called as the placemark
 			Map<String,Double> space_density = pd.computeSpaceDensity(new File(Config.getInstance().base_folder+"/UserEventCounter/"+p.getName()+"_cellXHour.csv"),rm,constraints);
 			
 			

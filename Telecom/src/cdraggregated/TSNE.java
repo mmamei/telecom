@@ -1,6 +1,5 @@
 package cdraggregated;
 
-import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,15 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.swing.JFrame;
-
-import org.math.plot.FrameView;
-import org.math.plot.Plot2DPanel;
-import org.math.plot.plots.ScatterPlot;
-
 import utils.Config;
-import utils.StatsUtils;
-import utils.time.TimeConverter;
 import visual.r.RPlotter;
 
 import com.jujutsu.tsne.FastTSne;
@@ -31,7 +22,7 @@ import com.jujutsu.tsne.TSne;
 public class TSNE {
 	//https://lvdmaaten.github.io/tsne/
 	static double perplexity = 5.0;
-	private static int initial_dims = 10;
+	private static int initial_dims = 20;
 	
 	public static boolean USE_Z = true;
 	

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import cdrindividual.PLSSpaceDensity;
+import cdrindividual.CDRSpaceDensity;
 import cdrindividual.tourist.profiles.Resident;
 import region.Placemark;
 import region.RegionMap;
@@ -115,7 +115,7 @@ public class WekaPreprocess {
 		
 		Placemark placemark = Placemark.getPlacemark(city);
 		RegionMap rm = regionSerFile == null ? null : (RegionMap)CopyAndSerializationUtils.restore(new File(regionSerFile));
-		PLSSpaceDensity.process(rm,cellXHourFile,gt_ser_file,null,MAX_DAYS,weka_file,placemark);
+		CDRSpaceDensity.process(rm,cellXHourFile,gt_ser_file,null,MAX_DAYS,weka_file,placemark);
 	}
 	
 	public static void preprocess(String city, String month, String regionSerFile) throws Exception {

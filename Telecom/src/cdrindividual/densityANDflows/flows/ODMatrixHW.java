@@ -5,17 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cdraggregated.densityANDflows.flows.ODMatrixVisual;
-import cdrindividual.Constraints;
-import cdrindividual.dataset.EventFilesFinderI;
-import cdrindividual.dataset.impl.DataFactory;
-import cdrindividual.densityANDflows.density.UserPlaces;
 import region.CreatorRegionMapGrid;
 import region.RegionI;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.Logger;
+import cdrindividual.Constraints;
+import cdrindividual.densityANDflows.density.UserPlaces;
 
 public class ODMatrixHW {
 	public static void main(String[] args) throws Exception {
@@ -92,7 +89,7 @@ public class ODMatrixHW {
 			
 			// save result in od matrix files
 			ODMatrixPrinter.print("ODMatrixHW_"+region,list_od,rm,"HW");
-			return ODMatrixVisual.draw("ODMatrixHW_"+region,"ODMatrixHW_"+region,false,region);
+			//return ODMatrixVisual.draw("ODMatrixHW_"+region,"ODMatrixHW_"+region,false,region);
 			// prepare for drawing
 			//return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region,rm);
 		} catch(Exception e) {

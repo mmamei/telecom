@@ -11,7 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.presence_at_event.PresenceCounter;
 import region.CityEvent;
 import region.Placemark;
@@ -131,10 +131,10 @@ public class TouristEventAnalysis {
 		String line;
 		while((line=br.readLine())!=null) {
 			if(line.startsWith("//")) continue;
-			List<PLSEvent> l = PLSEvent.getDataFormUserEventCounterCellacXHourLine(line);
+			List<CDR> l = CDR.getDataFormUserEventCounterCellacXHourLine(line);
 			
 			
-			for(PLSEvent e: l) {
+			for(CDR e: l) {
 				if(ce.spot.contains(e.getCellac()) && e.getCalendar().after(ce.st) && e.getCalendar().before(ce.et)) {
 					double f1 = PresenceCounter.fractionOfTimeInWhichTheUserWasAtTheEvent(l,ce,null,false);
 					f1 = f1 * 5;

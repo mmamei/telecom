@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import region.Placemark;
 import visual.kml.KML;
 
@@ -15,7 +15,7 @@ public class Transit extends Profile {
 		super(placemark, null); 
 	}
 
-	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<PLSEvent> list, int tot_days) {
+	public boolean check(String user_id, String mnt, int num_pls, int num_days, int days_interval, List<CDR> list, int tot_days) {
 		/*
 		// check
 		String user = "5b1728db7737cbaa4a14feaf1e8ba2bb6a8f68972f8ae4938603c6571f4364f";
@@ -74,8 +74,8 @@ public class Transit extends Profile {
 	*/
 	
 	
-	public int maxTimeInPlacemark(List<PLSEvent> list) {
-		PLSEvent spotted = list.get(0);
+	public int maxTimeInPlacemark(List<CDR> list) {
+		CDR spotted = list.get(0);
 		if(placemark.contains(spotted.getCellac())) return -1; 
 		if(placemark.contains(list.get(list.size()-1).getCellac())) return -1;
 		
@@ -83,7 +83,7 @@ public class Transit extends Profile {
 		boolean outside_placemark = true;		
 		int maxdh = -1;
 		for(int i=1; i<list.size();i++) {
-			PLSEvent cc = list.get(i);
+			CDR cc = list.get(i);
 			if(outside_placemark && !placemark.contains(cc.getCellac())) // we are still out
 				spotted = cc;
 			if(!outside_placemark && !placemark.contains(cc.getCellac())) { // we exit

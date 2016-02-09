@@ -33,7 +33,7 @@ import weka.filters.unsupervised.attribute.Remove;
 
 public class SynchClustering {
 	
-	public static int DEMOGRAPHIC_RES_THRESHOLD = 100;
+	public static int DEMOGRAPHIC_RES_THRESHOLD = 200;
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -47,8 +47,19 @@ public class SynchClustering {
 		List<double[]> inter = new ArrayList<double[]>();
 		double[] intrainterdiff = new double[cities.length];
 		
+		
+		List<String> bigCities = new ArrayList<String>();
+		bigCities.add("napoli");bigCities.add("bari");bigCities.add("palermo");bigCities.add("roma");bigCities.add("venezia");bigCities.add("torino");bigCities.add("milano");
+		
 		for(int i=0; i<cities.length;i++) {
 			String city = cities[i];
+			
+			
+			if(city.equals("roma") || city.equals("milano")) DEMOGRAPHIC_RES_THRESHOLD = 0;
+			else if(bigCities.contains(city)) DEMOGRAPHIC_RES_THRESHOLD = 200;
+			else DEMOGRAPHIC_RES_THRESHOLD = 100;
+			
+			
 			System.out.println("\n\n*************************************************** START PROCESSING "+city.toUpperCase());
 			DescriptiveStatistics[] all_intra_inter = run(city);
 			ln.add(city);

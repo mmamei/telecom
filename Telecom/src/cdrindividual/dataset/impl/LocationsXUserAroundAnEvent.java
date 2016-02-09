@@ -102,7 +102,7 @@ public class LocationsXUserAroundAnEvent extends BufferAnalyzer {
 	
 	private static void process(CityEvent ce, Constraints constraints) throws Exception {
 		LocationsXUserAroundAnEvent ba = new LocationsXUserAroundAnEvent(ce, constraints);
-		PLSParser.parse(ba);
+		PLSParser.getInstance().parse(ba);
 		ba.finish();
 	}
 	

@@ -18,6 +18,18 @@ import utils.Mail;
 
 
 
+
+
+
+/*
+ * 
+ * 
+ * DEPRECATED USE USER CELLLAC X HOUR INSTEAD !!!!!!!!!!!!!
+ * 
+ * 
+ */
+
+
 public class UsersCSVCreator extends BufferAnalyzer {
 
 	private HashMap<String,UserTrace> traces;
@@ -91,7 +103,7 @@ public class UsersCSVCreator extends BufferAnalyzer {
 		}
 		UsersCSVCreator ba = new UsersCSVCreator(getUserListFromFile(file),ce.toString());
 		if(ba.traces.size() > 0) {
-			PLSParser.parse(ba);
+			PLSParser.getInstance().parse(ba);
 			ba.finish();
 		}
 	}
@@ -101,7 +113,7 @@ public class UsersCSVCreator extends BufferAnalyzer {
 			Set<String> users = new HashSet<String>();
 			users.add(user);
 			UsersCSVCreator ba = new UsersCSVCreator(users,"");
-			PLSParser.parse(ba);
+			PLSParser.getInstance().parse(ba);
 			return ba.get(user);
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -127,12 +139,22 @@ public class UsersCSVCreator extends BufferAnalyzer {
 		}
 		UsersCSVCreator ba = new UsersCSVCreator(getUserListFromFile(file),filename.substring(0,filename.indexOf(".")));
 		if(ba.traces.size() > 0) {
-			PLSParser.parse(ba);
+			PLSParser.getInstance().parse(ba);
 			ba.finish();
 		}
 		Mail.send("UsersCSVCreator completed!");
 		Logger.logln("Done");
 	}
+	
+	
+	
+	/*
+	 * 
+	 * 
+	 * DEPRECATED USE USER CELLLAC X HOUR INSTEAD !!!!!!!!!!!!!
+	 * 
+	 * 
+	 */
 	
 	
 	public static void main(String[] args) throws Exception {
@@ -155,7 +177,7 @@ public class UsersCSVCreator extends BufferAnalyzer {
 		
 		UsersCSVCreator ba = new UsersCSVCreator(users,target_event.toFileName()+"_STR");
 		if(ba.traces.size() > 0) {
-			PLSParser.parse(ba);
+			PLSParser.getInstance().parse(ba);
 			ba.finish();
 		}
 		Mail.send("UsersCSVCreator completed!");

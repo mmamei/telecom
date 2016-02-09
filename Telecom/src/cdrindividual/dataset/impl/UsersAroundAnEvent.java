@@ -94,7 +94,7 @@ public class UsersAroundAnEvent extends BufferAnalyzer implements UsersAroundAnE
 		try {
 			UsersAroundAnEvent ba = new UsersAroundAnEvent(ce);
 			//UsersAroundAnEvent ba = new UsersAroundAnEvent(CityEvent.GAME_OLIMPICO_12_3_2012);
-			PLSParser.parse(ba);
+			PLSParser.getInstance().parse(ba);
 			if(saveFile) ba.finish();
 		return ba.usersAround;
 		}catch(Exception e) {

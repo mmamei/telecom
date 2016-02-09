@@ -11,12 +11,12 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 
 public class CopyAndSerializationUtils {
-	public static List<PLSEvent> clone(List<PLSEvent> events) {
-		List<PLSEvent> result = new ArrayList<PLSEvent>();
-		for(PLSEvent e: events)
+	public static List<CDR> clone(List<CDR> events) {
+		List<CDR> result = new ArrayList<CDR>();
+		for(CDR e: events)
 			result.add(e.clone());
 		return result;
 	}

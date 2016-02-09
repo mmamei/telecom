@@ -24,7 +24,7 @@ public class RadiusOfGyration {
 		for(File f: in_dir.listFiles()) {
 			String filename = f.getName();
 			String username = filename.substring(0, filename.indexOf(".csv"));
-			double gr = computeGyrationRadius(PLSEvent.readEvents(f));
+			double gr = computeGyrationRadius(CDR.readEvents(f));
 			stats.addValue(gr);
 			cont ++;
 			if(cont%1000 == 0) System.out.println("Processed "+cont+" users.....");
@@ -34,7 +34,7 @@ public class RadiusOfGyration {
 	}
 	
 	
-	public static double computeGyrationRadius(List<PLSEvent> events) {
+	public static double computeGyrationRadius(List<CDR> events) {
 		// compute centriod
 		double clon = 0;
 		double clat = 0;
@@ -42,7 +42,7 @@ public class RadiusOfGyration {
 		
 		
 		NetworkMapFactoryI nmf = DataFactory.getNetworkMapFactory();
-		for(PLSEvent e: events) {
+		for(CDR e: events) {
 			RegionI r = nmf.getNetworkMap(e.getTimeStamp()).getRegion(e.getCellac());
 			if(r!=null) {
 				double[] latlon = r.getLatLon();
@@ -56,7 +56,7 @@ public class RadiusOfGyration {
 		LatLonPoint c = new LatLonPoint(clat,clon);
 		
 		double sum_sq_d = 0; // sum square distances
-		for(PLSEvent e: events) {
+		for(CDR e: events) {
 			RegionI r = nmf.getNetworkMap(e.getTimeStamp()).getRegion(e.getCellac());
 			if(r!=null) {
 				LatLonPoint p = r.getCenterPoint();

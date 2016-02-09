@@ -100,13 +100,13 @@ class PLSEventsAroundAPlacemark extends BufferAnalyzer implements PLSEventsAroun
 		List<Placemark> ps = new ArrayList<Placemark>();
 		ps.add(p);
 		PLSEventsAroundAPlacemark ba = new PLSEventsAroundAPlacemark(ps,constraints);
-		PLSParser.parse(ba);
+		PLSParser.getInstance().parse(ba);
 		ba.finish();
 	}
 	
 	private void process(List<Placemark> p, Constraints constraints) throws Exception {
 		PLSEventsAroundAPlacemark ba = new PLSEventsAroundAPlacemark(p,constraints);
-		PLSParser.parse(ba);
+		PLSParser.getInstance().parse(ba);
 		ba.finish();
 	}
 	

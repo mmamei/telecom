@@ -105,7 +105,7 @@ public class UsersAroundMultipleEvents extends BufferAnalyzerConstrained {
 		
 		String outputdir = Config.getInstance().base_folder+"/UsersAroundAnEvent/"+target_event;
 		UsersAroundMultipleEvents uame = new UsersAroundMultipleEvents(null,Config.getInstance().base_folder+"/UsersAroundAnEvent/"+target_event.toFileName(),origins,outputdir);
-		PLSParser.parse(uame);
+		PLSParser.getInstance().parse(uame);
 		uame.finish();
 		
 		

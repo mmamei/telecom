@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import utils.FilterAndCounterUtils;
 
 
@@ -13,13 +13,13 @@ public class Thresholding {
 	
 	public static final String REF_NETWORK_CELLAC = "4044247943";
 	
-	public static List<PLSEvent> buildReferenceTower(List<PLSEvent> events, double[][] weights) {
-		ArrayList<PLSEvent> refEvents = new ArrayList<PLSEvent>();
+	public static List<CDR> buildReferenceTower(List<CDR> events, double[][] weights) {
+		ArrayList<CDR> refEvents = new ArrayList<CDR>();
 		
-		for(PLSEvent e: events) {
+		for(CDR e: events) {
 			Calendar cal = e.getCalendar();
 			if(weights[cal.get(Calendar.DAY_OF_WEEK)-1][cal.get(Calendar.HOUR_OF_DAY)] > 0) {
-				refEvents.add(new PLSEvent(e.getUsername(),e.getIMSI(),REF_NETWORK_CELLAC,""+e.getTimeStamp()));
+				refEvents.add(new CDR(e.getUsername(),e.getIMSI(),REF_NETWORK_CELLAC,""+e.getTimeStamp()));
 			}
 		}
 		return refEvents;

@@ -13,6 +13,15 @@ import utils.Config;
 import utils.Logger;
 
 
+
+/*
+ * 
+ * 
+ * DEPRECATED USE USER CDR COUNTER INSTEAD !!!!!!!!!!!!!
+ * 
+ * 
+ */
+
 public class UserSetCreator extends BufferAnalyzerConstrained {
 	
 	private Set<String> users;
@@ -45,6 +54,14 @@ public class UserSetCreator extends BufferAnalyzerConstrained {
 	}
 	
 	
+	
+	/*
+	 * 
+	 * 
+	 * DEPRECATED USE USER CDR COUNTER INSTEAD !!!!!!!!!!!!!
+	 * 
+	 * 
+	 */
 	
 	
 	public static void main(String[] args) {

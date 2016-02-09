@@ -8,7 +8,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
-import cdrindividual.PLSEvent;
+import cdrindividual.CDR;
 import cdrindividual.lda.bow.Bow;
 import cdrindividual.lda.bow.OneDocXDay;
 import cdrindividual.lda.bow.OneDocXDayMov;
@@ -98,7 +98,7 @@ public class CreateBagOfWords {
 		
 		KMLPath.addKml("<Folder><name>RegionMap</name>"+rm.getKMLBorders()+"</Folder>");
 		
-		KMLPath.print(user_id,PLSEvent.getDataFormUserEventCounterCellacXHourLine(line));	
+		KMLPath.print(user_id,CDR.getDataFormUserEventCounterCellacXHourLine(line));	
 		KMLPath.closeFile();	
 		
 		try {
