@@ -131,7 +131,7 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 	
 	
 	
-	public static final String[] KIND_OF_PLACES = new String[]{"HOME","WORK","SATURDAY_NIGHT","SUNDAY"};
+	public static final String[] KIND_OF_PLACES = new String[]{"HOME","WORK"};
 	private static final SimpleDateFormat F = new SimpleDateFormat("yyyy-MM-dd-hh");
 	public Map<String, List<LatLonPoint>> runSingle(String sday, String eday, String user, double lon1, double lat1, double lon2, double lat2) {
 		
@@ -222,7 +222,7 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 		//String dir = "file_pls_ivory_users_2000_10000";
 		
 		
-		String fileName = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour";
+		String fileName = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_5000_cellXHour";
 		String in_file = Config.getInstance().base_folder+"/UserCellXHour/"+fileName+".csv";
 		String out_dir = Config.getInstance().base_folder+"/PlaceRecognizer/"+fileName;
 		File d = new File(out_dir);

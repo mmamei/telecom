@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -36,8 +37,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import region.Placemark;
 import utils.Config;
-import utils.Logger;
-import utils.Mail;
 import visual.r.RPlotter;
 
 public class UserCDRCounter extends BufferAnalyzerConstrained {
@@ -53,6 +52,8 @@ public class UserCDRCounter extends BufferAnalyzerConstrained {
 		Integer n = users_events.get(username);
 		users_events.put(username, n == null ? 1 : n+1);
 	}
+	
+	
 	
 	
 	private static final SimpleDateFormat F = new SimpleDateFormat("dd-MM-yyyy");
@@ -318,6 +319,9 @@ class CreatorUserCDRCounterGUI {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JFileChooser fileChooser = new JFileChooser(new File(Config.getInstance().base_folder+"/UserCDRCounter"));
+					fileChooser.setPreferredSize(new Dimension(1200,600));
+					Action details = fileChooser.getActionMap().get("viewTypeDetails");
+					details.actionPerformed(null);
 					int n = fileChooser.showOpenDialog(win);
 			        if (n == JFileChooser.APPROVE_OPTION) 
 			        	input_file = fileChooser.getSelectedFile();
@@ -351,6 +355,9 @@ class CreatorUserCDRCounterGUI {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JFileChooser fileChooser = new JFileChooser(new File(Config.getInstance().base_folder+"/UserCDRCounter"));
+					fileChooser.setPreferredSize(new Dimension(1200,600));
+					Action details = fileChooser.getActionMap().get("viewTypeDetails");
+					details.actionPerformed(null);
 					int n = fileChooser.showOpenDialog(win);
 			        if (n == JFileChooser.APPROVE_OPTION) 
 			        	input_file = fileChooser.getSelectedFile();

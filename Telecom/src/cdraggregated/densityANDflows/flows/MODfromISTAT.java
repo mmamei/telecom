@@ -28,7 +28,7 @@ public class MODfromISTAT {
 //	11 altro mezzo;
 //	12 a piedi;
 	
-	private static Integer[] regioniInConsiderazione={3};
+	private static Integer[] regioniInConsiderazione={1};
 //	Codici regione
 //	1 Piemonte
 //	2 Valle d'Aosta

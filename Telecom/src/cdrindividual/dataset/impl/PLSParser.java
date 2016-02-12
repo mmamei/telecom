@@ -4,17 +4,23 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import utils.Config;
-import utils.Logger;
+import utils.multithread.MultiWorker;
+import utils.multithread.WorkerCallbackI;
 
-public class PLSParser {
+public class PLSParser implements WorkerCallbackI<File> {
+	
+	
+	public static final boolean MULTITHREAD = false;
 	
 	
 	public static int MIN_HOUR = 0;
@@ -36,7 +42,8 @@ public class PLSParser {
 	private static long sTime,eTime;
 	private static int mins;
 	
-	
+	private Set<String> bogus;
+	private BufferAnalyzer analyzer = null;
 	private static PLSParser instance = null;
 	private PLSParser() {
 		
@@ -55,23 +62,8 @@ public class PLSParser {
 		dir = Config.getInstance().pls_folder;
 		sTime = System.currentTimeMillis();
 		
-		analyzeDirectory(new File(dir),ba,null);
+		File directory = new File(dir);
 		
-		eTime = System.currentTimeMillis();
-		mins = (int)((eTime - sTime) / 60000);
-		//Logger.logln("Completed after "+mins+" mins");
-	}
-	
-	
-	//private  static final String[] MONTHS = new String[]{"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-	
-	
-	
-	//private static Map<String,String> allDays = new TreeMap<String,String>();
-	
-	private void analyzeDirectory(File directory, BufferAnalyzer analyzer, Set<String> bogus) throws Exception{	
-		
-
 		if(REMOVE_BOGUS && bogus == null) {
 			bogus = new HashSet<String>();
 			System.out.println("Loading bogus users ... "+Config.getInstance().pls_folder);
@@ -91,57 +83,78 @@ public class PLSParser {
 				System.err.println(Config.getInstance().base_folder+"/UserEventCounter/"+d+"_bogus.csv NOT FOUND");
 			}
 		}
+		this.analyzer = ba;
 		
-		File[] items = directory.listFiles();
-		for(int i=0; i<items.length;i++){
-			
-			
-			try {
-			
-				File item = items[i];
-				if(item.isFile()) {
-					Calendar end_cal = new GregorianCalendar();
-					String n = item.getName();
-					
-					end_cal.setTimeInMillis(Long.parseLong(n.substring(n.lastIndexOf("_")+1, n.indexOf(".zip"))));
-					
-					Calendar begin_cal = (Calendar)end_cal.clone();
-					begin_cal.add(Calendar.MINUTE, -30); // a pls file with time T contains events from T-30 min, to T
-					
-					if(end_cal.before(startTime) || begin_cal.after(endTime)) continue;
-					
-	
-					
-					if(end_cal.get(Calendar.HOUR_OF_DAY) < MIN_HOUR || begin_cal.get(Calendar.HOUR_OF_DAY) > MAX_HOUR) continue;
-					
-					if(!QUIET) System.out.println(n+" ==> "+begin_cal.getTime()+", "+end_cal.getTime());
-					
-					//String key = end_cal.get(Calendar.DAY_OF_MONTH)+"/"+MONTHS[end_cal.get(Calendar.MONTH)]+"/"+end_cal.get(Calendar.YEAR);
-					//String h = allDays.get(key);
-					//allDays.put(key, h==null? end_cal.get(Calendar.HOUR_OF_DAY)+"-" : h+end_cal.get(Calendar.HOUR_OF_DAY)+"-");
-					
-					analyzeFile(item, analyzer,bogus);
-					if((i+1) % 10 == 0) 
-						Thread.sleep(1000);
-				}
-				else if(item.isDirectory())
-					analyzeDirectory(item, analyzer,bogus);
-			} catch(Exception e) {
-				System.out.println("Problems with file "+items[i].getAbsolutePath());
-				e.printStackTrace();
-			}
-		}
+		if(MULTITHREAD)
+			MultiWorker.run(directory.getAbsolutePath(), this);
+		else
+			analyzeDirectory(directory);
 		
-		//Logger.logln("Days in the dataset:");
-		//for(String d:allDays.keySet()) 
-		//	Logger.logln(d+" = "+allDays.get(d));
-		
-		
+		eTime = System.currentTimeMillis();
+		mins = (int)((eTime - sTime) / 60000);
+		//Logger.logln("Completed after "+mins+" mins");
 	}
 	
 	
-	private void analyzeFile(File plsFile, BufferAnalyzer analyzer, Set<String> bogus) {	
-		//System.out.println(plsFile.getAbsolutePath());
+	//private  static final String[] MONTHS = new String[]{"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+	
+	
+	
+	//private static Map<String,String> allDays = new TreeMap<String,String>();
+	
+	private void analyzeDirectory(File directory) throws Exception {	
+		File[] items = directory.listFiles();
+		for(int i=0; i<items.length;i++)
+			runMultiThread(items[i]);	
+	} 
+	
+	
+	@Override
+	public void runMultiThread(File item) {
+		
+		try {
+			if(item.isFile()) {
+				Calendar end_cal = new GregorianCalendar();
+				String n = item.getName();
+				
+				end_cal.setTimeInMillis(Long.parseLong(n.substring(n.lastIndexOf("_")+1, n.indexOf(".zip"))));
+				
+				Calendar begin_cal = (Calendar)end_cal.clone();
+				begin_cal.add(Calendar.MINUTE, -30); // a pls file with time T contains events from T-30 min, to T
+				
+				if(end_cal.before(startTime) || begin_cal.after(endTime)) return;
+				
+
+				
+				if(end_cal.get(Calendar.HOUR_OF_DAY) < MIN_HOUR || begin_cal.get(Calendar.HOUR_OF_DAY) > MAX_HOUR) return;
+				
+				if(!QUIET) System.out.println("BEGIN "+n+" ==> "+begin_cal.getTime()+", "+end_cal.getTime());
+				
+				//String key = end_cal.get(Calendar.DAY_OF_MONTH)+"/"+MONTHS[end_cal.get(Calendar.MONTH)]+"/"+end_cal.get(Calendar.YEAR);
+				//String h = allDays.get(key);
+				//allDays.put(key, h==null? end_cal.get(Calendar.HOUR_OF_DAY)+"-" : h+end_cal.get(Calendar.HOUR_OF_DAY)+"-");
+				
+				analyzeFile(item, bogus);
+				
+				//if(!QUIET) System.out.println("FINISH "+n+" ==> "+begin_cal.getTime()+", "+end_cal.getTime());
+
+			}
+			else if(item.isDirectory())
+				if(MULTITHREAD)
+					MultiWorker.run(item.getAbsolutePath(), this);
+				else
+					analyzeDirectory(item);
+		} catch(Exception e) {
+			System.out.println("Problems with file "+item.getAbsolutePath());
+			e.printStackTrace();
+		}	
+	}
+	
+	
+	
+	
+	private void analyzeFile(File plsFile, Set<String> bogus) {	
+		
 		ZipFile zf = null;
 		BufferedReader br = null;
 		try {
@@ -152,7 +165,8 @@ public class PLSParser {
 			String u;
 			while((line=br.readLine())!=null) { 
 				u = line.substring(0,line.indexOf("\t"));
-				if(bogus==null || !bogus.contains(u)) analyzer.analyze(line);
+				if(bogus==null || !bogus.contains(u)) 
+					analyzer.analyze(line);
 			}
 		}catch(Exception e) {
 			System.err.println("Problems with file: "+plsFile.getAbsolutePath());
@@ -165,4 +179,6 @@ public class PLSParser {
 			e.printStackTrace();
 		}
 	}
+	
+	
 }

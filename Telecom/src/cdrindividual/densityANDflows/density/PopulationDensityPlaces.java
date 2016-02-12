@@ -24,13 +24,13 @@ public class PopulationDensityPlaces {
 		PopulationDensityPlaces pdp = new PopulationDensityPlaces();
 		
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_100/results.csv", "FIX_Piemonte.ser", "HOME", "SATURDAY_NIGHT","",0,0,0,0);
-		
-		
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_10000/results_piem.csv", "torino_circoscrizioni_geo.ser", "SATURDAY_NIGHT", "HOME","",0,0,0,0);
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_lomb_users_200_10000/results_lomb.csv", "milano_circoscrizioni_geo.ser", "SUNDAY", "HOME","",0,0,0,0);
-		
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/fast_home_Torino.csv", "torino_circoscrizioni_geo.ser", "HOME", null,"",0,0,0,0);
-		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/fast_home_Milano.csv", "milano_circoscrizioni_geo.ser", "HOME", null,"",0,0,0,0);
+		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/fast_home_Milano.csv", "milano_circoscrizioni_geo.ser", "HOME", null,"",0,0,0,0);
+		
+		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
+		
 		
 		Logger.logln("Done!");
 	}
@@ -79,13 +79,13 @@ public class PopulationDensityPlaces {
 		
 		
 		String title = rm.getName()+"-"+kind_of_place+"-"+exclude_kind_of_place;	
-		plotSpaceDensity(title, space_density, rm, 0);
+		saveSpaceDensity(title, space_density, rm);
 		
 		
 		StringBuffer sb = new StringBuffer();
 		sb.append("var heatMapData = [\n");
 		for(String key: space_density.keySet()) {
-			System.err.println(key);
+			//System.err.println(key);
 			double[] latlon = rm.getRegion(key.toUpperCase()).getLatLon();
 			sb.append("{location: new google.maps.LatLng("+latlon[0]+", "+latlon[1]+"), weight: "+space_density.get(key)+"},");
 		}
@@ -104,14 +104,15 @@ public class PopulationDensityPlaces {
 		
 	}
 	
-	
-	public void plotSpaceDensity(String title, Map<String,Double> space_density, RegionMap rm, double threshold) throws Exception {
-		File d = new File(Config.getInstance().web_kml_folder);
-		d.mkdirs();
-		RHeatMap.drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+title+".png",space_density,rm,true,"",true);
-		KMLHeatMap.drawHeatMap(d.getAbsolutePath()+"/"+title+".kml",space_density,rm,title,true);
-		HeatMapGoogleMaps.draw(d.getAbsolutePath()+"/"+title+".html", title, space_density, rm, threshold);
+	public void saveSpaceDensity(String name, Map<String,Double> space_density, RegionMap rm) {
+		
+		File dir = new File(Config.getInstance().base_folder+"/AggregatedSpaceDensity");
+		dir.mkdirs();
+		CopyAndSerializationUtils.save(new File(dir+"/"+name+"_"+rm.getName()+".ser"), space_density);
 	}
+	
+	
+	
 	
 	
 	

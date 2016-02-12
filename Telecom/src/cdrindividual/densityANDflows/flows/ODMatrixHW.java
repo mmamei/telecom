@@ -16,9 +16,18 @@ import cdrindividual.densityANDflows.density.UserPlaces;
 
 public class ODMatrixHW {
 	public static void main(String[] args) throws Exception {
+		
+		
 		//String regionMap = "FIX_Piemonte.ser";
-		String regionMap = "grid5";
-		String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_100/results.csv";
+		//String regionMap = "grid5";
+		String regionMap = "odpiemonte.ser";
+		
+		
+		//String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_100/results.csv";
+		String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour/results.csv";
+	
+		
+		
 		ODMatrixHW od = new ODMatrixHW();
 		
 		
@@ -34,8 +43,6 @@ public class ODMatrixHW {
 	public String runAll(String places_file, String regionMap, Constraints constraints,double minlat,double minlon, double maxlat,double maxlon) {
 		
 		try {			
-			String region = places_file.substring("C:/BASE/PlaceRecognizer/".length(),places_file.indexOf("_users"));
-			
 			Map<String,UserPlaces> up = UserPlaces.readUserPlaces(places_file);
 			
 			
@@ -88,7 +95,8 @@ public class ODMatrixHW {
 			}
 			
 			// save result in od matrix files
-			ODMatrixPrinter.print("ODMatrixHW_"+region,list_od,rm,"HW");
+			String name = places_file.substring((Config.getInstance().base_folder+"/PlaceRecognizer/").length(), places_file.indexOf("/results.csv"))+"_"+regionMap;
+			ODMatrixPrinter.print("ODMatrixHW_"+name,list_od,rm,"HW");
 			//return ODMatrixVisual.draw("ODMatrixHW_"+region,"ODMatrixHW_"+region,false,region);
 			// prepare for drawing
 			//return ODMatrixVisual.draw("ODMatrixHW_"+region,list_od,false,region,rm);

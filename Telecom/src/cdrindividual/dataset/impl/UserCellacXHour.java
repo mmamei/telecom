@@ -129,14 +129,14 @@ public class UserCellacXHour extends BufferAnalyzerConstrained {
 		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/file_pls_piem"; 
 		
 		Config.getInstance().pls_start_time = new GregorianCalendar(2015,Calendar.JUNE,1,0,0,0);
-		Config.getInstance().pls_end_time = new GregorianCalendar(2015,Calendar.JUNE,6,23,59,59);
+		Config.getInstance().pls_end_time = new GregorianCalendar(2015,Calendar.JUNE,31,23,59,59);
 		
 		//Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.SEPTEMBER,1,0,0,0);
 		//Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.SEPTEMBER,31,23,59,59);
 		
 		//process(Config.getInstance().base_folder+"/UserSetCreator/Lecce.csv",false);
 		
-		process(Config.getInstance().base_folder+"/UserCDRCounter/file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000.csv",false);
+		process(Config.getInstance().base_folder+"/UserCDRCounter/file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_5000.csv",false);
 		
 		
 		/*

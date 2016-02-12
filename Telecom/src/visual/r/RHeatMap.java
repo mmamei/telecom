@@ -40,7 +40,7 @@ public class RHeatMap {
 		
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-milano.ser"));
 		Map<String,Double> density = new HashMap<String,Double>();
-		drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+rm.getName()+".png",density,rm,false,"",true);
+		drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+rm.getName()+".png",density,rm,false,"",true,0);
 				
 		Logger.logln("Done!");
 	}
@@ -52,7 +52,7 @@ public class RHeatMap {
 	
 	
 	
-	public static void drawChoroplethMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text, boolean ggmap) {
+	public static void drawChoroplethMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text, boolean ggmap, double threshold) {
 		
 		
 		// extract arrays with all the coordinates, ids, and density values
@@ -63,19 +63,21 @@ public class RHeatMap {
 		
 		
 		for(RegionI r : rm.getRegions()) {
-			Coordinate[] coord = r.getGeom().getCoordinates();
-			for(int i=0; i<coord.length;i++) {
-				llat.add(coord[i].y);
-				llon.add(coord[i].x);
-				lid.add(r.getName());
-				Double val = density.get(r.getName());
-				if(val == null) val = 0.0;
-				if(log && val != 0) val = Math.log(val);
-				lval.add(val);
+			Double val = density.get(r.getName());
+			if(val!=null && val > threshold) {
+				Coordinate[] coord = r.getGeom().getCoordinates();
+				for(int i=0; i<coord.length;i++) {
+					llat.add(coord[i].y);
+					llon.add(coord[i].x);
+					lid.add(r.getName());
+					if(val == null) val = 0.0;
+					if(log && val != 0) val = Math.log(val);
+					lval.add(val);
+				}
 			}
 		}
 		
-		
+		double[] lonlatBbox = new double[]{200,200,0,0};
 		double[] lat = new double[llat.size()];
 		double[] lon = new double[llon.size()];
 		String[] id = new String[lid.size()];
@@ -86,7 +88,20 @@ public class RHeatMap {
 			lon[i] = llon.get(i);
 			id[i] = lid.get(i);
 			val[i] = lval.get(i);
+			lonlatBbox[0] = Math.min(lon[i], lonlatBbox[0]);
+			lonlatBbox[1] = Math.min(lat[i], lonlatBbox[1]);
+			lonlatBbox[2] = Math.max(lon[i], lonlatBbox[2]);
+			lonlatBbox[3] = Math.max(lat[i], lonlatBbox[3]);
 		}
+		
+		
+		
+		double buffer = 0.0;
+		lonlatBbox[0] -= buffer;
+		lonlatBbox[1] -= buffer;
+		lonlatBbox[2] += buffer;
+		lonlatBbox[3] += buffer;
+		
 		
 		String code = "";
 		
@@ -96,15 +111,6 @@ public class RHeatMap {
 			c.assign("lon", lon);
 			c.assign("id", id);
 			c.assign("val", val);
-			
-			double buffer = 0.0;
-			// get the bbox for this map
-			Envelope e = rm.getEnvelope();
-			double[] lonlatBbox = new double[4];
-			lonlatBbox[0] = e.getMinX() - buffer;
-			lonlatBbox[1] = e.getMinY() - buffer;
-			lonlatBbox[2] = e.getMaxX() + buffer;
-			lonlatBbox[3] = e.getMaxY() + buffer;
 			c.assign("bbox",lonlatBbox);
 			
 			//ggmap = false;

@@ -6,14 +6,12 @@ import java.util.List;
 
 import org.rosuda.REngine.Rserve.RConnection;
 
+import region.RegionMap;
+import utils.Config;
+import utils.Logger;
 import cdrindividual.densityANDflows.flows.ODMatrixHW;
 
 import com.vividsolutions.jts.geom.Envelope;
-
-import region.RegionMap;
-import utils.Config;
-import utils.CopyAndSerializationUtils;
-import utils.Logger;
 
 public class RRoadNetwork {
 	
@@ -33,7 +31,7 @@ public class RRoadNetwork {
 		 lonlatBbox[2] = e.getMaxX();
 		 lonlatBbox[3] = e.getMaxY();
 		 c.assign("bbox",lonlatBbox);
-		 
+		 System.out.println(printRVector("bbox",lonlatBbox,10));
 		 
 		 // extract all the longitudes, latitudes, weights, colors in arrays
 		 double[] start_lat = new double[latlon_segments.size()];
@@ -55,25 +53,40 @@ public class RRoadNetwork {
 		 c.assign("end_lon",end_lon);
 		 c.assign("w", w);
 		 
-		 
-		 
-		 String code = "library(ggmap);"+
+		 System.out.println(printRVector("start_lat",start_lat,10));
+		 System.out.println(printRVector("start_lon",start_lon,10));
+		 System.out.println(printRVector("end_lat",end_lat,10));
+		 System.out.println(printRVector("end_lon",end_lon,10));
+		 System.out.println(printRVector("w",w,10));
+			 
+		 String code = "library(ggplot2);"
+		 			 + "library(ggmap);"+
 				       "amap <- c(bbox);"+
 				       "z<-data.frame(start_lon,start_lat,end_lon,end_lat,w);"+
 				       "amap.map = get_map(location = amap, maptype='terrain', color='bw');"+
 				       "ggmap(amap.map, extent = 'device', legend='bottomright')+"+
 				       "theme(axis.title = element_blank(), text = element_text(size = 18))+"+
-				       "geom_segment(data=z,aes(x=start_lon,y=start_lat,xend=end_lon,yend=end_lat,size=w,colour=w),lineend = 'round')+"+
+				       "geom_segment(data=z,aes(x=start_lon,y=start_lat,xend=end_lon,yend=end_lat,size=1.0,colour=w),lineend = 'round')+"+
 				       "guides(color=guide_legend(), size = guide_legend())+"+
 				       "ggsave('"+file+"',width=10, height=10);";
    
 		 System.out.println(code.replaceAll(";", ";\n"));
-         c.eval(code);
+		 
+		 c.eval(code);
+		 
          c.close();
          if(VIEW) Desktop.getDesktop().open(new File(file));
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static String printRVector(String name, double[] x, int max) {
+		StringBuffer sb = new StringBuffer(name+"<-c("+x[0]);
+		for(int i=1; i<Math.min(x.length, max);i++)
+			sb.append(","+x[i]);
+		sb.append(");");
+		return sb.toString();
 	}
 	
 	

@@ -10,8 +10,10 @@ public class FileUtils {
 		try {
 			int count = 0;
 			BufferedReader br = new BufferedReader(new FileReader(file));
-			while(br.readLine()!=null)
-				count++;
+			String line;
+			while((line = br.readLine()) != null)
+				if(!line.startsWith("//"))
+					count++;
 			br.close();
 			return count;
 		} catch (Exception e) {

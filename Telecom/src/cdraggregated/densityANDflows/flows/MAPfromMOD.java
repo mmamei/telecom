@@ -9,12 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import region.RegionMap;
+import utils.Config;
+import utils.CopyAndSerializationUtils;
 import utils.mod.CoordinateUtil;
 import utils.mod.Util;
 import utils.mod.Util.Pair;
 import utils.mod.Write;
 import utils.mygraphhopper.MyGraphHopper;
 import utils.mygraphhopper.WEdge;
+import visual.r.RRoadNetwork;
 
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
@@ -49,7 +53,7 @@ public class MAPfromMOD {
 		
 //		il flusso degli spostamenti letti dal file origine/destinazione inferiori alla tolleranza
 //		non vengono presi in considerazione	
-		static Double tolleranza=(double)  100;
+		static Double tolleranza=(double)  1;
 		
 		static boolean forecast = false;
 		static GHPoint daForecast = new GHPoint(44.798891, 7.630273);
@@ -63,17 +67,23 @@ public class MAPfromMOD {
 //			String fileMOD = "od.csv";
 //			String fileMOD = "C:/BASE/ODMatrix/MatriceOD_-_Piem_orario_uscita_-_1.csv";
 //			String fileMOD = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem/od2.csv";
-			String fileMOD = "C:/BASE/ODMatrix/emilia-romagna/4406_mod_201509142300_201509150000_calabrese_emilia_regione+ascbologna.txt";
+			//String fileMOD = "C:/BASE/ODMatrix/emilia-romagna/4406_mod_201509142300_201509150000_calabrese_emilia_regione+ascbologna.txt";
+			String fileMOD = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour_piem2011.ser/od.csv";
+			
+			
 			
 //			String fileCoord = "latlon.csv";
 			//String fileCoord = "G:/DATASET/OD-ALBERTO-FRANCIA/Map/Coord/CoordinateDecimaliComuni.csv";
 //			String fileCoord = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem/latlon.csv";
-			String fileCoord = "G:/DATASET/GEO/EmiliaRomagna/ER.csv";
-		
+			//String fileCoord = "G:/DATASET/GEO/EmiliaRomagna/ER.csv";
+			String fileCoord = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour_piem2011.ser/latlon.csv";
+			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piem2011.ser"));
+			
+			
 			MyGraphHopper gh = new MyGraphHopper();
 			gh.setPreciseIndexResolution(1000);
-			gh.setOSMFile("C:/DATASET/osm/er/emilia-romagna.osm");
-			gh.setGraphHopperLocation("C:/DATASET/osm/er");
+			gh.setOSMFile("C:/DATASET/osm/piem2/piem.osm");
+			gh.setGraphHopperLocation("C:/DATASET/osm/piem2");
 			gh.setEncodingManager(new EncodingManager(EncodingManager.CAR));
 			gh.setCHEnable(false);
 			gh.importOrLoad();
@@ -148,7 +158,7 @@ public class MAPfromMOD {
 				
 				String line = br.readLine();
 				
-				line = line.replaceFirst("\t", "");
+				//line = line.replaceFirst("\t", "");
 				
 				//System.err.println(line);
 				
@@ -163,12 +173,14 @@ public class MAPfromMOD {
 			
 					GHPoint da = new GHPoint(0.0,0.0);
 					GHPoint a = new GHPoint(1.0,1.0);
-					line = line.replaceFirst("\t", "");
+					
+					if(line.startsWith("\t"))
+						line = line.replaceFirst("\t", "");
 					
 					//System.out.println(line);
 					String l[]=line.split("\t");
 					for(int c=1; c<l.length; c++){
-						if(ci[r].equals("5,0") && ci[c].equals("6,0"))	System.out.println("==>"+l[c]);
+						//if(ci[r].equals("5,0") && ci[c].equals("6,0"))	System.out.println("==>"+l[c]);
 						
 						
 						
@@ -208,6 +220,7 @@ public class MAPfromMOD {
 //									decrescente non dovrebbero esserci eccezioni out of bounds, garantendo durante le seconde iterazioni
 //									dell'algoritmo che il traffico continui ad essere assegnato agli stessi tragitti anche generati casualmente
 									if(polyMode){
+										//System.out.println(ci.length+" "+r+" "+c);
 										if(randomRoutes.containsKey(ci[r]+":"+ci[c])){
 											da	= randomRoutes.get(ci[r]+":"+ci[c]).get((n/parameterForRandomAssigment)-1).first;
 											a	= randomRoutes.get(ci[r]+":"+ci[c]).get((n/parameterForRandomAssigment)-1).second;
@@ -347,6 +360,16 @@ public class MAPfromMOD {
 			}
 			*/
 			
+			
+			
+			
+			String name = fileMOD.substring("C:/BASE/ODMatrix/".length(), fileMOD.lastIndexOf("/"));
+			
+			
+			drawR(name,streets,rm,Config.getInstance().base_folder+"/Images/"+name+".png");
+			
+			
+			
 			//MyGraphHopper.addForbiddenEdge(forecastEdge);
 			System.out.println(streets.size());
 			Write.simpleHTML(streets, streetsForecast);
@@ -354,5 +377,36 @@ public class MAPfromMOD {
 
 			//Util.save(new File("temp/edges.dat"), Util.serialize(edges));
 			System.out.println("Fine");
-		}		
+		}
+		
+		
+		public static void drawR(String title, HashMap<String, Double> streets, RegionMap rm, String file) {
+			//Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
+			
+			List<double[][]> latlon_segments = new ArrayList<>();
+			List<Double> weights = new ArrayList<>();
+			List<String> colors = new ArrayList<>();
+			boolean directed = false;
+			
+			double max = 0;
+			for(double w: streets.values())
+				max = Math.max(max, w);
+				
+			for(String k: streets.keySet()) {
+				String[] e = k.split(",|:");
+				double lat1 = Double.parseDouble(e[0]);
+				double lon1 = Double.parseDouble(e[1]);
+				double lat2 = Double.parseDouble(e[2]);
+				double lon2 = Double.parseDouble(e[3]);
+				double w = streets.get(k);
+				latlon_segments.add(new double[][]{{lat1,lon1},{lat2,lon2}});
+				weights.add(10*w/max);
+				//colors.add(Colors.val01_to_color(w/max));
+				colors.add("#ff0000");
+			}
+			
+
+			RRoadNetwork.draw(title, latlon_segments, weights, colors, directed, rm, file, null);
+			
+		}
 }
