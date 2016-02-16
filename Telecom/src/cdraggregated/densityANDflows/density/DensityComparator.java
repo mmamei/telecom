@@ -21,37 +21,40 @@ import utils.Logger;
 import visual.r.RPlotter;
 import visual.text.TextPlotter;
 
-public class DensityIstatComparator {
+public class DensityComparator {
 	
 	
 	public static boolean LOG = true;
 	public static boolean INTERCEPT = true;
 	public static int THRESHOLD = 0;
 	
-	public static void main(String[] args) throws Exception {
-		
 	
-		
-		String file = "comuni2012-HOME-null_comuni2012.ser";
+	/*
+	 * This class is used to compare densities from different datasets.
+	 * We typically use to compare ISTAT demographic data with CDR density.
+	 */
+	
+	
+	public static void main(String[] args) throws Exception {
+	
+		String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
 		Map<String,Double> space_density = (Map<String,Double>)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/AggregatedSpaceDensity/"+file));
 		
+		String istatTitle = "istat-demographic-2011";
+		AddMap istat = IstatCensus2011.getInstance().computeDensity(0, false, false);
 		
-		IstatCensus2011 ic = IstatCensus2011.getInstance();
-		AddMap istat = ic.computeDensity(0, false, false);
-		
-		
-		compareWithISTAT(file.split("_")[0]+"VSistat",space_density,istat);
+		compare(file.replaceAll(".ser", ""),space_density,istatTitle,istat);
 	}
 	
 	
 	
 	
-	public static void compareWithISTAT(String title, Map<String,Double> density, Map<String,Double> istat) throws Exception {
+	public static void compare(String title1, Map<String,Double> density1, String title2, Map<String,Double> density2) throws Exception {
 				
 		int size = 0;
-		for(String r: density.keySet()) {
-			int estimated = density.get(r).intValue();
-			Double groundtruth = istat.get(r);
+		for(String r: density1.keySet()) {
+			int estimated = density1.get(r).intValue();
+			Double groundtruth = density2.get(r);
 			if(groundtruth != null && estimated> THRESHOLD) {
 				size++;
 				//System.out.println(r+","+estimated+","+groundtruth);
@@ -59,18 +62,18 @@ public class DensityIstatComparator {
 		}
 		
 	
-		File d = new File(Config.getInstance().base_folder+"/IstatComparator");
+		File d = new File(Config.getInstance().base_folder+"/DensityComparator");
 		if(!d.exists()) d.mkdirs();
 		
-		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(d+"/"+title+"_hist.csv")));
+		PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(d+"/"+title1+"_VS_"+title2+".csv")));
 		out.println("estimated;groundtruth");
 		
 		
 		double[][] result = new double[size][2];
 		size = 0;
-		for(String r: density.keySet()) {
-			int estimated = density.get(r).intValue();
-			Double groundtruth = istat.get(r);
+		for(String r: density1.keySet()) {
+			int estimated = density1.get(r).intValue();
+			Double groundtruth = density2.get(r);
 			if(groundtruth != null && estimated>0 && groundtruth>0) {
 				out.println(estimated+";"+groundtruth);
 				if(estimated > THRESHOLD){
@@ -105,18 +108,28 @@ public class DensityIstatComparator {
 		String ylab = "GroundTruth"+(LOG?" (log)":"");
 		
 		
-		RPlotter.drawScatter(x, y, xlab, ylab, Config.getInstance().paper_folder+"/img/Density/"+title+"VSistat.png", "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
+		
+		title1 = title1.replaceAll("_", "-");
+		title2 = title2.replaceAll("_", "-");
+		
+		String imgFile = "img/density/"+title1+"_VS_"+title2+(LOG?"_LOG":"")+".png";
+		RPlotter.drawScatter(x, y, xlab, ylab, Config.getInstance().paper_folder+"/"+imgFile, "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
 		
 		//create the map for text plotter with all relevant information
 		Map<String,Object> tm = new HashMap<String,Object>();
-		tm.put("region","Piemonte");
-		tm.put("r", sr.getR());
-		tm.put("log", LOG);
-		tm.put("img", title+"VSistat.png");
 		
-		TextPlotter.getInstance().run(tm,"src/cdraggregated/densityANDflows/density/DensityIstatComparator.ftl", Config.getInstance().paper_folder+"/img/Density/density_piemonte.tex");
+		tm.put("r2", sr.getRSquare());
+		tm.put("log", LOG);
+		tm.put("img", imgFile);
+		
+		// parse title
+		tm.putAll(DensityPlotter.parseFileName(title1));
+		
+		TextPlotter.getInstance().run(tm,"src/cdraggregated/densityANDflows/density/DensityComparator.ftl", Config.getInstance().paper_folder+"/"+imgFile.replaceAll(".png", ".tex"));
 		
 	}
+	
+	
 	
 	public static void printInfo(SimpleRegression sr) {
 		Logger.logln("r="+sr.getR()+", r^2="+sr.getRSquare()+", sse="+sr.getSumSquaredErrors());

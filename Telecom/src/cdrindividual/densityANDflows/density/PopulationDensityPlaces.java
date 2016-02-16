@@ -77,9 +77,10 @@ public class PopulationDensityPlaces {
 		//for(double x: space_density.values())
 		//	System.out.println(x);
 		
+	
 		
-		String title = rm.getName()+"-"+kind_of_place+"-"+exclude_kind_of_place;	
-		saveSpaceDensity(title, space_density, rm);
+		String title = new File(places_file).getParentFile().getName()+"-"+rm.getName()+"-"+kind_of_place+"-"+exclude_kind_of_place;	
+		saveSpaceDensity(title, space_density);
 		
 		
 		StringBuffer sb = new StringBuffer();
@@ -104,11 +105,11 @@ public class PopulationDensityPlaces {
 		
 	}
 	
-	public void saveSpaceDensity(String name, Map<String,Double> space_density, RegionMap rm) {
+	public void saveSpaceDensity(String name, Map<String,Double> space_density) {
 		
 		File dir = new File(Config.getInstance().base_folder+"/AggregatedSpaceDensity");
 		dir.mkdirs();
-		CopyAndSerializationUtils.save(new File(dir+"/"+name+"_"+rm.getName()+".ser"), space_density);
+		CopyAndSerializationUtils.save(new File(dir+"/"+name+".ser"), space_density);
 	}
 	
 	
