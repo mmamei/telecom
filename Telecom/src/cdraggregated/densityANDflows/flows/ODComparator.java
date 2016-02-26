@@ -114,6 +114,8 @@ Matrice Origine Destinazione
 -------------------------------------------------------------- 
 	*/
 	
+
+	
 	public static Map<String,Object> parseHeader(String file) {
 		Map<String,Object> tm = new HashMap<String,Object>();
 		StringBuffer all = new StringBuffer();
@@ -123,16 +125,18 @@ Matrice Origine Destinazione
 			br.readLine();
 			br.readLine();
 			br.readLine();
-			
-			for(int i=0; i<9;i++) {
-				String line = br.readLine().trim();
-				if(line.length()==0) continue;
+			String line;
+			int headerRows = 0;
+			while((line = br.readLine()).trim().length()>0) {
 				line = line.replaceAll("_", "-");
+				
+				if(line.matches("-+")) break;
+				
 				String[] el = line.split(":");
 				tm.put(el[0].replaceAll("-","").trim(), el[1].trim());
 				all.append("-"+el[1].trim().replaceAll(" ", "-"));
 			}
-			
+			System.out.println("Procesed "+(headerRows+1)+" header rows");
 			
 			br.close();
 		}catch(Exception e) {

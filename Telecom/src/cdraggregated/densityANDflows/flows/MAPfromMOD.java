@@ -1,13 +1,12 @@
 package cdraggregated.densityANDflows.flows;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.FilenameFilter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +58,7 @@ public class MAPfromMOD {
 		
 //		il flusso degli spostamenti letti dal file origine/destinazione inferiori alla tolleranza
 //		non vengono presi in considerazione	
-		static Double tolleranza=(double)  1;
+		static Double tolleranza=(double)  10;
 		
 		static boolean forecast = false;
 		static GHPoint daForecast = new GHPoint(44.798891, 7.630273);
@@ -72,7 +71,7 @@ public class MAPfromMOD {
 		
 		public static void main(String[] args) throws Exception{
 			
-			RRoadNetwork.VIEW = false;
+			RRoadNetwork.VIEW = true;
 			
 			
 			
@@ -86,6 +85,57 @@ public class MAPfromMOD {
 			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/EmiliaRomagnaId.ser"));	
 			//String osmFile = "C:/DATASET/osm/er/emilia-romagna.osm";
 			
+			
+			
+			
+			
+			
+			
+			/*
+			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piemonteId.ser"));
+			String fileCoord = "C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv";
+			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
+			String fileMOD = "C:/BASE/ODMatrix/matrici_piemonte/orarie/4957_mod_201505231800_201505231900_lovisolo_piemonte_comuni+torinoasc.txt";
+			go(fileMOD,fileCoord,rm,osmFile);
+			*/
+			
+			
+			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piemonteId.ser"));
+			String fileCoord = "C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv";
+			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
+			String video_dir = Config.getInstance().base_folder+"/Videos/20150523_Lovisolo_Piem";
+			new File(video_dir).mkdirs();
+			File dir = new File("C:/BASE/ODMatrix/matrici_piemonte/orarie");
+			File[] files = dir.listFiles(new FilenameFilter() {
+			    							@Override
+			    							public boolean accept(File dir, String name) {
+			    							return name.matches("[0-9]+_mod_20150523[0-9]+_20150523[0-9]+_lovisolo_piemonte_comuni\\+torinoasc.txt");
+			    							}
+										});
+			
+			for(File f: files) {
+				String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile);
+				Map<String,Object> tm = ODComparator.parseHeader(f.toString());
+				// Istante di inizio: Sat, 23 May 2015 01:00
+				String[] orario = ((String)tm.get("Istante di inizio")).split(" ");
+				String h = orario[orario.length-1];
+				if(h.contains(":")) h = h.substring(0,h.indexOf(":"));
+				if(h.length()==1) h = "0"+h;
+				System.out.println("==>"+h);
+				
+				Files.copy(Paths.get(imgFile), Paths.get(video_dir+"/img"+h+".png"), StandardCopyOption.REPLACE_EXISTING);
+			}
+			System.out.println("Creating video");
+			
+			new File(video_dir+"/out.mp4").delete();
+			// requires installing ffmpeg!!!!
+			// 0.5 is the number of second per frame
+			// 600 is the size of the video
+			Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
+			
+			
+			
+			/* TO MAKE VIDEO
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piem2011.ser"));
 			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
 			File dir = new File("C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte");
@@ -115,6 +165,10 @@ public class MAPfromMOD {
 			// 0.5 is the number of second per frame
 			// 600 is the size of the video
 			Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
+			*/
+			
+			
+			
 			
 			System.out.println("The End!");
 		}
@@ -206,9 +260,13 @@ public class MAPfromMOD {
 				
 				BufferedReader br = new BufferedReader(new FileReader(fileMOD));
 				
-				for(int i=0;i<14;i++)	br.readLine();	//skip header
+				int headerRows = 0;
+				String line;
+				while((line = br.readLine()).trim().length()>0)
+					headerRows++;
+				System.out.println("Skipped "+(headerRows+1)+" header rows");
 				
-				String line = br.readLine();
+				line = br.readLine();
 				
 				if(line.startsWith("\t\t"))
 					line = line.replaceFirst("\t", "");
@@ -473,6 +531,7 @@ public class MAPfromMOD {
 				//colors.add(Colors.val01_to_color(w/max));
 				colors.add("#ff0000");
 			}
+			
 			RRoadNetwork.draw(title, latlon_segments, weights, colors, directed, rm, file, label);
 		}
 				
