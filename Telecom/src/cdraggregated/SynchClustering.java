@@ -11,31 +11,86 @@ import java.util.Map;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import cdraggregated.SynchAnalysis.Feature;
 import otherdata.TIbigdatachallenge2015.Deprivation;
 import otherdata.TIbigdatachallenge2015.IstatCensus2011;
 import otherdata.TIbigdatachallenge2015.MEF_IRPEF;
 import otherdata.TIbigdatachallenge2015.MEF_IRPEF_BLOG;
 import otherdata.TIbigdatachallenge2015.SocialCapital;
 import region.RegionMap;
+import utils.AddMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import utils.StatsUtils;
 import visual.kml.KMLColorMap;
 import visual.r.RPlotter;
+import visual.text.TextPlotter;
 import weka.clusterers.ClusterEvaluation;
+import weka.clusterers.Clusterer;
+import weka.clusterers.DBSCAN;
 import weka.clusterers.FilteredClusterer;
 import weka.clusterers.XMeans;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.NormalizableDistance;
 import weka.core.converters.ConverterUtils.DataSource;
+import weka.filters.unsupervised.attribute.PrincipalComponents;
 import weka.filters.unsupervised.attribute.Remove;
 
 public class SynchClustering {
 	
+	public static boolean QUIET = true;
+	
+	public static boolean USE_RELATIVE_TH = true;
+	
 	public static int DEMOGRAPHIC_RES_THRESHOLD = 200;
 	
+	private enum Cluster {XMEANS,DBSCAN};
+	public static Cluster USEC = Cluster.DBSCAN;
+	
+	public static boolean PCA = true;
+	
 	public static void main(String[] args) throws Exception {
+		
+		
+		/// RUN ALL
+		/*
+		for(Cluster usec: Cluster.values()) {
+			USEC = usec;
+			for(Feature f: SynchAnalysis.Feature.values()) {
+				SynchAnalysis.USEF = f;
+				for (boolean th: new boolean[]{true,false}) {
+					USE_RELATIVE_TH = th;
+					for (boolean pca: new boolean[]{true,false}) {
+						PCA = pca;
+						for(int tw: new int[]{-1,24}) {
+							SynchAnalysis.TIME_WINDOW = tw;
+							System.err.println(USEC+" "+SynchAnalysis.USEF+" REL_TH = "+USE_RELATIVE_TH+" PCA = "+PCA+" TW = "+SynchAnalysis.TIME_WINDOW);
+							go();
+						}
+					}
+				}
+			}
+		}
+		*/
+		
+		/// RUN SINGLE
+		USEC = Cluster.DBSCAN;
+		PCA = true;
+		SynchAnalysis.USEF = SynchAnalysis.Feature.I;
+		USE_RELATIVE_TH = false;
+		SynchAnalysis.TIME_WINDOW = 24;
+		go();
+		
+		
+	}
+	
+	static String STRINGF = "F";
+	public static void go() throws Exception {
+		
+		
+		if(SynchAnalysis.USEF.equals(SynchAnalysis.Feature.I)) STRINGF = "I";
+		if(SynchAnalysis.USEF.equals(SynchAnalysis.Feature.RSQ)) STRINGF = "R2";
+		if(SynchAnalysis.USEF.equals(SynchAnalysis.Feature.EU)) STRINGF = "EU";
 		
 		String[] cities = SynchAnalysis.CITIES;
 		
@@ -55,12 +110,15 @@ public class SynchClustering {
 			String city = cities[i];
 			
 			
-			if(city.equals("roma") || city.equals("milano")) DEMOGRAPHIC_RES_THRESHOLD = 0;
-			else if(bigCities.contains(city)) DEMOGRAPHIC_RES_THRESHOLD = 200;
+			//if(city.equals("roma") || city.equals("milano")) DEMOGRAPHIC_RES_THRESHOLD = 0;
+			if(bigCities.contains(city)) DEMOGRAPHIC_RES_THRESHOLD = 200;
 			else DEMOGRAPHIC_RES_THRESHOLD = 100;
 			
 			
-			System.out.println("\n\n*************************************************** START PROCESSING "+city.toUpperCase());
+			//DEMOGRAPHIC_RES_THRESHOLD = SynchAnalysis.CITY_POP.get(city) / 1000;
+			
+			
+			if(!QUIET) System.out.println("\n\n*************************************************** START PROCESSING "+city.toUpperCase());
 			DescriptiveStatistics[] all_intra_inter = run(city);
 			ln.add(city);
 			all.add(all_intra_inter[0].getValues());
@@ -69,14 +127,20 @@ public class SynchClustering {
 			else inter.add(all_intra_inter[1].getValues()); // if inter is empty (meaning just 1 clutser, usa intra instead
 			//intrainterdiff[i] = all_intra_inter[1].getMean()-all_intra_inter[2].getMean();
 			intrainterdiff[i] = all_intra_inter[1].getPercentile(50)-all_intra_inter[2].getPercentile(50);
-			System.out.println("\n\n*************************************************** END PROCESSING "+city.toUpperCase());
+			if(!QUIET) System.out.println("\n\n*************************************************** END PROCESSING "+city.toUpperCase());
 		}
 		
-		RPlotter.drawBoxplot(all,ln,"comuni2012","all",Config.getInstance().base_folder+"/Images/boxplot-cluster-all.png",20,null);
-		RPlotter.drawBoxplot(inter,ln,"comuni2012","inter",Config.getInstance().base_folder+"/Images/boxplot-cluster-inter.png",20,null);
-		RPlotter.drawBoxplot(intra,ln,"comuni2012","intra",Config.getInstance().base_folder+"/Images/boxplot-cluster-intra.png",20,null);
 		
-		RPlotter.drawBar(ln.toArray(new String[cities.length]), intrainterdiff, "cities", "intra - inter", Config.getInstance().base_folder+"/Images/intra-inter.png", "");
+		String dir = Config.getInstance().paper_folder+"/img/batch/"+USEC+(PCA?"wPCA":"")+"-"+(USE_RELATIVE_TH?"REL-TH":"ABS-TH")+"-"+SynchAnalysis.USEF+""+SynchAnalysis.TIME_WINDOW;
+		new File(dir).mkdirs();
+		
+		RPlotter.VIEW = false;
+		
+		RPlotter.drawBoxplot(all,ln,"comuni2012","all-"+STRINGF,dir+"/boxplot-cluster-all.png",20,null);
+		RPlotter.drawBoxplot(inter,ln,"comuni2012","inter-"+STRINGF,dir+"/boxplot-cluster-inter.png",20,null);
+		RPlotter.drawBoxplot(intra,ln,"comuni2012","intra-"+STRINGF,dir+"/boxplot-cluster-intra.png",20,null);
+		
+		//RPlotter.drawBar(ln.toArray(new String[cities.length]), intrainterdiff, "cities", "intra - inter", dir+"/intra-inter.png", "");
 		
 		MEF_IRPEF mi = MEF_IRPEF.getInstance();
 		Map<String,Double> avg_comuni = new HashMap<String,Double>();
@@ -84,33 +148,44 @@ public class SynchClustering {
 		Map<String,Double> avg_regioni = new HashMap<String,Double>();
 		for(int i=0; i<ln.size();i++) {
 			String key = (ln.get(i)+"-"+(SynchAnalysis.city2region.get(ln.get(i)).replaceAll("-", " ")).toLowerCase());
+			//System.out.println("*** "+key);
 			String cid = MEF_IRPEF_BLOG.name2id().get(key);
-			System.out.println(key+" ==> "+cid);
+			//System.out.println(key+" ==> "+cid);
 			avg_comuni.put(cid, avg(inter.get(i)));
 			avg_province.put(ln.get(i).toUpperCase(), avg(inter.get(i)));
 			avg_regioni.put(SynchAnalysis.city2region.get(ln.get(i)), avg(inter.get(i)));
 			
 		}
 		Deprivation dp = Deprivation.getInstance();
-		SynchAnalysis.plotCorrelation(avg_regioni,dp.getDepriv(),"R2","deprivation",Config.getInstance().base_folder+"/Images/clustering-deprivazione.png",null,true);
+		SynchAnalysis.plotCorrelation(avg_regioni,dp.getDepriv(),SynchAnalysis.USE_FEATURE,"deprivation",dir+"/clustering-deprivazione.png",null,true);
 		
 		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 		
-		SynchAnalysis.plotCorrelation(avg_comuni,mi.redditoPC(false),"R2","pro-capita income",Config.getInstance().base_folder+"/Images/clustering-redPC.png",id2name,true);
-		SynchAnalysis.plotCorrelation(avg_comuni,mi.gini(false),"R2","Gini",Config.getInstance().base_folder+"/Images/clustering-gini.png",id2name,true);
+		SynchAnalysis.plotCorrelation(avg_comuni,mi.redditoPC(false),SynchAnalysis.USE_FEATURE,"pro-capita income",dir+"/clustering-redPC.png",id2name,true);
+		//SynchAnalysis.plotCorrelation(avg_comuni,mi.gini(false),SynchAnalysis.USE_FEATURE,"Gini",dir+"/clustering-gini.png",id2name,true);
 		
 		
 		
 		SocialCapital sc = SocialCapital.getInstance();
-		SynchAnalysis.plotCorrelation(avg_province,sc.getAssoc(),"R2","assoc",Config.getInstance().base_folder+"/Images/clustering-assoc.png",null,true);
-		SynchAnalysis.plotCorrelation(avg_province,sc.getReferendum(),"R2","referendum",Config.getInstance().base_folder+"/Images/clustering-referendum.png",null,true);
-		SynchAnalysis.plotCorrelation(avg_province,sc.getBlood(),"R2","blood",Config.getInstance().base_folder+"/Images/clustering-blood.png",null,true);
+		SynchAnalysis.plotCorrelation(avg_province,sc.getAssoc(),SynchAnalysis.USE_FEATURE,"assoc",dir+"/clustering-assoc.png",null,true);
+		SynchAnalysis.plotCorrelation(avg_province,sc.getReferendum(),SynchAnalysis.USE_FEATURE,"referendum",dir+"/clustering-referendum.png",null,true);
+		SynchAnalysis.plotCorrelation(avg_province,sc.getBlood(),SynchAnalysis.USE_FEATURE,"blood",dir+"/clustering-blood.png",null,true);
+		
+		Map<String,Object> tm = new HashMap<String,Object>();
+		//System.out.println(dir.toString());
+		tm.put("dir", dir.toString().substring(dir.toString().indexOf("img")));
+		tm.put("clustering", USEC);
+		tm.put("distance", SynchAnalysis.USEF);
+		tm.put("time_window", SynchAnalysis.TIME_WINDOW);
+		tm.put("pca",PCA);
+		tm.put("threshold",(USE_RELATIVE_TH?"relative":"absolute"));
+		TextPlotter.getInstance().run(tm,"src/cdraggregated/SynchClustering.ftl", dir+"/text.tex");		
 		
 		
 		
 	}
 	
-	
+	static AddMap ISTAT = IstatCensus2011.getInstance().computeDensity(0, false, false);
 	public static DescriptiveStatistics[] run(String city) throws Exception {
 		
 		
@@ -119,31 +194,60 @@ public class SynchClustering {
 		Instances dataz = new DataSource(Config.getInstance().base_folder+"/TIC2015/cache/single/"+city+"-Demo-callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012-resident-CLEANZ.arff").getDataSet();
 		
 		
+		
+		
+		
 		Instances fdataz = new Instances(dataz,0,0);
-		for(int i=0; i<dataz.numInstances();i++)
-			if(avg(cast2Array(datan.instance(i))) > DEMOGRAPHIC_RES_THRESHOLD) 
+		for(int i=0; i<dataz.numInstances();i++) {
+			Double d = ISTAT.get(dataz.instance(i).stringValue(0));
+			double avg = avg(cast2Array(datan.instance(i)));
+			//System.out.println(dataz.instance(i).stringValue(0)+" ==> "+d.intValue()+" VS. "+(int)avg);
+			
+			if((USE_RELATIVE_TH && avg/d > 0.1) || (!USE_RELATIVE_TH && avg > DEMOGRAPHIC_RES_THRESHOLD)) 
 				fdataz.add(dataz.instance(i));
+		}
+		
+		
+		
+		
 		
 
 		
-		Remove rm = new Remove();
-		rm.setAttributeIndices("1");  // remove 1st attribute
-		
-		XMeans actualClusterer = new XMeans();
-		actualClusterer.setDistanceF(new R2Distance());
-		actualClusterer.setMinNumClusters(4);
-		actualClusterer.setMaxNumClusters(10);
 		
 		
+		Clusterer actualClusterer = null;
+		
+		if(USEC.equals(Cluster.XMEANS)) {
+			XMeans xm = new XMeans();
+			xm.setDistanceF(new CustomDistance());
+			xm.setMinNumClusters(1);
+			xm.setMaxNumClusters(10);
+			actualClusterer = xm;
+		}
+		if(USEC.equals(Cluster.DBSCAN)){
+			DBSCAN dbsc = new DBSCAN();
+			dbsc.setMinPoints(0);
+			dbsc.setEpsilon(1.5);
+			actualClusterer = dbsc;
+		}
 		
 		//HierarchicalClusterer actualClusterer = new HierarchicalClusterer();
 		//actualClusterer.setOptions(new String[]{"-L","SINGLE"});
 		//actualClusterer.setDistanceFunction(new R2Distance());
 		
+		
+		
+		
+		FilteredClusterer clusterer2 = new FilteredClusterer();
+		clusterer2.setFilter(new PrincipalComponents());
+		clusterer2.setClusterer(actualClusterer);
+		
+		Remove rm = new Remove();
+		rm.setAttributeIndices("1");  // remove 1st attribute
 		FilteredClusterer clusterer = new FilteredClusterer();
 		clusterer.setFilter(rm);
-		
-		clusterer.setClusterer(actualClusterer);
+		if(PCA) clusterer.setClusterer(clusterer2);
+		else clusterer.setClusterer(actualClusterer);
 		
 		clusterer.buildClusterer(dataz);
 		
@@ -158,9 +262,9 @@ public class SynchClustering {
 		double[] assignments = eval.getClusterAssignments();
 		//for(int i=0; i<assignments.length;i++)
 		//	System.out.println(assignments[i]+" "+data.instance(i).stringValue(0));
+		if(!QUIET) System.out.println("NUM INSTANCES = "+dataz.numInstances()+", NUM CLUSTERS = "+eval.getNumClusters());
 		
-		
-		System.out.println(eval.clusterResultsToString());
+		//System.out.println(eval.clusterResultsToString());
 		//System.out.println(eval.getLogLikelihood());
 		
 		
@@ -178,7 +282,7 @@ public class SynchClustering {
 			per_region_stat[i] = new DescriptiveStatistics();
 		 
 		
-		R2Distance d = new R2Distance();
+		CustomDistance d = new CustomDistance();
 		for(int i=0; i<fdataz.numInstances();i++){
 			
 			//System.out.print(data.instance(i).stringValue(0)+" ==> ");
@@ -189,24 +293,21 @@ public class SynchClustering {
 	
 				//if(data.instance(i).stringValue(0).equals("85008") && data.instance(j).stringValue(0).equals("87040"))
 				//	System.out.println("here");
-				
-				
-				
-				
-				double r2 = d.r2(fdataz.instance(i), fdataz.instance(j));
+							
+				double s = d.sim(fdataz.instance(i), fdataz.instance(j));
 				//System.out.println(data.instance(i).stringValue(0)+" VS. "+data.instance(j).stringValue(0)+" = "+r2);
 				
 				
 				//if(data.instance(i).stringValue(0).equals("36039"))
 				//	System.err.println(data.instance(j).stringValue(0)+" = "+r2);
 				
-				per_region_stat[i].addValue(r2);
-				all.addValue(r2);
+				per_region_stat[i].addValue(s);
+				all.addValue(s);
 				if(assignments[i] == assignments[j]) {
-					intra.addValue(r2);
-					per_intra_cluster_stat[(int)assignments[i]].addValue(r2);
+					intra.addValue(s);
+					per_intra_cluster_stat[(int)assignments[i]].addValue(s);
 				}
-				else inter.addValue(r2);
+				else inter.addValue(s);
 			}
 			
 			//System.out.println(per_region_stat[i].getMean());
@@ -280,15 +381,15 @@ public class SynchClustering {
 
 
 
-class R2Distance extends NormalizableDistance {
+class CustomDistance extends NormalizableDistance {
 
 
-public R2Distance() {
+public CustomDistance() {
   super();
 }
 
 
-public R2Distance(Instances data) {
+public CustomDistance(Instances data) {
   super(data);
 }
 
@@ -302,30 +403,31 @@ public R2Distance(Instances data) {
  * @return 		the distance between the two given instances
  */
 public double distance(Instance first, Instance second) {
-	return 1.0-r2(first,second);
+	return 1.0-sim(first,second);
 }
 
-public static int DEMOGRAPHIC_RES_THRESHOLD = 100;
-public static final int TIME_WINDOW = -1;
 
-public double r2(Instance first, Instance second) {
+
+
+// similarity as opposed to distance
+public double sim(Instance first, Instance second) {
 	
 	double[] x = SynchClustering.cast2Array(first);
 	double[] y = SynchClustering.cast2Array(second);
 	
-	if(TIME_WINDOW == -1) return StatsUtils.r2(x,y);
+	if(SynchAnalysis.TIME_WINDOW == -1) return SynchAnalysis.reallyComputeFeature(x,y);
 	
 	
-	double[] reduced1 = new double[TIME_WINDOW];
-	double[] reduced2 = new double[TIME_WINDOW];
+	double[] reduced1 = new double[SynchAnalysis.TIME_WINDOW];
+	double[] reduced2 = new double[SynchAnalysis.TIME_WINDOW];
 	
 	DescriptiveStatistics stat = new DescriptiveStatistics();
 	
-	for(int i=0; i<x.length - TIME_WINDOW; i=i+TIME_WINDOW) {
+	for(int i=0; i<x.length - SynchAnalysis.TIME_WINDOW; i=i+SynchAnalysis.TIME_WINDOW) {
 		
 		System.arraycopy(x, i, reduced1, 0, reduced1.length);
 		System.arraycopy(y, i, reduced2, 0, reduced2.length);
-		stat.addValue(StatsUtils.r2(reduced1,reduced2));
+		stat.addValue(SynchAnalysis.reallyComputeFeature(reduced1,reduced2));
 	}
 	
 	//return stat.getPercentile(50);

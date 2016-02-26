@@ -49,7 +49,7 @@ public class KMLColorMap {
 			Integer cluster = assignments.get(r.getName());
 			if(cluster != null) {
 				r.setDescription(desc.get(r.getName()));
-				out.println(r.toKml(Colors.RANDOM_COLORS[cluster],"44aaaaaa"));
+				out.println(r.toKml(Colors.RANDOM_COLORS[cluster%Colors.RANDOM_COLORS.length],"44aaaaaa"));
 			}
 		}
 	

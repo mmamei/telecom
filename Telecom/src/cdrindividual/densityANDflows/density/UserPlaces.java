@@ -10,13 +10,15 @@ import java.util.Map;
 public class UserPlaces {
 	public String username;
 	public Map<String,List<double[]>> lonlat_places;
+	public Map<String,List<double[]>> clustersize_minTime_maxTime;
 	
 	UserPlaces(String username) {
 		this.username = username;
 		lonlat_places = new HashMap<String,List<double[]>>();
+		clustersize_minTime_maxTime = new HashMap<String,List<double[]>>();
 	}
 	
-	void add(String kop, double lon, double lat) {
+	void addPlaceInfo(String kop, double lon, double lat) {
 		List<double[]> p = lonlat_places.get(kop);
 		if(p==null) {
 			p = new ArrayList<double[]>();
@@ -26,8 +28,20 @@ public class UserPlaces {
 	}
 	
 	
-	public static Map<String,UserPlaces> readUserPlaces(String file) throws Exception {
-		BufferedReader br = new BufferedReader(new FileReader(file));
+	void addTimeInfo(String kop, double clustersize, double minTime, double maxTime) {
+		List<double[]> p = clustersize_minTime_maxTime.get(kop);
+		if(p==null) {
+			p = new ArrayList<double[]>();
+			clustersize_minTime_maxTime.put(kop, p);
+		}
+		p.add(new double[]{clustersize,minTime,maxTime});
+	}
+	
+	public static Map<String,UserPlaces> readUserPlaces(String place_file,String time_file) throws Exception {
+		BufferedReader br = new BufferedReader(new FileReader(place_file));
+		BufferedReader br_time = null;
+		if(time_file!=null) br_time = new BufferedReader(new FileReader(time_file));
+		
 		String line;
 		String[] elements;
 		Map<String,UserPlaces> up = new HashMap<String,UserPlaces>();
@@ -45,8 +59,19 @@ public class UserPlaces {
 				String c = elements[i];
 				double lon = Double.parseDouble(c.substring(0,c.indexOf(" ")));
 				double lat = Double.parseDouble(c.substring(c.indexOf(" ")+1));
-				places.add(kind, lon, lat);
+				places.addPlaceInfo(kind, lon, lat);
 			} 
+			
+			if(br_time!=null) {
+				line = br_time.readLine();
+				String[] te = line.split(",");
+				if(!te[0].equals(username) || !te[1].equals(kind)) System.err.println("ERROR PLACES AND TIME FILE ARE NOT ALIGNED!");
+				for(int i=2;i<te.length;i++){
+					String[] c = te[i].split(";");
+					places.addTimeInfo(te[1],Double.parseDouble(c[0]), Double.parseDouble(c[1]), Double.parseDouble(c[2]));
+				} 
+			}
+			
 		}
 		br.close();
 		return up;

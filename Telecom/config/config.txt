@@ -9,7 +9,7 @@
 
 web_kml_folder = G:/CODE/GITHUB/Telecom/telecom/Telecom/web/kml
 
-paper_folder = C:/Users/marco/Desktop/TELECOM4-D2
+paper_folder = C:/Users/marco/Desktop/SOCIALCAP
 
 dataset_folder =G:/DATASET
 

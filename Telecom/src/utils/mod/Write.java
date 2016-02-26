@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import cdraggregated.densityANDflows.flows.MODfromISTAT;
+
 public class Write {
 	
 //	orig universal/HTMLWriter2	scribe il file html un segmento alla volta
@@ -276,7 +278,7 @@ public class Write {
 	
 	public static void Matrix(HashMap<String, Comune> comuni, Integer numeroFascieOrarie) throws Exception{
 		for(int orario=1; orario<=numeroFascieOrarie; orario++){
-			File file= new File("C:/BASE/ODMatrix/MatriceOD_-_Piem_orario_uscita_-_"+orario+".csv");
+			File file= new File("C:/BASE/ODMatrix/MatriceOD_-_"+MODfromISTAT.REGIONI[MODfromISTAT.regioniInConsiderazione[0]]+"_orario_uscita_-_"+orario+".csv");
 			
 			ArrayList<String> list = new ArrayList<String>();
 //			contenente codice istat
@@ -292,12 +294,11 @@ public class Write {
 		    bw.write( "--------------------------------------------------------------\n"
 		    		+ "Matrice Origine Destinazione\n"
 		    		+ "--------------------------------------------------------------\n"
-		    		+ "Fascia Oraria: "+orario+"\n");
-		    for(int i=2; i<10; i++){
-		    	bw.write("\n");
-		    }
-		    bw.write("--------------------------------------------------------------\n"
-		    		+ "\n");
+		    		+ "-Metodo: ISTAT\n"
+		    		+ "-- Zona interessata: "+MODfromISTAT.REGIONI[MODfromISTAT.regioniInConsiderazione[0]]+"\n"
+		    		+ "-Fascia Oraria: "+orario+"\n");
+		    for(int i=2; i<8; i++) bw.write("\n");
+		    bw.write("--------------------------------------------------------------\n\n");
 		    
 		    
 		    for(String s:comuni.keySet()){

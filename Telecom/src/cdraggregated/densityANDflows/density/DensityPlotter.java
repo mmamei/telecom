@@ -16,7 +16,9 @@ public class DensityPlotter {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
+	
+		//String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
+		String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour-comuni2012-HOME-null.ser";
 		String rm_name = file.split("-")[6];
 		//System.out.println(rm_name);
 		

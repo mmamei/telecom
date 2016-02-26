@@ -26,7 +26,7 @@ public class DensityComparator {
 	
 	public static boolean LOG = true;
 	public static boolean INTERCEPT = true;
-	public static int THRESHOLD = 0;
+	public static int THRESHOLD = 10;
 	
 	
 	/*
@@ -36,8 +36,8 @@ public class DensityComparator {
 	
 	
 	public static void main(String[] args) throws Exception {
-	
-		String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
+		String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour-comuni2012-HOME-null.ser";
+		//String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
 		Map<String,Double> space_density = (Map<String,Double>)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/AggregatedSpaceDensity/"+file));
 		
 		String istatTitle = "istat-demographic-2011";

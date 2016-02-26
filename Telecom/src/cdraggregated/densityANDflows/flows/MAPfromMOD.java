@@ -1,8 +1,13 @@
 package cdraggregated.densityANDflows.flows;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +24,7 @@ import utils.mod.Write;
 import utils.mygraphhopper.MyGraphHopper;
 import utils.mygraphhopper.WEdge;
 import visual.r.RRoadNetwork;
+import visual.text.TextPlotter;
 
 import com.graphhopper.GHRequest;
 import com.graphhopper.GHResponse;
@@ -62,28 +68,74 @@ public class MAPfromMOD {
 		
 		static GHPoint revGeocoding = new GHPoint (45.027936,7.600243);
 		
+		
+		
 		public static void main(String[] args) throws Exception{
 			
-//			String fileMOD = "od.csv";
-//			String fileMOD = "C:/BASE/ODMatrix/MatriceOD_-_Piem_orario_uscita_-_1.csv";
-//			String fileMOD = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem/od2.csv";
+			RRoadNetwork.VIEW = false;
+			
+			
+			
+			//String fileMOD = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte/od-0-1-0.csv";
+			//String fileCoord = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte/latlon.csv";
+			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piem2011.ser"));
+			//String osmFile = "C:/DATASET/osm/piem2/piem.osm";
+			
 			//String fileMOD = "C:/BASE/ODMatrix/emilia-romagna/4406_mod_201509142300_201509150000_calabrese_emilia_regione+ascbologna.txt";
-			String fileMOD = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour_piem2011.ser/od.csv";
+			//String fileCoord = "G:/DATASET/GEO/EmiliaRomagna/EmiliaRomagna.csv";
+			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/EmiliaRomagnaId.ser"));	
+			//String osmFile = "C:/DATASET/osm/er/emilia-romagna.osm";
 			
-			
-			
-//			String fileCoord = "latlon.csv";
-			//String fileCoord = "G:/DATASET/OD-ALBERTO-FRANCIA/Map/Coord/CoordinateDecimaliComuni.csv";
-//			String fileCoord = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem/latlon.csv";
-			//String fileCoord = "G:/DATASET/GEO/EmiliaRomagna/ER.csv";
-			String fileCoord = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour_piem2011.ser/latlon.csv";
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piem2011.ser"));
+			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
+			File dir = new File("C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte");
+			String fileCoord = dir+"/latlon.csv";
 			
+			String video_dir = Config.getInstance().base_folder+"/Videos/ODMatrixHW_file_pls_piem";
+			new File(video_dir).mkdirs();
+			
+			for(File f: dir.listFiles()) {
+				if(f.getName().startsWith("od")) {
+					String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile);
+					
+					
+					Map<String,Object> tm = ODComparator.parseHeader(f.toString());
+					String h = ((String)tm.get("Istante di inizio")).split(" ")[1];
+					if(h.length()==1) h = "0"+h;
+					
+								
+					Files.copy(Paths.get(imgFile), Paths.get(video_dir+"/img"+h+".png"), REPLACE_EXISTING);
+				}
+			}
+			
+			System.out.println("Creating video");
+			
+			new File(video_dir+"/out.mp4").delete();
+			// requires installing ffmpeg!!!!
+			// 0.5 is the number of second per frame
+			// 600 is the size of the video
+			Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
+			
+			System.out.println("The End!");
+		}
+		
+		
+		public static String go(String fileMOD, String fileCoord, RegionMap rm, String osmFile) throws Exception {
+			
+			fileMOD = fileMOD.replaceAll("\\\\", "/");
 			
 			MyGraphHopper gh = new MyGraphHopper();
 			gh.setPreciseIndexResolution(1000);
-			gh.setOSMFile("C:/DATASET/osm/piem2/piem.osm");
-			gh.setGraphHopperLocation("C:/DATASET/osm/piem2");
+			
+			
+	
+			String osmDir = osmFile.substring(0,osmFile.lastIndexOf("/"));
+			gh.setOSMFile(osmFile);
+			gh.setGraphHopperLocation(osmDir);
+			
+			
+			
+			
 			gh.setEncodingManager(new EncodingManager(EncodingManager.CAR));
 			gh.setCHEnable(false);
 			gh.importOrLoad();
@@ -158,7 +210,8 @@ public class MAPfromMOD {
 				
 				String line = br.readLine();
 				
-				//line = line.replaceFirst("\t", "");
+				if(line.startsWith("\t\t"))
+					line = line.replaceFirst("\t", "");
 				
 				//System.err.println(line);
 				
@@ -364,23 +417,39 @@ public class MAPfromMOD {
 			
 			
 			String name = fileMOD.substring("C:/BASE/ODMatrix/".length(), fileMOD.lastIndexOf("/"));
+			name = name.replaceAll("_", "-");
 			
 			
-			drawR(name,streets,rm,Config.getInstance().base_folder+"/Images/"+name+".png");
+			
+			//create the map for text plotter with all relevant information
+			Map<String,Object> tm = new HashMap<String,Object>();
+			
+			tm.putAll(ODComparator.parseHeader(fileMOD));
+			
+			String imgFile = Config.getInstance().paper_folder+"/img/od/"+tm.get("name")+".png";
+			tm.put("img", imgFile);
+			
+			String label = ((String)tm.get("Istante di inizio")).replaceAll(" ", ":")+" - "+((String)tm.get("Istante di fine")).replaceAll(" ", ":");
+			
+			drawR(name,streets,rm,imgFile,label);
+			TextPlotter.getInstance().run(tm,"src/cdraggregated/densityANDflows/flows/MAPfromMOD.ftl", imgFile.replaceAll(".png", ".tex"));
+				
 			
 			
 			
 			//MyGraphHopper.addForbiddenEdge(forecastEdge);
-			System.out.println(streets.size());
-			Write.simpleHTML(streets, streetsForecast);
-//			Write.advancedHTML(streets);
+			//System.out.println(streets.size());
+			//Write.simpleHTML(streets, streetsForecast);
+			//Write.advancedHTML(streets);
 
 			//Util.save(new File("temp/edges.dat"), Util.serialize(edges));
-			System.out.println("Fine");
+			//System.out.println("Fine");
+			
+			return imgFile;
 		}
 		
 		
-		public static void drawR(String title, HashMap<String, Double> streets, RegionMap rm, String file) {
+		public static void drawR(String title, HashMap<String, Double> streets, RegionMap rm, String file, String label) {
 			//Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
 			
 			List<double[][]> latlon_segments = new ArrayList<>();
@@ -404,9 +473,7 @@ public class MAPfromMOD {
 				//colors.add(Colors.val01_to_color(w/max));
 				colors.add("#ff0000");
 			}
-			
-
-			RRoadNetwork.draw(title, latlon_segments, weights, colors, directed, rm, file, null);
-			
+			RRoadNetwork.draw(title, latlon_segments, weights, colors, directed, rm, file, label);
 		}
+				
 }

@@ -73,25 +73,33 @@ public class UserCDRCounter extends BufferAnalyzerConstrained {
 		}
 	}
 	
-	public static void extractUsersAboveThreshold(File infile, File outfile, int threshold, int max_n_users) throws Exception {
-		System.out.println("extract Users Above Threshold "+threshold);
+	public static void extractUsersAboveThreshold(File infile, File outfile, int thresholdXDay, int max_n_users) throws Exception {
+		System.out.println("Extract Users Above Threshold X Day "+thresholdXDay);
 		PrintWriter out = new PrintWriter(outfile);
 		BufferedReader br = new BufferedReader(new FileReader(infile));
 		String line;
+		
+		String[] e = infile.getName().split("-|_");
+		String startdate = e[3]+"-"+e[4]+"-"+e[5];
+		String enddate = e[6]+"-"+e[7]+"-"+e[8];
+		
+		long dt = (F.parse(enddate).getTime() - F.parse(startdate).getTime());
+		int ndays = (int)(dt / (1000 * 3600 * 24)); 
+		
 		int count = 0;
 		while((line=br.readLine())!=null){
 			try {
 				String[] x = line.split(",");
 				String username = x[0];
 				int n_events = Integer.parseInt(x[1]);
-				if(n_events > threshold) {
+				if(n_events / ndays > thresholdXDay) {
 					out.println(line);	
 					count ++;
 				}
 				if(max_n_users > 0 && count > max_n_users)
 					break;
 					
-			} catch(Exception e) {
+			} catch(Exception exc) {
 				System.out.println("BAD LINE = "+line);
 			}
 		}
@@ -115,7 +123,14 @@ public class UserCDRCounter extends BufferAnalyzerConstrained {
 		}
 		br.close();
 		
-		int ndays = (int)((Config.getInstance().pls_end_time.getTimeInMillis() - Config.getInstance().pls_start_time.getTimeInMillis()) / (1000 * 3600 * 24)); 
+		//File f = file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25.csv
+		String[] e = f.getName().split("-|_");
+		String startdate = e[3]+"-"+e[4]+"-"+e[5];
+		String enddate = e[6]+"-"+e[7]+"-"+e[8];
+		
+		long dt = (F.parse(enddate).getTime() - F.parse(startdate).getTime());
+		
+		int ndays = (int)(dt / (1000 * 3600 * 24)); 
 		
 		double[] perc = new double[100];
 		double[] valXday = new double[100];
@@ -446,7 +461,7 @@ class CreatorUserCDRCounterGUI {
 		c.add(subT3);
 		
 		c.add(input_file_button2);
-		c.add(new JLabel("threshold"));
+		c.add(new JLabel("threshold x day"));
 		c.add(threshold);
 		c.add(new JLabel("max retrieved"));
 		c.add(maxretrieved);

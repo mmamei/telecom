@@ -136,7 +136,7 @@ public class UserCellacXHour extends BufferAnalyzerConstrained {
 		
 		//process(Config.getInstance().base_folder+"/UserSetCreator/Lecce.csv",false);
 		
-		process(Config.getInstance().base_folder+"/UserCDRCounter/file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_5000.csv",false);
+		process(Config.getInstance().base_folder+"/UserCDRCounter/file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000.csv",false);
 		
 		
 		/*

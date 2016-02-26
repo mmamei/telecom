@@ -1,7 +1,6 @@
 package cdraggregated.densityANDflows.flows;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,21 +10,36 @@ import java.util.Map;
 import utils.Config;
 import visual.r.RPlotter;
 import visual.text.TextPlotter;
+import cdraggregated.densityANDflows.Francia2IstatCode;
+import cdraggregated.densityANDflows.ObjectID2IstatCode;
+import cdraggregated.densityANDflows.ZoneConverter;
 
 public class ODComparator {
 	
 	public static final boolean LOG = true;
-	
+	public static final int THRESHOLD = 10;
 	
 	public static void main(String[] args) throws Exception {
-		process("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour_odpiemonte.ser",
-				"MatriceOD_-_Piem_orario_uscita_-_1.csv");
+		
+		
+		//String file1 = Config.getInstance().base_folder+"/ODMatrix/emilia-romagna/4421_mod_201509140800_201509140900_calabrese_emilia_regione+ascbologna.txt";
+		//String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_Emilia Romagna_orario_uscita_-_1.csv";
+		//ZoneConverter zc1 = new ObjectID2IstatCode("G:/DATASET/GEO/EmiliaRomagna/EmiliaRomagna.csv"); 
+		//ZoneConverter zc2 = new Francia2IstatCode();
+		
+		
+		String file1 = Config.getInstance().base_folder+"/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte/od.csv";
+		String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_Piemonte_orario_uscita_-_1.csv";
+		ZoneConverter zc1 = new Francia2IstatCode(); 
+		ZoneConverter zc2 = new Francia2IstatCode();
+		
+		process(file1,file2,zc1,zc2);
 	}
 	
-	public static void process(String file1, String file2) throws Exception {
+	public static void process(String file1, String file2, ZoneConverter zc1, ZoneConverter zc2) throws Exception {
 	
-		Map<String,Double> od = parse(Config.getInstance().base_folder+"/ODMatrix/"+file1+"/od.csv");
-		Map<String,Double> od_istat = parse(Config.getInstance().base_folder+"/ODMatrix/"+file2);
+		Map<String,Double> od = parse(file1, zc1);
+		Map<String,Double> od_istat = parse(file2, zc2);
 		
 		List<Double> lx = new ArrayList<Double>();
 		List<Double> ly = new ArrayList<Double>();
@@ -33,7 +47,7 @@ public class ODComparator {
 		for(String k: od.keySet()) {
 			double v1 = od.get(k);
 			Double v2 = od_istat.get(k);
-			if(v2!=null && v1 > 0 && v2 > 0) {
+			if(v2!=null && v1 > THRESHOLD && v2 > THRESHOLD) {
 				//System.out.println(k+","+v1+","+v2);
 				lx.add(v1);
 				ly.add(v2);
@@ -51,27 +65,27 @@ public class ODComparator {
 			}
 		}
 		
+		
+		Map<String,Object> tm1= parseHeader(file1);
+		Map<String,Object> tm2 = parseHeader(file2);
+		
 		file1 = file1.replaceAll("_|\\.", "-");
 		file2 = file2.replaceAll("_|\\.", "-");
 		
+		String imgFile = "img/od/"+tm1.get("name")+"-VS-"+tm2.get("name")+".pdf";
+		
+		tm1.put("log", LOG);
+		tm1.put("img", imgFile);
 		
 		
-		String imgFile = "img/od/"+file1+"-VS-"+file2+".pdf";
-		
-		String title = "Piemonte";
 		String xlab = "Estimated"+(LOG?" (log)":"");
 		String ylab = "GroundTruth"+(LOG?" (log)":"");
 		
 		RPlotter.drawScatter(x, y, xlab, ylab, Config.getInstance().paper_folder+"/"+imgFile, "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
 		
 		//create the map for text plotter with all relevant information
-		Map<String,Object> tm = new HashMap<String,Object>();
-		tm.put("region","Piemonte");
-		tm.put("log", LOG);
-		tm.put("img", imgFile);
-		tm.putAll(parseFileName(file1));
 		
-		TextPlotter.getInstance().run(tm,"src/cdraggregated/densityANDflows/flows/ODComparator.ftl", Config.getInstance().paper_folder+"/"+imgFile.replaceAll(".pdf", ".tex"));
+		TextPlotter.getInstance().run(tm1,"src/cdraggregated/densityANDflows/flows/ODComparator.ftl", Config.getInstance().paper_folder+"/"+imgFile.replaceAll(".pdf", ".tex"));
 				
 		
 	}
@@ -82,24 +96,62 @@ public class ODComparator {
 		REGION2REGION.put("lomb", "Lombardia");
 	}
 	
-	//ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour_odpiemonte.ser
-	public static Map<String,Object> parseFileName(String file) {
+	
+	
+	/*
+--------------------------------------------------------------
+Matrice Origine Destinazione
+--------------------------------------------------------------
+- Metodo: HW
+- Zona interessata: odpiemonte
+- Istante di inizio: 01-06-2015
+- Soglia per italiani: 400
+- Applicato filtro privacy: 1
+- # di utenti su utenti del campione: 1000
+- Tipologia utenti: Tutti
+- Istante di fine: 01-07-2015
+- Soglia per stranieri: 400
+-------------------------------------------------------------- 
+	*/
+	
+	public static Map<String,Object> parseHeader(String file) {
 		Map<String,Object> tm = new HashMap<String,Object>();
-		// parse title
-		String[] e = file.split("-|_");
-		tm.put("region",REGION2REGION.get(e[3]));
-		tm.put("startdate", e[7]+"-"+e[8]+"-"+e[9]);
-		tm.put("enddate", e[10]+"-"+e[11]+"-"+e[12]);
-		tm.put("minh", e[14]);
-		tm.put("maxh", e[16]);
-		tm.put("above", e[18].replaceAll("limit", ""));
-		tm.put("limit", e[19]);
-		tm.put("zone", e[21].substring(2));
+		StringBuffer all = new StringBuffer();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			
+			br.readLine();
+			br.readLine();
+			br.readLine();
+			
+			for(int i=0; i<9;i++) {
+				String line = br.readLine().trim();
+				if(line.length()==0) continue;
+				line = line.replaceAll("_", "-");
+				String[] el = line.split(":");
+				tm.put(el[0].replaceAll("-","").trim(), el[1].trim());
+				all.append("-"+el[1].trim().replaceAll(" ", "-"));
+			}
+			
+			
+			br.close();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		
+		tm.put("name", all.substring(1));
+		
+		for(String k: tm.keySet())
+			System.out.println(k+" --> "+tm.get(k));
+		
+		
+		
 		return tm;
 	}
 	
 	
-	public static Map<String,Double> parse(String file) throws Exception {
+	public static Map<String,Double> parse(String file, ZoneConverter zc) throws Exception {
 		Map<String,Double> od = new HashMap<String,Double>();
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		
@@ -108,14 +160,29 @@ public class ODComparator {
 		
 		
 		line = br.readLine().trim(); // read first row
+		
+		
+		if(line.startsWith("\t\t"))
+			line = line.replaceFirst("\t", "");
+		
 		String[] cod = line.split("\t");
 		
 		int i = 0;
 		while((line=br.readLine())!=null) {
+			
+			
+			if(line.startsWith("\t"))
+				line = line.replaceFirst("\t", "");
+			
 			String[] codvals = line.split("\t");
 			if(!codvals[0].equals(cod[i])) System.err.println("error");
-			for(int j=1;j<codvals.length;j++)
-				od.put(convert(cod[i])+"-"+convert(cod[j-1]), Double.parseDouble(codvals[j]));
+			for(int j=1;j<codvals.length;j++) {
+				String a = zc == null ? cod[i] : zc.convert(cod[i]);
+				String b = zc == null ? cod[j-1] : zc.convert(cod[j-1]);
+				od.put(a+"-"+b, Double.parseDouble(codvals[j]));
+			}
+				
+				
 			i++;
 		}
 		br.close();
@@ -123,11 +190,7 @@ public class ODComparator {
 		
 	}
 	
-	public static String convert(String cod) {
-		String c = cod.replaceAll("-", "");
-		while(c.startsWith("0")) c = c.substring(1);
-		return c;
-	}
+	
 	
 	
 }

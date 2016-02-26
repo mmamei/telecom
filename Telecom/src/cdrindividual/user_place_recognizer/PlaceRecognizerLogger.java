@@ -97,6 +97,30 @@ public class PlaceRecognizerLogger {
 	
 	
 	
+	
+	private static PrintWriter totalTimeCSV;
+	public static void openTotalTimeCSVFile(String file) {
+		try{
+			totalTimeCSV = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void closeTotalTimeCSVFile() {
+		if(totalTimeCSV!=null) totalTimeCSV.close();
+	}
+	public static void logTimecsv(String username, String kind_of_place, List<String> timeInfo) {
+		if(totalTimeCSV!=null){
+			StringBuffer sb = new StringBuffer();
+			for(String t: timeInfo)
+				sb.append(","+t);
+			totalTimeCSV.println(username+","+kind_of_place+""+sb.toString());
+		}
+	}
+	
+	
+	
 	private static PrintWriter outKml;
 	private static KML kml;
 	public static void openKMLFile(String file) {

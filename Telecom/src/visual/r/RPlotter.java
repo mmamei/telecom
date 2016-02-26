@@ -239,7 +239,7 @@ public class RPlotter {
             	     + "ggplot(z,aes(x=x,y=y))"+(opts.contains("geom_point")?"":"+ geom_point()")+ " + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
             	     + "ggsave('"+file+"');"
             	     + "dev.off();";
-            System.out.println(code);
+            //System.out.println(code);
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -462,7 +462,7 @@ public class RPlotter {
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
         } catch (Exception e) {
-        	
+        	e.printStackTrace();
         	if(e.getMessage().startsWith("Cannot connect")) {
              	System.err.println("You must launch the following code in R");
              	System.err.println("library(Rserve)");

@@ -29,7 +29,10 @@ public class PopulationDensityPlaces {
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/fast_home_Torino.csv", "torino_circoscrizioni_geo.ser", "HOME", null,"",0,0,0,0);
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/fast_home_Milano.csv", "milano_circoscrizioni_geo.ser", "HOME", null,"",0,0,0,0);
 		
-		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
+		
+		
+		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
+		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
 		
 		
 		Logger.logln("Done!");
@@ -41,7 +44,7 @@ public class PopulationDensityPlaces {
 	
 	public String runAll(String places_file, String regionMap, String kind_of_place, String exclude_kind_of_place, Constraints constraints, double minlat,double minlon, double maxlat,double maxlon) {
 		try {
-		Map<String,UserPlaces> up = UserPlaces.readUserPlaces(places_file);
+		Map<String,UserPlaces> up = UserPlaces.readUserPlaces(places_file,null);
 		
 	
 		// load the region map

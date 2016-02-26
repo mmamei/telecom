@@ -1,13 +1,14 @@
 
-Figure \ref{fig:correlation-piem} shows corrleation. Correlation is good
 
+
+Figure \ref{${img}} shows OD Matrix projected over road network with ITA
 
 
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=0.45\columnwidth]{img/OD/${img}}
+\includegraphics[width=0.45\columnwidth]{${img}}
 \end{center}
-\caption{Correlation density}
-\label{fig:correlation-piem}
+\caption{OD Matrix projected over road network with ITA}
+\label{${img}}
 \end{figure}

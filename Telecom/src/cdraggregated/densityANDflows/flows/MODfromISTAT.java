@@ -28,7 +28,12 @@ public class MODfromISTAT {
 //	11 altro mezzo;
 //	12 a piedi;
 	
-	private static Integer[] regioniInConsiderazione={1};
+	
+	public static String[] REGIONI = new String[]{"","Piemonte","Valle d'Aosta","Lombardia","Trentino Alto Adige","Veneto","Friuli-Venezia Giulia","Liguria","Emilia Romagna","Toscana",
+	"Umbria","Marche","Lazio","Abruzzo","Molise","Campania","Puglia","Basalicata","Calabria","Sicilia","Sardegna"};
+	
+	
+	public static Integer[] regioniInConsiderazione={1};
 //	Codici regione
 //	1 Piemonte
 //	2 Valle d'Aosta

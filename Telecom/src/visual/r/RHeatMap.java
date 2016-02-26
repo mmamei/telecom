@@ -127,8 +127,8 @@ public class RHeatMap {
 				 
 				 // *************************************************
 				 // BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE. FIRST FOR CHOROPLETH, SECOND FOR SHAPE ONLY
-				 //+ "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.5) + theme_bw() + theme(legend.position = c(0.95, 0.1));"
-				 + "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.1) + theme_bw() + theme(legend.position = 'none');"
+				 + "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.5) + theme_bw() + theme(legend.position = c(0.95, 0.1));"
+				 //+ "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.1) + theme_bw() + theme(legend.position = 'none');"
 				 + "ggsave('"+file+"',width=10, height=10);";
          
 			

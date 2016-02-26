@@ -58,16 +58,23 @@ public class RRoadNetwork {
 		 System.out.println(printRVector("end_lat",end_lat,10));
 		 System.out.println(printRVector("end_lon",end_lon,10));
 		 System.out.println(printRVector("w",w,10));
-			 
+		 
+		 double annotx = 0.8 * lonlatBbox[0] + 0.2 * lonlatBbox[2];
+		 double annoty = 0.28 * lonlatBbox[1] + 0.72 * lonlatBbox[3];
+		 
+		 System.out.println(annotx+","+annoty);
+		 
 		 String code = "library(ggplot2);"
 		 			 + "library(ggmap);"+
 				       "amap <- c(bbox);"+
-				       "z<-data.frame(start_lon,start_lat,end_lon,end_lat,w);"+
+				       (w.length > 0 ?"z<-data.frame(start_lon,start_lat,end_lon,end_lat,w);":"")+
 				       "amap.map = get_map(location = amap, maptype='terrain', color='bw');"+
+				       //"ggmap(amap.map, extent = 'device', legend='bottomright')+"+
 				       "ggmap(amap.map, extent = 'device', legend='bottomright')+"+
-				       "theme(axis.title = element_blank(), text = element_text(size = 18))+"+
-				       "geom_segment(data=z,aes(x=start_lon,y=start_lat,xend=end_lon,yend=end_lat,size=1.0,colour=w),lineend = 'round')+"+
-				       "guides(color=guide_legend(), size = guide_legend())+"+
+				       //"theme(axis.title = element_blank(), text = element_text(size = 18))+"+
+				       (w.length > 0 ?"geom_segment(data=z,aes(x=start_lon,y=start_lat,xend=end_lon,yend=end_lat,size=1.0,colour=w),lineend = 'round')+":"")+
+				       //"guides(color=guide_legend(), size = guide_legend())+"+
+				       (opts!=null ? "annotate(\"text\", size=11, fontface='bold', x="+annotx+", y="+annoty+", adj=0, label=\""+opts+"\")+":"")+
 				       "ggsave('"+file+"',width=10, height=10);";
    
 		 System.out.println(code.replaceAll(";", ";\n"));
@@ -82,22 +89,11 @@ public class RRoadNetwork {
 	}
 	
 	public static String printRVector(String name, double[] x, int max) {
+		if(x.length==0) return "";
 		StringBuffer sb = new StringBuffer(name+"<-c("+x[0]);
 		for(int i=1; i<Math.min(x.length, max);i++)
 			sb.append(","+x[i]);
 		sb.append(");");
 		return sb.toString();
 	}
-	
-	
-	
-	
-	public static void main(String[] args) throws Exception {
-		String regionMap = "grid5";
-		String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_100/results.csv";
-		ODMatrixHW od = new ODMatrixHW();
-		od.runAll(places_file, regionMap, "",45.0813,7.6417,45.0347,7.698);
-		Logger.log("Done!");
-	}
-	
 }

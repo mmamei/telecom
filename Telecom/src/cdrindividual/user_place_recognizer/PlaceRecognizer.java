@@ -1,21 +1,25 @@
 package cdrindividual.user_place_recognizer;
 
 import java.io.File;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.gps.utils.LatLonPoint;
 
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import utils.FileUtils;
 import utils.FilterAndCounterUtils;
+import utils.HourDescriptiveStatistics;
 import utils.Logger;
 import utils.multithread.MultiWorker;
-import utils.multithread.Worker;
 import utils.multithread.WorkerCallbackI;
 import cdrindividual.CDR;
 import cdrindividual.dataset.DataFactory;
@@ -115,7 +119,7 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 		if(clusters.get(-1) != null) 
 			threshold = Thresholding.weight2Threshold(kind_of_place, FilterAndCounterUtils.getNumDays(workingset), clusters.get(-1), rwf);
 		
-		
+		List<Integer> selectedClustersKeys = new ArrayList<Integer>();
 		List<LatLonPoint> placemarks = new ArrayList<LatLonPoint>();
 		for(int k : clusters.keySet()) {
 			if(k==-1) continue;
@@ -123,10 +127,13 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 			if(c.totWeight() > threshold) {
 							
 				LatLonPoint p = c.getCenter(weights);
-				if(p!=null) placemarks.add(p);
+				if(p!=null) {
+					placemarks.add(p);
+					selectedClustersKeys.add(k);
+				}
 			}
 		}		
-		return new Object[]{clusters, placemarks};
+		return new Object[]{clusters, placemarks,selectedClustersKeys};
 	}
 	
 	
@@ -184,13 +191,49 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 			Object[] clusters_points = res.get(k);
 			Map<Integer, Cluster> clusters = (Map<Integer, Cluster>)clusters_points[0];
 			List<LatLonPoint> points = (List<LatLonPoint>)clusters_points[1];
+			List<Integer> selectedClustersKeys = (List<Integer>)clusters_points[2];
+			
+			List<String> timeInfo = new ArrayList<String>();
+			for(int key: selectedClustersKeys) {
+				timeInfo.add(getTimeInfo(clusters.get(key),kind_of_place));		
+			}
+			
 			allResults.put(k, points);
 			if(VERBOSE) PlaceRecognizerLogger.log(user, kind_of_place, clusters);
 			PlaceRecognizerLogger.logcsv(user,kind_of_place,points);
+			PlaceRecognizerLogger.logTimecsv(user,kind_of_place,timeInfo);
 			if(KML_OUTPUT) PlaceRecognizerLogger.logkml(kind_of_place, clusters, points);
 			
 		}
 		if(KML_OUTPUT) PlaceRecognizerLogger.closeUserFolderKML();
+	}
+	
+	
+	static final DecimalFormat DF = new DecimalFormat("##.#",new DecimalFormatSymbols(Locale.US));
+	public String getTimeInfo(Cluster c, String kop) {
+		
+		HourDescriptiveStatistics ds = new HourDescriptiveStatistics();
+		
+		for(CDR cdr: c.getEvents()) {
+			int dow = cdr.getCalendar().get(Calendar.DAY_OF_WEEK);
+			if(dow == Calendar.SATURDAY || dow == Calendar.SUNDAY) continue;
+			ds.add(cdr.getCalendar().get(Calendar.HOUR_OF_DAY));
+		}
+		
+		
+		// variance ranges from 0 when time difference between hours is 0 to 1 when time difference between hours is 12 (that is the max distance in the clock).
+		// Therefore ds.variance() * 12 correspond to the variation in hours associated with that data.
+		// Thus mean +- (variance * 12) roughly corresponds to the variability (maybe a /2 would be appropriate but event in this way the interval is rather small)
+		
+		double lower = (ds.mean() - ds.variance() * 12) % 24;
+		if(lower < 0) lower += 24;
+		
+		
+		double upper = (ds.mean() + ds.variance() * 12) % 24;
+		
+		
+		
+		return c.size()+";"+DF.format(lower)+";"+DF.format(upper);
 	}
 	
 	
@@ -222,13 +265,14 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 		//String dir = "file_pls_ivory_users_2000_10000";
 		
 		
-		String fileName = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_5000_cellXHour";
+		String fileName = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour";
 		String in_file = Config.getInstance().base_folder+"/UserCellXHour/"+fileName+".csv";
 		String out_dir = Config.getInstance().base_folder+"/PlaceRecognizer/"+fileName;
 		File d = new File(out_dir);
 		if(!d.exists()) d.mkdirs();
 		
 		PlaceRecognizerLogger.openTotalCSVFile(out_dir+"/results.csv");
+		PlaceRecognizerLogger.openTotalTimeCSVFile(out_dir+"/resultsTime.csv");
 		if(KML_OUTPUT) PlaceRecognizerLogger.openKMLFile(out_dir+"/results.kml");
 		
 		PlaceRecognizer pr = PlaceRecognizer.getInstance();
@@ -239,7 +283,7 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 		
 		if(KML_OUTPUT) PlaceRecognizerLogger.closeKMLFile();
 		PlaceRecognizerLogger.closeTotalCSVFile();
-		
+		PlaceRecognizerLogger.closeTotalTimeCSVFile();
 		//PlaceRecognizerEvaluator rs = new PlaceRecognizerEvaluator(2000);
 		//rs.evaluate(allResults);
 		
