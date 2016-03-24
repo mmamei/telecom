@@ -16,25 +16,25 @@ public class CreatorRegionMapGrid {
 	public static void main(String[] args) throws Exception {
 		
 		
-		/*
+		
 		// since Lecce placemrk is defined as a list of celllcs it is important to set the time proprely	
 		Config.getInstance().pls_start_time = new GregorianCalendar(2014,Calendar.AUGUST,1,0,0,0);
 		Config.getInstance().pls_end_time = new GregorianCalendar(2014,Calendar.AUGUST,31,23,59,59);
 		
 		
-		String[] placemarks = new String[]{"Venezia","Firenze","Torino","Lecce"};
+		String[] placemarks = new String[]{"Modena"};
 		for(String p: placemarks) {
-			run(p,1000,6,p+"RealCenter");
-			//run(p,5000,10,p+"Center");
+			//run(p,1000,6,p+"RealCenter");
+			run(p,5000,10,p+"Center");
 			//run(p,20000,20,p+"Prov");
 		}
 		
 		
 		//run("Puglia",0,50,"Puglia");
-		*/
 		
 		
-		run("Milano",10000,5,"MilanoArea");
+		
+		//run("Milano",10000,5,"MilanoArea");
 	
 		
 	}

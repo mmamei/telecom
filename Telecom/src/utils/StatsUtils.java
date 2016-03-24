@@ -246,7 +246,7 @@ public class StatsUtils {
 		for(int i=0; i<x.length;i++) {
 			cal.setTimeInMillis(tc.index2time(i));
 			int h = cal.get(Calendar.HOUR_OF_DAY);
-			z[i] = sd[h] > 0 ? (x[i] - mean[h])/mean[h] : 0;
+			z[i] = mean[h] > 0 ? (x[i] - mean[h])/mean[h] : 0;
 		}
 		return z;
 		

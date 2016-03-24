@@ -93,9 +93,15 @@ public class UserCellacXHour extends BufferAnalyzerConstrained {
 		ba.run();
 	}
 	
-	public static void process(String userListF, boolean resume) {
+	public static File process(String userListF, boolean resume) {
 		BufferAnalyzerConstrained ba = new UserCellacXHour(null,userListF,resume);
-		ba.run();
+		
+		File would_be_output = new File(Config.getInstance().base_folder+"/UserCellXHour/"+ba.getString()+"_cellXHour.ser");
+		if(would_be_output.exists()) 
+			System.out.println(would_be_output+" already exists!");
+		else 
+			ba.run();
+		return would_be_output;
 	}
 	
 	

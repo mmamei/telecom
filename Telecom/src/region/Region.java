@@ -16,11 +16,11 @@ public class Region extends RegionI {
 	private Geometry g;
 	
 	
-	public Region(String name, String kmlcoordinates) {
+	Region(String name, String kmlcoordinates) {
 		this(name, GeomUtils.openGis2Geom(GeomUtils.kml2OpenGis(kmlcoordinates)));
 	}
 	
-	public Region(String name, double[][] borderLonLat) {
+	Region(String name, double[][] borderLonLat) {
 		this(name, GeomUtils.openGis2Geom(GeomUtils.kml2OpenGis(GeomUtils.lonLat2Kml(borderLonLat))));
 	}
 	

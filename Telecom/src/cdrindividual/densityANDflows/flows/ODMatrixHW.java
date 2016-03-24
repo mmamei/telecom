@@ -93,7 +93,7 @@ public class ODMatrixHW {
 				List<double[]> homest = p.clustersize_minTime_maxTime.get("HOME");
 				List<double[]> workst = p.clustersize_minTime_maxTime.get("WORK");
 				
-				if(homes != null && works !=null) {
+				if(homes != null && works !=null && homest != null && workst !=null) {
 					double z = 1.0 / homes.size() * works.size();
 					
 					for(int i=0; i<homes.size();i++)
@@ -110,6 +110,10 @@ public class ODMatrixHW {
 						
 						int hour_h2w = (int)(Math.round((ht[2] + wt[1])/2));
 						int hour_w2h = (int)(Math.round((ht[1] + wt[2])/2));
+						
+						if(hour_h2w > 23) hour_h2w = 23;
+						if(hour_w2h > 23) hour_w2h = 23;
+						
 	
 						if(rh!=null && rw!=null) {
 							
@@ -121,7 +125,7 @@ public class ODMatrixHW {
 							
 							// work to home
 							Move w2h = new Move(rw,rh);
-							c = hour2listod.get(hour_w2h).get(w2h);
+							c = hour2listod.get(hour_w2h).get(w2h);			
 							c = c == null ? z : c+z;
 							hour2listod.get(hour_w2h).put(w2h, c);
 							

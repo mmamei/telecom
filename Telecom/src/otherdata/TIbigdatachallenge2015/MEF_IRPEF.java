@@ -65,6 +65,8 @@ public class MEF_IRPEF {
 	
 	private static MEF_IRPEF instance;
 	private Map<String,long[]> data;
+	private Map<String,List<String>> province2comuniL;
+	
 	
 	public static MEF_IRPEF getInstance() {
 		if(instance == null) 
@@ -78,6 +80,8 @@ public class MEF_IRPEF {
 		try {
 			
 			data = new HashMap<String,long[]>();
+			province2comuniL = new HashMap<String,List<String>>();
+			
 			
 			BufferedReader br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/Redditi_e_principali_variabili_IRPEF_su_base_comunale_CSV_"+MEF_YEAR+".csv"));
 			String line;
@@ -87,6 +91,15 @@ public class MEF_IRPEF {
 				
 				String comune_id = String.valueOf(Integer.parseInt(e[2].replaceAll("\"", "")));
 				String comune_name = e[3];
+				String prov_2letters = e[4];
+				
+				List<String> lc = province2comuniL.get(prov_2letters);
+				if(lc == null) {
+					lc = new ArrayList<String>();
+					province2comuniL.put(prov_2letters, lc);
+				}
+				lc.add(comune_id);
+				
 				
 				//System.out.println(e.length+" "+line);
 				
@@ -109,9 +122,53 @@ public class MEF_IRPEF {
 		}
 	}
 	
+	
+	
+	static Map<String,String> PROV_TO_2LETTERS = new HashMap<String,String>();
+	static {
+		PROV_TO_2LETTERS.put("napoli".toUpperCase(),"NA");
+		PROV_TO_2LETTERS.put("bari".toUpperCase(),"BA");
+		PROV_TO_2LETTERS.put("caltanissetta".toUpperCase(),"CL");
+		PROV_TO_2LETTERS.put("siracusa".toUpperCase(),"SR");
+		PROV_TO_2LETTERS.put("benevento".toUpperCase(),"BN");
+		PROV_TO_2LETTERS.put("palermo".toUpperCase(),"PA");
+		PROV_TO_2LETTERS.put("campobasso".toUpperCase(),"CB");
+		PROV_TO_2LETTERS.put("roma".toUpperCase(),"RM");
+		PROV_TO_2LETTERS.put("siena".toUpperCase(),"SI");
+		PROV_TO_2LETTERS.put("ravenna".toUpperCase(),"RA");
+		PROV_TO_2LETTERS.put("ferrara".toUpperCase(),"FE");
+		//PROV_TO_2LETTERS.put("modena".toUpperCase(),"MO");
+		PROV_TO_2LETTERS.put("venezia".toUpperCase(),"VE");
+		PROV_TO_2LETTERS.put("torino".toUpperCase(),"TO");
+		PROV_TO_2LETTERS.put("asti".toUpperCase(),"AT");
+		PROV_TO_2LETTERS.put("milano".toUpperCase(),"MI");
+	}
+	
+	
+	public AddMap redditoPCProvince() {
+		AddMap density = new AddMap();
+		for(String prov: PROV_TO_2LETTERS.keySet()) {
+			List<String> comuni = province2comuniL.get(PROV_TO_2LETTERS.get(prov));
+			//System.out.println(prov+" - "+PROV_TO_2LETTERS.get(prov)+" - "+comuni);		
+			
+			double num = 0;
+			double den = 0;
+			for(String c: comuni) {
+				long[] v = data.get(c);
+				if(v == null) { System.out.println(c+" Not Found"); continue;}
+				for(int i: new int[]{26,28,30,32,34,36,38,40})
+					num+=v[i];	
+				den+=v[0];
+			}
+			density.add(prov, num/den);
+			
+		}
+		return density;
+	}
+	
 	public AddMap redditoPC(boolean print) {
 		String title = "RedditoProCapita"+MEF_YEAR;
-		int[] indices = new int[]{26,28,30,32,34,34,38,40};
+		int[] indices = new int[]{26,28,30,32,34,36,38,40};
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni"+COMUNI_YEAR+".ser"));
 		rm.setName(title);
 		AddMap density = new AddMap();
@@ -227,7 +284,13 @@ public class MEF_IRPEF {
 	public static void main(String[] args) throws Exception {
 		MEF_IRPEF ic = MEF_IRPEF.getInstance();
 		//ic.redditoPC(false);
-		ic.gini(true);
+		//ic.gini(true);
+		
+		AddMap x = ic.redditoPCProvince();
+		for(String k: x.keySet())
+			System.out.println(k+" ==> "+x.get(k));
+		
+		
 		System.out.println("Done");
 	}
 	

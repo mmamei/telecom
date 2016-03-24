@@ -53,9 +53,6 @@ public class UserCDRCounter extends BufferAnalyzerConstrained {
 		users_events.put(username, n == null ? 1 : n+1);
 	}
 	
-	
-	
-	
 	private static final SimpleDateFormat F = new SimpleDateFormat("dd-MM-yyyy");
 	protected void finish() {
 		try{
@@ -72,6 +69,35 @@ public class UserCDRCounter extends BufferAnalyzerConstrained {
 			e.printStackTrace();
 		}
 	}
+	
+	
+	public static File runCdrCounter(String region, Calendar startCal, Calendar endCal, Integer minH, Integer maxH) throws Exception {
+		
+		
+		
+		
+		
+		//file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25
+		
+		
+		Config.getInstance().pls_folder = Config.getInstance().pls_root_folder+"/"+region;
+		Config.getInstance().pls_start_time = startCal;
+		Config.getInstance().pls_end_time = endCal;
+		
+		if(minH != null) PLSParser.MIN_HOUR = minH;
+		if(maxH != null) PLSParser.MAX_HOUR = maxH;
+		
+		UserCDRCounter ucc = new UserCDRCounter(null,null);
+		
+		String date_interval = F.format(Config.getInstance().pls_start_time.getTime())+"-"+F.format(Config.getInstance().pls_end_time.getTime());
+		File would_be_output = new File(Config.getInstance().base_folder+"/UserCDRCounter/"+ucc.getString()+"_"+date_interval+"_minH_"+PLSParser.MIN_HOUR+"_maxH_"+PLSParser.MAX_HOUR+".csv");
+		if(would_be_output.exists())
+			System.out.println(would_be_output+" already computed!");
+		else ucc.run();
+		
+		return would_be_output;
+	}
+	
 	
 	public static void extractUsersAboveThreshold(File infile, File outfile, int thresholdXDay, int max_n_users) throws Exception {
 		System.out.println("Extract Users Above Threshold X Day "+thresholdXDay);

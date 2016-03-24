@@ -3,6 +3,8 @@ package cdrindividual.densityANDflows.flows;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 import region.Region;
 import region.RegionI;
 
@@ -57,9 +59,9 @@ public class Move {
 	// main for simple testing purposes
 	public static void main(String[] args) {
 		boolean directed = true;
-		Region r1 = new Region("a","");
-		Region r2 = new Region("b","");
-		Region r3 = new Region("a","");
+		Region r1 = new Region("a",(Geometry)null);
+		Region r2 = new Region("b",(Geometry)null);
+		Region r3 = new Region("a",(Geometry)null);
 		Move m1 = new Move(r1,r2,directed);
 		//Move m2 = new Move(r3,r2,directed);
 		//System.out.println(m1.equals(m2));

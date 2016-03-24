@@ -14,6 +14,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 import otherdata.TIbigdatachallenge2015.Deprivation;
 import otherdata.TIbigdatachallenge2015.IstatCensus2011;
 import otherdata.TIbigdatachallenge2015.MEF_IRPEF;
@@ -25,11 +27,13 @@ import utils.AddMap;
 import utils.AddMapL;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.Mail;
 import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
 import visual.kml.KMLHeatMap;
 import visual.r.RPlotter;
+import visual.text.TextPlotter;
 import JavaMI.Entropy;
 
 public class SynchAnalysis {
@@ -42,13 +46,13 @@ public class SynchAnalysis {
 	
 	public static boolean PRINT_CORR_MATRIX = false;
 	
-	private enum Analysis {CALLOUT_IT,CALLOUT_IT_VS_NON_IT,DEMOGRAPHIC_RES,DEMOGRAPHIC_RES_VS_NON_RES,DEMOGRAPHIC_IT_VS_NON_IT,DEMOGRAPHIC_ALL};
+	enum Analysis {DEMOGRAPHIC_RES,DEMOGRAPHIC_RES_VS_NON_RES};
 	
-	//public static Analysis TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
-	public static Analysis TYPE = Analysis.DEMOGRAPHIC_RES;
+	public static Analysis TYPE = Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
+	//public static Analysis TYPE = Analysis.DEMOGRAPHIC_RES;
 
-	enum Feature {RSQ, I, EU};
-	public static Feature USEF = Feature.EU;
+	enum Feature {RSQ, I,EU};
+	public static Feature USEF = Feature.RSQ;
 	
 	static String USE_FEATURE = "F";
 	static {
@@ -58,18 +62,18 @@ public class SynchAnalysis {
 	}
 	
 	
-	public static boolean KML_PLOT_Z = true;
+	public static boolean KML_PLOT_Z = false;
 	
 	//This parameter is a threshold on the synch region. It is used with DEMOGRAPHIC_RES
 	//Only regions with an avg value above this threshold are considered
-	public static int DEMOGRAPHIC_RES_THRESHOLD = 150;
+	public static int DEMOGRAPHIC_RES_THRESHOLD = 100;
 	
 	//These parameters are thresholds on the synch region. It is used with DEMOGRAPHIC_RES_VS_NON_RES
 	//Only regions with an avg value above these thresholds are considered.
 	//DEMOGRAPHIC_RES_THRESHOLD is used for residetns. DEMOGRAPHIC_NOT_RES_THRESHOLD is used for non residents
-	public static int  DEMOGRAPHIC_NOT_RES_THRESHOLD = 20;
+	public static int  DEMOGRAPHIC_NOT_RES_THRESHOLD = 100;
 	
-	
+	public static boolean USE_RELATIVE_TH = false;
 	
 	/*
 	 * This is used in the computeFeature method
@@ -83,12 +87,49 @@ public class SynchAnalysis {
 	static int TIME_WINDOW = -1;
 	//private static int TIME_WINDOW = 24;
 	
+	
+	
+	static String BASE_OUT_IMG_FOLDER = Config.getInstance().base_folder+"/Images/";
+	
 	public static void main(String[] args) throws Exception {
-		//batch();
-		go();
+		//go();
+		
+		batch();
+		Mail.send("SynchAnalysis complete!");
 	}
 	
+	
 	public static void batch() throws Exception {
+		RPlotter.VIEW = false;
+		for(Analysis type: Analysis.values()) {
+			TYPE = type; //Analysis.DEMOGRAPHIC_RES_VS_NON_RES;
+			for(Feature f: new Feature[]{Feature.I,Feature.RSQ}) {
+				USEF = f;
+				for (boolean th: new boolean[]{true,false}) {
+					USE_RELATIVE_TH = th;
+					for(int tw: new int[]{-1,24}) {
+						TIME_WINDOW = tw;
+							
+						if(SynchAnalysis.USEF.equals(Feature.I)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
+						if(SynchAnalysis.USEF.equals(Feature.RSQ)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
+						if(SynchAnalysis.USEF.equals(Feature.EU)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~EU~'('~res[r]~';'~res[i!=r]~')')" : "expression(EU~'(res;!res)')";
+							
+							
+						BASE_OUT_IMG_FOLDER = Config.getInstance().paper_folder+"/img/batch/"+TYPE.toString().replaceAll("_", "-")+"-"+(USE_RELATIVE_TH?"REL-TH":"ABS-TH")+"-"+SynchAnalysis.USEF+""+SynchAnalysis.TIME_WINDOW;
+						System.err.println(BASE_OUT_IMG_FOLDER);
+						new File(BASE_OUT_IMG_FOLDER).mkdirs();
+						
+						
+						go();
+						//System.exit(0);
+					}
+				}
+			}
+		}
+	}
+	
+	/*
+	public static void paramOptimize() throws Exception {
 		PLOT = false;
 		PrintWriter out = null;
 		
@@ -142,8 +183,7 @@ public class SynchAnalysis {
 		out.close();
 		
 	}
-	
-	
+	*/
 	
 	static String[] CITIES = new String[]{
 			"napoli",
@@ -200,7 +240,7 @@ public class SynchAnalysis {
 		
 		
 		
-		
+		/*
 		if(TYPE.equals(Analysis.CALLOUT_IT)) {
 			type = "CallOut";
 			readIndexes = new int[]{0,1,2,3}; // time,cell,value,meta
@@ -237,7 +277,7 @@ public class SynchAnalysis {
 			}
 			
 		}
-		
+		*/
 		if(TYPE.equals(Analysis.DEMOGRAPHIC_RES)) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
@@ -281,7 +321,7 @@ public class SynchAnalysis {
 			}
 		}
 		
-		
+		/*
 		if(TYPE.equals(Analysis.DEMOGRAPHIC_IT_VS_NON_IT)) {
 			type = "Demo";
 			readIndexes = new int[]{0,1,3,2};
@@ -325,7 +365,7 @@ public class SynchAnalysis {
 				map_constraints.put(CITIES[i],constraints);
 			}
 		}
-		
+		*/
 		
 		
 		
@@ -354,11 +394,19 @@ public class SynchAnalysis {
 		
 		for(int i=0; i<CITIES.length;i++) {
 			
-			String city = CITIES[i];
-			if(city.equals("roma") || city.equals("milano")) DEMOGRAPHIC_RES_THRESHOLD = 0;
-			else if(bigCities.contains(city)) DEMOGRAPHIC_RES_THRESHOLD = 200;
-			else DEMOGRAPHIC_RES_THRESHOLD = 100;
-			
+			//String city = CITIES[i];
+			//if(city.equals("roma") || city.equals("milano")) DEMOGRAPHIC_RES_THRESHOLD = 200;
+			/*
+			//
+			if(bigCities.contains(city)) {
+				DEMOGRAPHIC_RES_THRESHOLD = 200;
+				DEMOGRAPHIC_NOT_RES_THRESHOLD = 20;
+			}
+			else {
+				DEMOGRAPHIC_RES_THRESHOLD = 100;
+				DEMOGRAPHIC_NOT_RES_THRESHOLD = 10;
+			}
+			*/
 			System.out.println("\n\n*************************************************** START PROCESSING "+CITIES[i].toUpperCase());
 			
 			
@@ -366,7 +414,6 @@ public class SynchAnalysis {
 			
 			RegionMap rm_comuni2012 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+CITIES[i]+".ser"));
 			List<TimeDensityFromAggregatedData> tds_comuni2012 = loadTimeDensityFromAggregatedData(CITIES[i],type,files[i],readIndexes,rm_comuni2012,map_constraints.get(CITIES[i]));
-			
 			Map<String,List<Double>> density_comuni2012 = process(tds_comuni2012);
 			
 			
@@ -379,17 +426,25 @@ public class SynchAnalysis {
 			
 			
 			
+			
+			
 			if(TYPE.equals(Analysis.DEMOGRAPHIC_RES)) {
 				density_prov2011 = reproject2map(density_comuni2012,CITIES[i],rm_comuni2012,prov2011);
 				density_regioni = reproject2map(density_comuni2012,CITIES[i],rm_comuni2012,regioni);
 			}
 			else {
-				density_prov2011 = process(reproject2map(tds_comuni2012,prov2011));
-				density_regioni = process(reproject2map(tds_comuni2012,regioni));
+				//density_prov2011 = process(reproject2tds(tds_comuni2012,prov2011));
+				//density_regioni = process(reproject2tds(tds_comuni2012,regioni));
+				
+				density_prov2011 = reproject2map(density_comuni2012,CITIES[i],rm_comuni2012,prov2011);
+				density_regioni = reproject2map(density_comuni2012,CITIES[i],rm_comuni2012,regioni);
 				
 			}
 			
 
+			
+			
+			
 			
 			if(CAPOLUOGO_ONLY) {
 				// keep only the capoluogo
@@ -410,6 +465,7 @@ public class SynchAnalysis {
 			
 			ln.add(names[i]);
 			
+			
 			lvalues_comuni2012.add(density2array(density_comuni2012));
 			lvalues_comuni2014.add(density2array(density_comuni2014));
 			lvalues_prov2011.add(density2array(density_prov2011));
@@ -423,9 +479,9 @@ public class SynchAnalysis {
 		// regioni is the only one that can have multiple data. Therefore it is important to compute the mean otherwise I can have R^2 > 1
 		//all_density_regioni.mean();
 		
-		if(PLOT) RPlotter.drawBoxplot(lvalues_comuni2012,ln,"comuni2012",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2012-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
+		if(PLOT) RPlotter.drawBoxplot(lvalues_comuni2012,ln,"comuni2012",USE_FEATURE,BASE_OUT_IMG_FOLDER+"/boxplot-comuni2012.png",20,null);
 		//RPlotter.drawBoxplot(lvalues_comuni2014,ln,"comuni2014",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-comuni2014-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
-		if(PLOT) RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-prov2011-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
+		if(PLOT) RPlotter.drawBoxplot(lvalues_prov2011,ln,"provinces",USE_FEATURE,BASE_OUT_IMG_FOLDER+"/boxplot-prov2011.png",20,null);
 		//RPlotter.drawBoxplot(lvalues_regioni,ln,"regions",USE_FEATURE,Config.getInstance().base_folder+"/Images/boxplot-regioni-"+type+"-"+USE_FEATURE.substring(0,1)+".png",20,null);
 		
 		//if(!CAPOLUOGO_ONLY) System.exit(0);
@@ -436,7 +492,7 @@ public class SynchAnalysis {
 		List<Double> all_r2 = new ArrayList<Double>();
 		
 		Deprivation dp = Deprivation.getInstance();
-		if(PLOT) plotCorrelation(avg(all_density_regioni),dp.getDepriv(),USE_FEATURE,"deprivation",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-deprivazione.png",null,true);
+		if(PLOT) plotCorrelation(avg(all_density_regioni),dp.getDepriv(),USE_FEATURE,"deprivation",BASE_OUT_IMG_FOLDER+"/deprivazione.png",null,true);
 		
 		
 		
@@ -455,20 +511,40 @@ public class SynchAnalysis {
 		}
 		
 		
-		if(PLOT) all_r2.add(plotCorrelation(tmp2,mi.redditoPC(false),USE_FEATURE,"pro-capita income",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-redPC.png",id2name,CAPOLUOGO_ONLY));
+		if(PLOT) all_r2.add(plotCorrelation(tmp2,mi.redditoPC(false),USE_FEATURE,"per-capita income",BASE_OUT_IMG_FOLDER+"/redPC.png",id2name,CAPOLUOGO_ONLY));
 		//if(PLOT) all_r2.add(plotCorrelation(avg(all_density_comuni2014),mi.gini(false),USE_FEATURE,"Gini",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-gini.png",id2name,CAPOLUOGO_ONLY));
+		
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_prov2011),mi.redditoPCProvince(),SynchAnalysis.USE_FEATURE,"per-capita income prov",BASE_OUT_IMG_FOLDER+"/redPCP.png",null,true));
+		
+		
 		
 		
 		IstatCensus2011 ic = IstatCensus2011.getInstance();
 		int[] indices = new int[]{46,51,59,61};
-		for(int i: indices)
-			all_r2.add(plotCorrelation(avg(all_density_comuni2012),ic.computeDensity(i, true, false),USE_FEATURE,IstatCensus2011.DIMENSIONS[i],Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-"+IstatCensus2011.DIMENSIONS[i]+".png",id2name,CAPOLUOGO_ONLY));
-		
+		for(int i: indices) {
+			String ii = IstatCensus2011.DIMENSIONS[i].replaceAll(" ", "-");
+			if(ii.endsWith(".")) ii=ii.substring(0, ii.length()-1);
+			all_r2.add(plotCorrelation(avg(all_density_comuni2012),ic.computeDensity(i, true, false),USE_FEATURE,IstatCensus2011.DIMENSIONS[i],BASE_OUT_IMG_FOLDER+"/"+ii+".png",id2name,CAPOLUOGO_ONLY));
+		}
 		
 		SocialCapital sc = SocialCapital.getInstance();
-		all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getAssoc(),USE_FEATURE,"assoc",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-assoc.png",null,true));
-		all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getReferendum(),USE_FEATURE,"referendum",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-referendum.png",null,true));
-		all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getBlood(),USE_FEATURE,"blood",Config.getInstance().base_folder+"/Images/"+USE_FEATURE.substring(0,1)+"-blood.png",null,true));
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getAssoc(),USE_FEATURE,"assoc",BASE_OUT_IMG_FOLDER+"/assoc.png",null,true));
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getReferendum(),USE_FEATURE,"referendum",BASE_OUT_IMG_FOLDER+"/referendum.png",null,true));
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getBlood(),USE_FEATURE,"blood",BASE_OUT_IMG_FOLDER+"/blood.png",null,true));
+		if(PLOT) all_r2.add(plotCorrelation(avg(all_density_prov2011),sc.getSocCap(),USE_FEATURE,"soccap",BASE_OUT_IMG_FOLDER+"/soccap.png",null,true));
+		
+		
+		
+		
+		Map<String,Object> tm = new HashMap<String,Object>();
+		//System.out.println(BASE_OUT_IMG_FOLDER.toString());
+		tm.put("dir", BASE_OUT_IMG_FOLDER.toString().substring(BASE_OUT_IMG_FOLDER.toString().indexOf("img")));
+		tm.put("type", TYPE.toString().replaceAll("_", "-"));
+		tm.put("distance", SynchAnalysis.USEF);
+		tm.put("time_window", SynchAnalysis.TIME_WINDOW);
+		tm.put("threshold",(USE_RELATIVE_TH?"relative":"absolute"));
+		TextPlotter.getInstance().run(tm,"src/cdraggregated/SynchAnalysis.ftl", BASE_OUT_IMG_FOLDER+"/text.tex");		
+		
 		
 		//for(String k: all_density_prov2011.keySet())
 		//	System.out.println("blood..................... "+k+""+" "+all_density_prov2011.get(k)+" .... "+sc.getBlood().get(k));
@@ -624,8 +700,8 @@ public class SynchAnalysis {
 	}
 	
 	
-	private static List<TimeDensityFromAggregatedData> reproject2map(List<TimeDensityFromAggregatedData> tds,RegionMap rm_to) {
-		System.out.println(">>>>> REPROJECT "+tds.get(0).getCity()+" FROM "+tds.get(0).rm.getName()+" TO "+rm_to.getName());
+	private static List<TimeDensityFromAggregatedData> reproject2tds(List<TimeDensityFromAggregatedData> tds,RegionMap rm_to) {
+		System.out.println(">>>>> REPROJECT TDS "+tds.get(0).getCity()+" FROM "+tds.get(0).rm.getName()+" TO "+rm_to.getName());
 		
 		
 		List<TimeDensityFromAggregatedData> res = new ArrayList<TimeDensityFromAggregatedData>();
@@ -694,7 +770,6 @@ public class SynchAnalysis {
 	// Questo si usa per DEMOGRAPHIC_RES *************************************************************************************************************************************************
 	
 	static AddMap ISTAT = IstatCensus2011.getInstance().computeDensity(0, false, false);
-	
 	public static Map<String,List<Double>> getDistCorr(String city, String[] regions, TimeDensityFromAggregatedData td) {
 		
 		
@@ -724,8 +799,14 @@ public class SynchAnalysis {
 					double avga = avg(seriesa);
 					double avgb = avg(seriesb);
 					
-					if(avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_RES_THRESHOLD) {
 					
+					
+					//if(avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_RES_THRESHOLD) {
+					
+					if((USE_RELATIVE_TH && avga/istata > 0.05 && avgb/istatb > 0.05) || (!USE_RELATIVE_TH && (avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_RES_THRESHOLD))) {
+										
+						
+				
 					
 					//System.out.println(regions[i]+" ==> "+(int)istata+" VS. "+(int)avga);
 					//System.out.println(regions[j]+" ==> "+(int)istatb+" VS. "+(int)avgb);
@@ -800,7 +881,13 @@ public class SynchAnalysis {
 					double[] seriesb = tds.get(b).get(regions[i]);
 					double avga = avg(seriesa);
 					double avgb = avg(seriesb);
-					if(avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_NOT_RES_THRESHOLD) { 
+					
+					//System.err.println(city+" ====> RES = "+avga+", !RES = "+avgb);
+					
+					Double istata = ISTAT.get(regions[i]);
+					
+					if((USE_RELATIVE_TH && (istata == null || avga/istata > 0.05)) || (!USE_RELATIVE_TH && avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_NOT_RES_THRESHOLD)) {
+					//if(avga > DEMOGRAPHIC_RES_THRESHOLD && avgb > DEMOGRAPHIC_NOT_RES_THRESHOLD) { 
 						corrs.addAll(computeFeature(seriesa,seriesb));
 						tot++;
 					}
@@ -851,7 +938,7 @@ public class SynchAnalysis {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.err.println(city+": N. Regions = "+regions.length +"; N. Combination = "+ regions.length*(regions.length-1)+"; Actual Comb. = "+tot);
+		System.err.println(city+": N. Regions = "+regions.length +"; Actual Use. = "+tot);
 		return density;
 	}
 	
@@ -869,9 +956,9 @@ public class SynchAnalysis {
 			
 			boolean Z = true;
 	        boolean FILTER = false;
-	        int BIN = 0;
+	        int BIN = USEF.equals(Feature.I)? 5 : 0;
 	        
-			int LAG = FILTER ? 50 : 24*7;
+			//int LAG = FILTER ? 50 : 24*7;
 			
 			double[] fseries1 = Z ? (StatsUtils.getZH(series1,tc)) : series1;
 			double[] fseries2 = Z ? (StatsUtils.getZH(series2,tc)) : series2;
@@ -1021,10 +1108,12 @@ public class SynchAnalysis {
 	}
 	
 	private static double avg(List<Double> x) {
-		double avg = 0;
+		DescriptiveStatistics ds = new DescriptiveStatistics();
 		for(double v: x)
-			avg+=v;
-		return avg / x.size();
+			ds.addValue(v);
+		
+		//return ds.getMean();
+		return ds.getPercentile(50);
 	}
 	
 	private static double log2(double x) {

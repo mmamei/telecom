@@ -16,6 +16,7 @@ import java.util.Set;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.Mail;
 import utils.mod.CoordinateUtil;
 import utils.mod.Util;
 import utils.mod.Util.Pair;
@@ -46,7 +47,7 @@ public class MAPfromMOD {
 		static boolean polyMode = true;
 		
 //		static Double[] ita={0.2,0.2,0.2,0.2,0.2};
-		static Double[] ita = {1.0};
+		public static Double[] ita = {1.0};
 //		static Double[] ita = {0.8,0.2};
 
 		
@@ -58,7 +59,7 @@ public class MAPfromMOD {
 		
 //		il flusso degli spostamenti letti dal file origine/destinazione inferiori alla tolleranza
 //		non vengono presi in considerazione	
-		static Double tolleranza=(double)  10;
+		public static Double tolleranza=(double)  100;
 		
 		static boolean forecast = false;
 		static GHPoint daForecast = new GHPoint(44.798891, 7.630273);
@@ -100,10 +101,12 @@ public class MAPfromMOD {
 			*/
 			
 			
-			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piemonteId.ser"));
+			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piemonteId.ser"));
+			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-torino-grid.ser"));
+			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/TorinoCenter.ser"));
 			String fileCoord = "C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv";
 			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
-			String video_dir = Config.getInstance().base_folder+"/Videos/20150523_Lovisolo_Piem";
+			String video_dir = Config.getInstance().base_folder+"/Videos/20150523_Lovisolo_Piem-"+rm.getName();
 			new File(video_dir).mkdirs();
 			File dir = new File("C:/BASE/ODMatrix/matrici_piemonte/orarie");
 			File[] files = dir.listFiles(new FilenameFilter() {
@@ -114,7 +117,7 @@ public class MAPfromMOD {
 										});
 			
 			for(File f: files) {
-				String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile);
+				String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile, Config.getInstance().paper_folder+"/img/od");
 				Map<String,Object> tm = ODComparator.parseHeader(f.toString());
 				// Istante di inizio: Sat, 23 May 2015 01:00
 				String[] orario = ((String)tm.get("Istante di inizio")).split(" ");
@@ -171,10 +174,11 @@ public class MAPfromMOD {
 			
 			
 			System.out.println("The End!");
+			Mail.send("Movie done");
 		}
 		
 		
-		public static String go(String fileMOD, String fileCoord, RegionMap rm, String osmFile) throws Exception {
+		public static String go(String fileMOD, String fileCoord, RegionMap rm, String osmFile, String outdir) throws Exception {
 			
 			fileMOD = fileMOD.replaceAll("\\\\", "/");
 			
@@ -435,7 +439,7 @@ public class MAPfromMOD {
 			}
 			
 
-			
+			/*
 			if(forecast){	
 				p = forecastEdge.fetchWayGeometry(3);
 				for(int j=0;j<p.size()-1;j++){
@@ -452,7 +456,7 @@ public class MAPfromMOD {
 					}
 				}
 			}
-			
+			*/
 			/*
 			QueryResult cqr;
 			cqr = index.findClosest(revGeocoding.lat, revGeocoding.lon,  EdgeFilter.ALL_EDGES);
@@ -484,8 +488,10 @@ public class MAPfromMOD {
 			
 			tm.putAll(ODComparator.parseHeader(fileMOD));
 			
-			String imgFile = Config.getInstance().paper_folder+"/img/od/"+tm.get("name")+".png";
-			tm.put("img", imgFile);
+			
+			outdir = outdir.replaceAll("\\\\", "/");
+			String imgFile = outdir+"/"+tm.get("name")+".png";
+			tm.put("img", imgFile.substring(Config.getInstance().paper_folder.length()+1));
 			
 			String label = ((String)tm.get("Istante di inizio")).replaceAll(" ", ":")+" - "+((String)tm.get("Istante di fine")).replaceAll(" ", ":");
 			
@@ -516,8 +522,11 @@ public class MAPfromMOD {
 			boolean directed = false;
 			
 			double max = 0;
-			for(double w: streets.values())
+			for(double w: streets.values()) {
 				max = Math.max(max, w);
+				//System.out.print(w+"  ");
+			}
+			//System.out.println();
 				
 			for(String k: streets.keySet()) {
 				String[] e = k.split(",|:");

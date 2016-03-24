@@ -18,6 +18,7 @@ public class SocialCapital {
 	private Map<String,Double> assoc;
 	private Map<String,Double> referendum;
 	private Map<String,Double> blood;
+	private Map<String,Double> soccap;
 	
 	private static SocialCapital instance = null;
 	
@@ -33,6 +34,7 @@ public class SocialCapital {
 			assoc = new HashMap<String,Double>();
 			referendum = new HashMap<String,Double>();
 			blood = new HashMap<String,Double>();
+			soccap = new HashMap<String,Double>();
 			
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
 			
@@ -58,6 +60,25 @@ public class SocialCapital {
 			}
 			br.close();
 			
+			br = new BufferedReader(new FileReader(Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/ISTAT/capitalesocialeistat.csv"));
+			br.readLine(); // skip header
+			while((line=br.readLine())!=null) {
+				String[] e = line.split(";");
+				String prov_name = e[1].toUpperCase();
+				
+				String val = null;
+				for(int i=2; i<e.length;i++) 
+					if(e[i].length()>0) val = e[i];
+				
+				if(val==null) continue;
+				
+				//System.out.println(prov_name+"  == > "+val);
+				soccap.put(prov_name, Double.parseDouble(val));
+				
+			}
+			br.close();
+			
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -75,12 +96,16 @@ public class SocialCapital {
 		return blood;
 	}
 	
+	public Map<String,Double> getSocCap() {
+		return soccap;
+	}
+	
 	public static void main(String[] args) throws Exception {
 		SocialCapital sc = SocialCapital.getInstance();
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
-		rm.setName("social-capital-blood");
-		Map<String,Double> blood = sc.getBlood();
-		KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+rm.getName()+".kml",blood,rm,"",false);
+		//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
+		//rm.setName("social-capital-blood");
+		//Map<String,Double> blood = sc.getBlood();
+		//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+rm.getName()+".kml",blood,rm,"",false);
 	}
 	
 }

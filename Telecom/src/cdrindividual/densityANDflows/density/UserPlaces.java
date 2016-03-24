@@ -62,8 +62,20 @@ public class UserPlaces {
 				places.addPlaceInfo(kind, lon, lat);
 			} 
 			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			if(br_time!=null) {
 				line = br_time.readLine();
+				
+				if(line.contains("?")) continue;
+				
 				String[] te = line.split(",");
 				if(!te[0].equals(username) || !te[1].equals(kind)) System.err.println("ERROR PLACES AND TIME FILE ARE NOT ALIGNED!");
 				for(int i=2;i<te.length;i++){

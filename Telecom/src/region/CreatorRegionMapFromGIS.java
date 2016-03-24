@@ -10,8 +10,6 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.HashSet;
-import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -23,6 +21,7 @@ import javax.swing.SwingConstants;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import javax.swing.text.html.HTMLEditorKit;
 
 import utils.Config;
 import utils.CopyAndSerializationUtils;
@@ -238,7 +237,7 @@ class CreatorRegionMapFromGISGUI {
 
 				
 		input_file_button = new JButton("Select Input SHP CSV File"); input_file_button.setPreferredSize(new Dimension(300, 50));
-		input_text_pane = new JTextPane(); input_text_pane.setPreferredSize(new Dimension(1000, 200));
+		input_text_pane = new JTextPane(); input_text_pane.setPreferredSize(new Dimension(1050, 200));
 		
 		jl_wtk = new JLabel("wtk index"); jl_wtk.setPreferredSize(new Dimension(80, 20));jl_wtk.setHorizontalAlignment(SwingConstants.RIGHT);
 		jtf_wtk = new JTextField("0"); jtf_wtk.setPreferredSize(new Dimension(40, 20));
@@ -251,7 +250,7 @@ class CreatorRegionMapFromGISGUI {
 		jtf_title = new JTextField(""); jtf_title.setPreferredSize(new Dimension(500, 20));
 		
 		output_file_button = new JButton("Select Output SER File"); output_file_button.setPreferredSize(new Dimension(300, 50));
-		output_text_pane = new JTextPane(); output_text_pane.setPreferredSize(new Dimension(1000, 40));
+		output_text_pane = new JTextPane(); output_text_pane.setPreferredSize(new Dimension(1050, 40));
 		
 		go = new JButton("Go!"); go.setPreferredSize(new Dimension(60, 50)); go.setBackground(Color.RED);
 		
@@ -267,28 +266,28 @@ class CreatorRegionMapFromGISGUI {
 					int n = fileChooser.showOpenDialog(win);
 			        if (n == JFileChooser.APPROVE_OPTION) {
 			        	input_file = fileChooser.getSelectedFile();
-			        	StyledDocument doc = input_text_pane.getStyledDocument();
-			        	
-			        	
-			        	SimpleAttributeSet keyWord = new SimpleAttributeSet();
-			        	StyleConstants.setForeground(keyWord, Color.RED);
-			        	StyleConstants.setBold(keyWord, true);
-			        	
-			        	int max_char_to_show = 100;
-			        	
-			        	doc.insertString(0, "SELECTED FILE: "+input_file.getAbsolutePath()+"\n",keyWord);
+			        	input_text_pane.setEditorKit(new HTMLEditorKit());
+			        	StringBuffer sb = new StringBuffer();
+			        	sb.append("<b>SELECTED FILE: "+input_file.getAbsolutePath()+"</b><br>");
+			        	sb.append("<table border='1'>");
+			        	sb.append("<tr><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td></tr>");
+
 			            BufferedReader read = new BufferedReader(new FileReader(input_file));
 			            int cont = 0;
 			            String line;
 			            while((line = read.readLine())!=null) {
-			              int nchar = Math.min(line.length(), max_char_to_show);
+			              int nchar = Math.min(line.length(), 100);
 			              int start = nchar < line.length() ? line.length()-nchar : 0;
 			              line = (start>0?"...":"")+ line.substring(start,line.length())+"\n";
-			              doc.insertString(doc.getLength(),line,null);
+			              line = line.replaceAll("\t", "</td><td>");
+			              sb.append("<tr><td>"+line+"</td></tr>");
 			              cont++;
 			              if(cont > 10) break;
 			            }
 			            read.close();
+			            sb.append("</table>");
+			            input_text_pane.setText(sb.toString());
+			            
 			        }
 			        else {
 			        	input_file = null;
@@ -382,7 +381,7 @@ class CreatorRegionMapFromGISGUI {
 		c.add(go);
 		
 		win.setResizable(false);
-		win.setSize(1010,500);
+		win.setSize(1100,500);
 		win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		win.setVisible(true);
 	}

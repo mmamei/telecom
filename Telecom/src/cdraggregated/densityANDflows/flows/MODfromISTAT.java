@@ -13,7 +13,15 @@ import utils.mod.Write;
 
 public class MODfromISTAT {
 	
-	private static String [] MezziDiTrasporto = {"07","11"};
+	
+	public static String[] REGIONI = new String[]{"","Piemonte","Valle d'Aosta","Lombardia","Trentino Alto Adige","Veneto","Friuli-Venezia Giulia","Liguria","Emilia Romagna","Toscana",
+		"Umbria","Marche","Lazio","Abruzzo","Molise","Campania","Puglia","Basalicata","Calabria","Sicilia","Sardegna"};
+	
+	static ArrayList <Integer> PROVINCIE = new ArrayList<Integer>();
+	
+	
+	
+	private static String [] MEZZI_DI_TRASPORTO = null; //{"07","11"};
 //	Codici per i Mezzi di Trasporto
 //	01 treno;
 //	02 tram;
@@ -29,11 +37,9 @@ public class MODfromISTAT {
 //	12 a piedi;
 	
 	
-	public static String[] REGIONI = new String[]{"","Piemonte","Valle d'Aosta","Lombardia","Trentino Alto Adige","Veneto","Friuli-Venezia Giulia","Liguria","Emilia Romagna","Toscana",
-	"Umbria","Marche","Lazio","Abruzzo","Molise","Campania","Puglia","Basalicata","Calabria","Sicilia","Sardegna"};
 	
 	
-	public static Integer[] regioniInConsiderazione={1};
+	public static Integer[] INDICI_REGIONI= null; ///{1};
 //	Codici regione
 //	1 Piemonte
 //	2 Valle d'Aosta
@@ -58,13 +64,31 @@ public class MODfromISTAT {
 	
 	
 	
-	private static Integer numeroFascieOrarie=1;
+	private static Integer FASCE_ORARIE= null; //1;
+
 	
-	static ArrayList <Integer> provinceInConsiderazione = new ArrayList<Integer>();
+	static String NAME;
+
 	
 	public static void main(String[] args) throws Exception{
 		
-		provinceInConsiderazione = SetprovinceInConsiderazione();
+		run(new String[]{"07","11"},new Integer[1],1);
+		
+	}
+	
+    public static void run(String[] MezziDiTrasporto, Integer[] regioniInConsiderazione, Integer numeroFascieOrarie) throws Exception{
+		
+    	MEZZI_DI_TRASPORTO = MezziDiTrasporto;
+    	INDICI_REGIONI = regioniInConsiderazione;
+    	FASCE_ORARIE  = numeroFascieOrarie;
+    			
+	
+    	for(int i: INDICI_REGIONI)
+    		NAME = NAME+","+REGIONI[i];
+    	NAME = NAME.substring(1);
+    	
+    	
+		PROVINCIE = SetprovinceInConsiderazione();
 		HashMap<String, Comune> comuni = new HashMap<String, Comune>();
 		BufferedReader br = new BufferedReader(new FileReader("G:/DATASET/OD-ALBERTO-FRANCIA/MATRICE_PENDOLARISMO_2011/matrix_pendo2011_10112014.txt"));
 		Random random = new Random();		
@@ -102,7 +126,7 @@ public class MODfromISTAT {
 			String cod = Util.uniformeCode(cc, cp);
 						
 			
-			Util.syso(i+" su 4876242 ");
+			//Util.syso(i+" su 4876242 ");
 			
 			if(!comuni.containsKey(cod)){				///crea nuovo comune
 				Comune c = new Comune(cc,cp);
@@ -122,7 +146,7 @@ public class MODfromISTAT {
 		for(String z:comuni.keySet()){
 			Util.syso(comuni.get(z).toString());
 			if(!comuni.get(z).getNome().equals("vuoto")){
-				if(comuni.get(z).centraConRegione(provinceInConsiderazione)){
+				if(comuni.get(z).centraConRegione(PROVINCIE)){
 					i++;
 				}
 				else{
@@ -133,7 +157,7 @@ public class MODfromISTAT {
 		
 		System.out.println();
 		System.out.println("numero dei comuni: "+comuni.size());
-		System.out.println("numero dei comuni che centrano con il Piemonte: "+i);
+		System.out.println("numero dei comuni che centrano con : "+NAME+" "+i);
 		System.out.println();
 		
 		i=0;
@@ -142,7 +166,7 @@ public class MODfromISTAT {
 		for(String j:comuni.keySet()){
 			g++;
 			if(!comuni.get(j).getNome().equals("vuoto")){
-				if(comuni.get(j).centraConRegione(provinceInConsiderazione)){
+				if(comuni.get(j).centraConRegione(PROVINCIE)){
 					comuniOk.put(j, comuni.get(j));
 //					sout(j);
 					i++;
@@ -179,12 +203,12 @@ public class MODfromISTAT {
 		String codper=Integer.parseInt(r[7].trim())+"-"+Integer.parseInt(r[8].trim());
 		
 		r[10]=r[10].trim();		
-		for(int i=0; i<MezziDiTrasporto.length;i++){
-			if(MezziDiTrasporto[i].equals(r[10])){
-				for(int j=0; j<regioniInConsiderazione.length; j++){
+		for(int i=0; i<MEZZI_DI_TRASPORTO.length;i++){
+			if(MEZZI_DI_TRASPORTO[i].equals(r[10])){
+				for(int j=0; j<INDICI_REGIONI.length; j++){
 					String [] s=codper.split("-");
 					int cp=Integer.parseInt(s[0]);
-					if(c.getRegione()==regioniInConsiderazione[j]||provinceInConsiderazione.contains(cp)){
+					if(c.getRegione()==INDICI_REGIONI[j]||PROVINCIE.contains(cp)){
 						if(r[14].trim().equals("ND")){
 							if((int) Double.parseDouble(r[13].trim())==0){
 								return false;
@@ -215,124 +239,124 @@ public class MODfromISTAT {
 	
 	private static ArrayList<Integer> SetprovinceInConsiderazione(){
 		ArrayList<Integer> p= new ArrayList<Integer>();
-		for(int i=0;i<regioniInConsiderazione.length;i++){
+		for(int i=0;i<INDICI_REGIONI.length;i++){
 			
-			if(regioniInConsiderazione[i]==1){
+			if(INDICI_REGIONI[i]==1){
 				Integer[] province1={1,2,3,4,5,6, 96,103};
 				for(int k=0; k<province1.length;k++){
 					p.add(province1[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==2){
+			if(INDICI_REGIONI[i]==2){
 				Integer[] province2={7};
 				for(int k=0; k<province2.length;k++){
 					p.add(province2[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==3){
+			if(INDICI_REGIONI[i]==3){
 				Integer[] province3={12,13,14,015,016,017,18,19,20,97,98,108};
 				for(int k=0; k<province3.length;k++){
 					p.add(province3[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==4){
+			if(INDICI_REGIONI[i]==4){
 				Integer[] province4={21,22};
 				for(int k=0; k<province4.length;k++){
 					p.add(province4[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==5){
+			if(INDICI_REGIONI[i]==5){
 				Integer[] province5={23,24,25,26,27,28,29};
 				for(int k=0; k<province5.length;k++){
 					p.add(province5[k]);
 				}
 			}
 			
-			if(regioniInConsiderazione[i]==6){
+			if(INDICI_REGIONI[i]==6){
 				Integer[] province6={30,31,32,93};
 				for(int k=0; k<province6.length;k++){
 					p.add(province6[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==7){
+			if(INDICI_REGIONI[i]==7){
 				Integer[] province7={8,9,10,11};
 				for(int k=0; k<province7.length;k++){
 					p.add(province7[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==8){
+			if(INDICI_REGIONI[i]==8){
 				Integer[] province8={33,34,35,36,37,38,39,40,99};
 				for(int k=0; k<province8.length;k++){
 					p.add(province8[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==9){
+			if(INDICI_REGIONI[i]==9){
 				Integer[] province9={45,46,47,48,49,50,51,52,53,100};
 				for(int k=0; k<province9.length;k++){
 					p.add(province9[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==10){
+			if(INDICI_REGIONI[i]==10){
 				Integer[] province10={54,55};
 				for(int k=0; k<province10.length;k++){
 					p.add(province10[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==11){
+			if(INDICI_REGIONI[i]==11){
 				Integer[] province11={41,42,43,44,109};
 				for(int k=0; k<province11.length;k++){
 					p.add(province11[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==12){
+			if(INDICI_REGIONI[i]==12){
 				Integer[] province12={56,57,58,59,60};
 				for(int k=0; k<province12.length;k++){
 					p.add(province12[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==13){
+			if(INDICI_REGIONI[i]==13){
 				Integer[] province13={66,67,68,69};
 				for(int k=0; k<province13.length;k++){
 					p.add(province13[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==14){
+			if(INDICI_REGIONI[i]==14){
 				Integer[] province14={70,94};
 				for(int k=0; k<province14.length;k++){
 					p.add(province14[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==15){
+			if(INDICI_REGIONI[i]==15){
 				Integer[] province15={61,62,63,64,65};
 				for(int k=0; k<province15.length;k++){
 					p.add(province15[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==16){
+			if(INDICI_REGIONI[i]==16){
 				Integer[] province16={71,72,73,74,75,110};
 				for(int k=0; k<province16.length;k++){
 					p.add(province16[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==17){
+			if(INDICI_REGIONI[i]==17){
 				Integer[] province17={76,77};
 				for(int k=0; k<province17.length;k++){
 					p.add(province17[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==18){
+			if(INDICI_REGIONI[i]==18){
 				Integer[] province18={78,79,80,101,102};
 				for(int k=0; k<province18.length;k++){
 					p.add(province18[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==19){
+			if(INDICI_REGIONI[i]==19){
 				Integer[] province19={81,82,83,84,85,86,87,88,89};
 				for(int k=0; k<province19.length;k++){
 					p.add(province19[k]);
 				}
 			}
-			if(regioniInConsiderazione[i]==20){
+			if(INDICI_REGIONI[i]==20){
 				Integer[] province20={90,91,92,95,104,105,106,107};
 				for(int k=0; k<province20.length;k++){
 					p.add(province20[k]);

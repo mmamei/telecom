@@ -2,24 +2,21 @@ package visual.r;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.rosuda.REngine.Rserve.RConnection;
 
-import region.RegionI;
-import region.RegionMap;
 import utils.Config;
-import cdrindividual.tourist.GTExtractor;
-
-import com.vividsolutions.jts.geom.Envelope;
 
 public class RPlotter {
 	
+	public static boolean WRITE_CSV_FILE_WITH_RAW_DATA = true;
 	public static boolean VIEW = true;
 	private static int FONT_SIZE = 40;
 	
@@ -239,7 +236,7 @@ public class RPlotter {
             	     + "ggplot(z,aes(x=x,y=y))"+(opts.contains("geom_point")?"":"+ geom_point()")+ " + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
             	     + "ggsave('"+file+"');"
             	     + "dev.off();";
-            //System.out.println(code);
+            System.out.println(code);
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -283,6 +280,16 @@ public class RPlotter {
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
+            
+            if(WRITE_CSV_FILE_WITH_RAW_DATA) {
+            	String csvfile = file.replaceAll(".png|.pdf", ".csv");
+            	PrintWriter out = new PrintWriter(new FileWriter(csvfile));
+            	for(int i=0; i<x.length;i++)
+            		out.println(x[i]+","+y[i]+","+labels[i]);
+            	out.close();
+            }
+            
+            
         } catch (Exception e) {
         	if(e.getMessage().startsWith("Cannot connect")) {
              	System.err.println("You must launch the following code in R");
@@ -461,6 +468,21 @@ public class RPlotter {
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
+            
+            
+            if(WRITE_CSV_FILE_WITH_RAW_DATA) {
+            	String csvfile = file.replaceAll(".png|.pdf", ".csv");
+            	PrintWriter out = new PrintWriter(new FileWriter(csvfile));
+            	for(int i=0; i<names.size();i++) {
+            		out.print(names.get(i));
+            		for(double d: y.get(i))
+            			out.print(","+d);
+            		out.println();
+            	}
+            	out.close();
+            }
+            
+            
         } catch (Exception e) {
         	e.printStackTrace();
         	if(e.getMessage().startsWith("Cannot connect")) {

@@ -278,7 +278,7 @@ public class Write {
 	
 	public static void Matrix(HashMap<String, Comune> comuni, Integer numeroFascieOrarie) throws Exception{
 		for(int orario=1; orario<=numeroFascieOrarie; orario++){
-			File file= new File("C:/BASE/ODMatrix/MatriceOD_-_"+MODfromISTAT.REGIONI[MODfromISTAT.regioniInConsiderazione[0]]+"_orario_uscita_-_"+orario+".csv");
+			File file= new File("C:/BASE/ODMatrix/MatriceOD_-_"+MODfromISTAT.REGIONI[MODfromISTAT.INDICI_REGIONI[0]]+"_orario_uscita_-_"+orario+".csv");
 			
 			ArrayList<String> list = new ArrayList<String>();
 //			contenente codice istat
@@ -295,9 +295,8 @@ public class Write {
 		    		+ "Matrice Origine Destinazione\n"
 		    		+ "--------------------------------------------------------------\n"
 		    		+ "-Metodo: ISTAT\n"
-		    		+ "-- Zona interessata: "+MODfromISTAT.REGIONI[MODfromISTAT.regioniInConsiderazione[0]]+"\n"
+		    		+ "-- Zona interessata: "+MODfromISTAT.REGIONI[MODfromISTAT.INDICI_REGIONI[0]]+"\n"
 		    		+ "-Fascia Oraria: "+orario+"\n");
-		    for(int i=2; i<8; i++) bw.write("\n");
 		    bw.write("--------------------------------------------------------------\n\n");
 		    
 		    

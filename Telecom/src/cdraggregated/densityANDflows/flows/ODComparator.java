@@ -1,12 +1,15 @@
 package cdraggregated.densityANDflows.flows;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import utils.AddMap;
 import utils.Config;
 import visual.r.RPlotter;
 import visual.text.TextPlotter;
@@ -19,40 +22,90 @@ public class ODComparator {
 	public static final boolean LOG = true;
 	public static final int THRESHOLD = 10;
 	
+	// istatH
+	// 1 prima delle 7,15;
+	// 2 dalle 7,15 alle 8,14;
+	// 3 dalle 8,15 alle 9,14;
+	// 4 dopo le 9,14;
+	
 	public static void main(String[] args) throws Exception {
-		
+		//go("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte",null,"Piemonte",1,new Francia2IstatCode(),new Francia2IstatCode());
+		go("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,"Lombardia",1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode(),null);
+	}
+	
+	
+	public static void go(String od_dir,FilenameFilter ff,String istatRegion,int istatH, ZoneConverter zc1, ZoneConverter zc2, String outdir) throws Exception {
 		
 		//String file1 = Config.getInstance().base_folder+"/ODMatrix/emilia-romagna/4421_mod_201509140800_201509140900_calabrese_emilia_regione+ascbologna.txt";
 		//String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_Emilia Romagna_orario_uscita_-_1.csv";
 		//ZoneConverter zc1 = new ObjectID2IstatCode("G:/DATASET/GEO/EmiliaRomagna/EmiliaRomagna.csv"); 
 		//ZoneConverter zc2 = new Francia2IstatCode();
 		
+		if(outdir == null)
+			outdir = od_dir;
 		
-		String file1 = Config.getInstance().base_folder+"/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte/od.csv";
-		String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_Piemonte_orario_uscita_-_1.csv";
-		ZoneConverter zc1 = new Francia2IstatCode(); 
-		ZoneConverter zc2 = new Francia2IstatCode();
+		if(ff == null) 
+			 ff = new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return true;
+				}};
 		
-		process(file1,file2,zc1,zc2);
+		
+		AddMap od1 = new AddMap();
+		Map<String,Object> tm1 = null;
+		
+		for(File f: new File(Config.getInstance().base_folder+"/ODMatrix/"+od_dir).listFiles(ff)) {
+			boolean ok = false;
+			if(f.getName().equals("latlon.csv")) continue;
+			
+			// if starts with od it follows the HW format. Otherwise the SMOD format
+			int h = f.getName().startsWith("od") ? Integer.parseInt(f.getName().split("-")[2]) : Integer.parseInt(f.getName().split("_")[3].substring(8, 10));
+			
+			if(istatH == 1 && h <= 7) ok = true;
+			if(istatH == 2 && h == 8) ok = true;
+			if(istatH == 3 && h == 9) ok = true;
+			if(istatH == 4 && h > 9 && h < 12) ok = true;
+			if(ok) {
+				if(tm1==null) tm1= parseHeader(f.getAbsolutePath());
+				od1.addAll(parse(f.getAbsolutePath(),zc1));	
+				System.out.println("Adding... "+f);
+			}
+		}
+		
+		
+		String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_"+istatRegion+"_orario_uscita_-_"+istatH+".csv";
+		
+		Map<String,Double> od2 = parse(file2, zc2);
+		Map<String,Object> tm2 = parseHeader(file2);
+		
+		
+		
+		process(od1,od2,tm1,tm2,Config.getInstance().paper_folder+"/img/od/"+outdir);
 	}
 	
-	public static void process(String file1, String file2, ZoneConverter zc1, ZoneConverter zc2) throws Exception {
+	public static void process(Map<String,Double> od1, Map<String,Double> od2, Map<String,Object> tm1, Map<String,Object> tm2, String odir) throws Exception {
 	
-		Map<String,Double> od = parse(file1, zc1);
-		Map<String,Double> od_istat = parse(file2, zc2);
+		odir = odir.replaceAll("_", "-");
+		
+		System.out.println(odir);
+		new File(odir).mkdirs();
 		
 		List<Double> lx = new ArrayList<Double>();
 		List<Double> ly = new ArrayList<Double>();
 		
-		for(String k: od.keySet()) {
-			double v1 = od.get(k);
-			Double v2 = od_istat.get(k);
+		for(String k: od1.keySet()) {
+			double v1 = od1.get(k);
+			Double v2 = od2.get(k);
 			if(v2!=null && v1 > THRESHOLD && v2 > THRESHOLD) {
 				//System.out.println(k+","+v1+","+v2);
 				lx.add(v1);
 				ly.add(v2);
 			}
 		}
+		
+		
+		System.out.println("OD1 SIZE = "+od1.size()+" OD2 SIZE = "+od2.size()+" N. COMPARISONS = "+lx.size());
 				
 		double[] x = new double[lx.size()];
 		double[] y = new double[ly.size()];
@@ -65,27 +118,22 @@ public class ODComparator {
 			}
 		}
 		
-		
-		Map<String,Object> tm1= parseHeader(file1);
-		Map<String,Object> tm2 = parseHeader(file2);
-		
-		file1 = file1.replaceAll("_|\\.", "-");
-		file2 = file2.replaceAll("_|\\.", "-");
-		
-		String imgFile = "img/od/"+tm1.get("name")+"-VS-"+tm2.get("name")+".pdf";
+		String imgFile = "Compare2-"+tm2.get("name")+".pdf";
 		
 		tm1.put("log", LOG);
-		tm1.put("img", imgFile);
+		tm1.put("img", odir.substring(Config.getInstance().paper_folder.length()+1)+"/"+imgFile);
 		
 		
 		String xlab = "Estimated"+(LOG?" (log)":"");
 		String ylab = "GroundTruth"+(LOG?" (log)":"");
 		
-		RPlotter.drawScatter(x, y, xlab, ylab, Config.getInstance().paper_folder+"/"+imgFile, "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
+		
+		
+		RPlotter.drawScatter(x, y, xlab, ylab, odir+"/"+imgFile, "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
 		
 		//create the map for text plotter with all relevant information
 		
-		TextPlotter.getInstance().run(tm1,"src/cdraggregated/densityANDflows/flows/ODComparator.ftl", Config.getInstance().paper_folder+"/"+imgFile.replaceAll(".pdf", ".tex"));
+		TextPlotter.getInstance().run(tm1,"src/cdraggregated/densityANDflows/flows/ODComparator.ftl", odir+"/"+imgFile.replaceAll(".pdf", ".tex"));
 				
 		
 	}
@@ -129,14 +177,14 @@ Matrice Origine Destinazione
 			int headerRows = 0;
 			while((line = br.readLine()).trim().length()>0) {
 				line = line.replaceAll("_", "-");
-				
+				headerRows ++;
 				if(line.matches("-+")) break;
 				
 				String[] el = line.split(":");
 				tm.put(el[0].replaceAll("-","").trim(), el[1].trim());
 				all.append("-"+el[1].trim().replaceAll(" ", "-"));
 			}
-			System.out.println("Procesed "+(headerRows+1)+" header rows");
+			System.out.println("Processed "+(headerRows+1)+" header rows");
 			
 			br.close();
 		}catch(Exception e) {
@@ -155,12 +203,23 @@ Matrice Origine Destinazione
 	}
 	
 	
-	public static Map<String,Double> parse(String file, ZoneConverter zc) throws Exception {
-		Map<String,Double> od = new HashMap<String,Double>();
-		BufferedReader br = new BufferedReader(new FileReader(file));
+	public static AddMap parse(String file, ZoneConverter zc) throws Exception {
 		
+		
+		System.out.println(file);
+		
+		
+		AddMap od = new AddMap();
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		int headerRows = 0;
 		String line;
-		for(int i=0; i<14;i++) br.readLine(); // skip header
+		while((line = br.readLine()).trim().length()>0)
+			headerRows++;
+		System.out.println("Skipped "+(headerRows+1)+" header rows");
+		
+		//line = br.readLine();
+		
+		
 		
 		
 		line = br.readLine().trim(); // read first row
@@ -183,7 +242,9 @@ Matrice Origine Destinazione
 			for(int j=1;j<codvals.length;j++) {
 				String a = zc == null ? cod[i] : zc.convert(cod[i]);
 				String b = zc == null ? cod[j-1] : zc.convert(cod[j-1]);
-				od.put(a+"-"+b, Double.parseDouble(codvals[j]));
+				double x = Double.parseDouble(codvals[j]);
+				if(x > 0)
+					od.add(a+"-"+b, x);
 			}
 				
 				
