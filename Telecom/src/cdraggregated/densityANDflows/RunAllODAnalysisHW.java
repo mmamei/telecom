@@ -294,7 +294,7 @@ public class RunAllODAnalysisHW {
  
 		// 14. compare with istat
 		
-		ODComparator.go(od_output_dir.getName(),null,MODfromISTAT.REGIONI[map.get(region)[0]],istatH,zc1,zc2,null);
+		ODComparator.compareWIstat(od_output_dir.getName(),null,MODfromISTAT.REGIONI[map.get(region)[0]],istatH,zc1,zc2,null);
 		
 		
 		endTime = System.currentTimeMillis();

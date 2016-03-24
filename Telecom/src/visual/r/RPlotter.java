@@ -18,7 +18,7 @@ public class RPlotter {
 	
 	public static boolean WRITE_CSV_FILE_WITH_RAW_DATA = true;
 	public static boolean VIEW = true;
-	private static int FONT_SIZE = 40;
+	public static int FONT_SIZE = 40;
 	
 	private static RConnection c = null;
 	
@@ -44,7 +44,7 @@ public class RPlotter {
             		 + "x <- ordered(x,levels=c(x));"
             	     + "z <- data.frame(x,y);"
             	     + "ggplot(z,aes(x=factor(x),y=y)) + geom_bar(stat='identity') + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"')"+end
-            	     + "ggsave('"+file+"');"
+            	     + "ggsave('"+file+"',width=10);"
             	     + "dev.off();";
             
             //System.out.println(code);

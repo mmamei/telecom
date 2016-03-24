@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+
 import utils.AddMap;
 import utils.Config;
 import visual.r.RPlotter;
@@ -19,8 +21,9 @@ import cdraggregated.densityANDflows.ZoneConverter;
 
 public class ODComparator {
 	
-	public static final boolean LOG = true;
-	public static final int THRESHOLD = 10;
+	public static boolean LOG = true;
+	public static boolean INTERCEPT = true;
+	public static int THRESHOLD = 10;
 	
 	// istatH
 	// 1 prima delle 7,15;
@@ -30,11 +33,104 @@ public class ODComparator {
 	
 	public static void main(String[] args) throws Exception {
 		//go("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte",null,"Piemonte",1,new Francia2IstatCode(),new Francia2IstatCode());
-		go("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,"Lombardia",1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode(),null);
+		//go("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,"Lombardia",1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode(),null);
+	
+		
+		/*
+		FilenameFilter ff1 = null;
+		FilenameFilter ff2 = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150504[0-9]+_20150504[0-9]+_calabrese_lombardia_comuni_istat.txt");
+			}
+		};
+		compareBetweenODs("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",ff1,"matrici_lombardia/orarie",ff2,
+				null,null,"ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia-VS-20150504_calabrese_lombardia_comuni_istat");
+		*/
+		
+		FilenameFilter ff1 = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150505[0-9]+_20150505[0-9]+_calabrese_lombardia_comuni_istat.txt");
+			}
+		};
+		
+		FilenameFilter ff2 = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150504[0-9]+_20150504[0-9]+_calabrese_lombardia_comuni_istat.txt");
+			}
+		};
+		compareBetweenODs("matrici_lombardia/orarie",ff1,"matrici_lombardia/orarie",ff2,
+				null,null,"20150505_calabrese_lombardia_comuni_istat-VS-20150504_calabrese_lombardia_comuni_istat");
+		
 	}
 	
 	
-	public static void go(String od_dir,FilenameFilter ff,String istatRegion,int istatH, ZoneConverter zc1, ZoneConverter zc2, String outdir) throws Exception {
+	public static void compareBetweenODs(String od1, FilenameFilter ff1, String od2, FilenameFilter ff2, ZoneConverter zc1, ZoneConverter zc2,String outdir) throws Exception {
+		
+
+		if(ff1 == null) 
+			ff1 = new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return true;
+				}};
+		if(ff2 == null) 
+			ff2 = new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return true;
+				}};
+		
+		
+		File[] f1 = new File[24];
+		for(File f: new File(Config.getInstance().base_folder+"/ODMatrix/"+od1).listFiles(ff1)) {
+			if(f.getName().equals("latlon.csv")) continue;
+			// if starts with od it follows the HW format. Otherwise the SMOD format
+			int h = f.getName().startsWith("od") ? Integer.parseInt(f.getName().split("-")[2]) : Integer.parseInt(f.getName().split("_")[3].substring(8, 10));
+			f1[h-1] = f;
+		}
+		
+		File[] f2 = new File[24];
+		
+		for(File f: new File(Config.getInstance().base_folder+"/ODMatrix/"+od2).listFiles(ff2)) {
+			if(f.getName().equals("latlon.csv")) continue;
+			// if starts with od it follows the HW format. Otherwise the SMOD format
+			int h = f.getName().startsWith("od") ? Integer.parseInt(f.getName().split("-")[2]) : Integer.parseInt(f.getName().split("_")[3].substring(8, 10));
+			f2[h-1] = f;
+		}
+		
+		
+		
+		String[] h = new String[24];
+		double[] r2 = new double[24];
+		for(int i=0;i<f1.length;i++) {
+			if(f1[i]!=null && f2[i]!=null) {
+				Map<String,Double> odm1 = parse(f1[i].getAbsolutePath(),zc1);
+				Map<String,Double> odm2 = parse(f2[i].getAbsolutePath(),zc2);
+				System.out.println(f1[i].getName()+" VS. "+f2[i].getName());
+				
+				Map<String,Object> tm1 = parseHeader(f1[i].getAbsolutePath());
+				Map<String,Object> tm2 = parseHeader(f2[i].getAbsolutePath());
+				r2[i] = process(odm1,odm2,tm1,tm2,null);
+			}
+			h[i] = String.valueOf(i);
+		}
+		
+		
+		new File(Config.getInstance().paper_folder+"/img/od/"+outdir.replaceAll("_", "-")).mkdirs();
+		
+		RPlotter.FONT_SIZE = 28;
+		RPlotter.drawBar(h, r2, "hour", "r2", Config.getInstance().paper_folder+"/img/od/"+outdir+"/r2.png", "");
+		
+	}
+	
+	
+	
+	
+	
+	public static void compareWIstat(String od_dir,FilenameFilter ff,String istatRegion,int istatH, ZoneConverter zc1, ZoneConverter zc2, String outdir) throws Exception {
 		
 		//String file1 = Config.getInstance().base_folder+"/ODMatrix/emilia-romagna/4421_mod_201509140800_201509140900_calabrese_emilia_regione+ascbologna.txt";
 		//String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_Emilia Romagna_orario_uscita_-_1.csv";
@@ -84,15 +180,14 @@ public class ODComparator {
 		process(od1,od2,tm1,tm2,Config.getInstance().paper_folder+"/img/od/"+outdir);
 	}
 	
-	public static void process(Map<String,Double> od1, Map<String,Double> od2, Map<String,Object> tm1, Map<String,Object> tm2, String odir) throws Exception {
 	
-		odir = odir.replaceAll("_", "-");
+	public static double process(Map<String,Double> od1, Map<String,Double> od2, Map<String,Object> tm1, Map<String,Object> tm2, String odir) throws Exception {
+	
 		
-		System.out.println(odir);
-		new File(odir).mkdirs();
 		
 		List<Double> lx = new ArrayList<Double>();
 		List<Double> ly = new ArrayList<Double>();
+		
 		
 		for(String k: od1.keySet()) {
 			double v1 = od1.get(k);
@@ -106,7 +201,7 @@ public class ODComparator {
 		
 		
 		System.out.println("OD1 SIZE = "+od1.size()+" OD2 SIZE = "+od2.size()+" N. COMPARISONS = "+lx.size());
-				
+		SimpleRegression sr = new SimpleRegression(INTERCEPT);
 		double[] x = new double[lx.size()];
 		double[] y = new double[ly.size()];
 		for(int i=0; i<x.length;i++) {
@@ -115,35 +210,41 @@ public class ODComparator {
 			if(LOG) {
 				x[i] = Math.log(x[i]);
 				y[i] = Math.log(y[i]);
+				sr.addData(x[i], y[i]);
 			}
 		}
 		
-		String imgFile = "Compare2-"+tm2.get("name")+".pdf";
 		
-		tm1.put("log", LOG);
-		tm1.put("img", odir.substring(Config.getInstance().paper_folder.length()+1)+"/"+imgFile);
+		double r2 = 0;
+		if(sr.getN() > 2) 
+			r2 = sr.getRSquare();
 		
-		
-		String xlab = "Estimated"+(LOG?" (log)":"");
-		String ylab = "GroundTruth"+(LOG?" (log)":"");
-		
-		
-		
-		RPlotter.drawScatter(x, y, xlab, ylab, odir+"/"+imgFile, "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
-		
-		//create the map for text plotter with all relevant information
-		
-		TextPlotter.getInstance().run(tm1,"src/cdraggregated/densityANDflows/flows/ODComparator.ftl", odir+"/"+imgFile.replaceAll(".pdf", ".tex"));
-				
-		
+		if(odir!=null) {
+			odir = odir.replaceAll("_", "-");
+			System.out.println(odir);
+			new File(odir).mkdirs();
+			
+			String imgFile = "Compare2-"+tm2.get("name")+".pdf";
+			
+			tm1.put("log", LOG);
+			
+			System.out.println(odir);
+			
+			tm1.put("img", odir.substring(Config.getInstance().paper_folder.length())+imgFile);
+			tm1.put("r2", r2);
+			
+			String xlab = "Estimated"+(LOG?" (log)":"");
+			String ylab = "GroundTruth"+(LOG?" (log)":"");
+			
+
+			RPlotter.drawScatter(x, y, xlab, ylab, odir+"/"+imgFile, "stat_smooth(method=lm,colour='black') + geom_point(alpha=0.4,size = 5)");
+			
+			//create the map for text plotter with all relevant information
+			
+			TextPlotter.getInstance().run(tm1,"src/cdraggregated/densityANDflows/flows/ODComparator.ftl", odir+"/"+imgFile.replaceAll(".pdf", ".tex"));
+		}
+		return r2;
 	}
-	
-	private static Map<String,String> REGION2REGION = new HashMap<>();
-	static {
-		REGION2REGION.put("piem", "Piemonte");
-		REGION2REGION.put("lomb", "Lombardia");
-	}
-	
 	
 	
 	/*

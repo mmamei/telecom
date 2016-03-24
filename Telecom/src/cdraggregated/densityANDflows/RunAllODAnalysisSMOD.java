@@ -55,7 +55,6 @@ public class RunAllODAnalysisSMOD {
 		
 		
 		
-		
 		// 1. project into road
 		
 		
@@ -156,7 +155,7 @@ public class RunAllODAnalysisSMOD {
 		 
 		// 3. compare with istat
 				
-		ODComparator.go(od_dir,ff,MODfromISTAT.REGIONI[map.get(osmName)[0]],istatH,zc1,zc2,baseName);
+		ODComparator.compareWIstat(od_dir,ff,MODfromISTAT.REGIONI[map.get(osmName)[0]],istatH,zc1,zc2,baseName);
 				
 				
 		endTime = System.currentTimeMillis();
