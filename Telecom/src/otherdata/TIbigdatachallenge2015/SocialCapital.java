@@ -102,10 +102,10 @@ public class SocialCapital {
 	
 	public static void main(String[] args) throws Exception {
 		SocialCapital sc = SocialCapital.getInstance();
-		//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
-		//rm.setName("social-capital-blood");
-		//Map<String,Double> blood = sc.getBlood();
-		//KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+rm.getName()+".kml",blood,rm,"",false);
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/prov2011.ser"));
+		rm.setName("soccap");
+		Map<String,Double> x = sc.getSocCap();
+		KMLHeatMap.drawHeatMap(Config.getInstance().base_folder+"/TIC2015/"+rm.getName()+".kml",x,rm,"",false);
 	}
 	
 }

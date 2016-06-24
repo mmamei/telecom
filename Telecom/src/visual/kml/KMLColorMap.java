@@ -44,18 +44,36 @@ public class KMLColorMap {
 		KML kml = new KML();
 		kml.printHeaderFolder(out, rm.getName());
 		
+		int cont = 0;
 		for(RegionI r: rm.getRegions()) {
-			
-			Integer cluster = assignments.get(r.getName());
+			Integer cluster = cont;
+			if(assignments != null)
+				cluster = assignments.get(r.getName());
 			if(cluster != null) {
 				r.setDescription(desc.get(r.getName()));
 				out.println(r.toKml(Colors.RANDOM_COLORS[cluster%Colors.RANDOM_COLORS.length],"44aaaaaa"));
 			}
+			cont++;
 		}
 	
 		
 		kml.printFooterFolder(out);
 		out.close();
+	}
+	
+	
+	public static Map<String,Integer> toIntAssignments(Map<String,String> m) {
+		int cont = 0;
+		Map<String,Integer> value2int = new HashMap<>();
+		for(String x: m.values())
+			if(value2int.get(x) == null)
+				value2int.put(x, cont++);
+		
+		Map<String,Integer> assignments = new HashMap<>();
+		for(String k: m.keySet())
+			assignments.put(k, value2int.get(m.get(k)));
+		
+		return assignments;
 	}
 	
 	

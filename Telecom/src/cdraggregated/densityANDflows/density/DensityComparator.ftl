@@ -6,8 +6,6 @@ Figure \ref{${img}} shows results of the correlation<#if (log)> (results are dep
 
 
 
-
-
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.45\columnwidth]{${img}}

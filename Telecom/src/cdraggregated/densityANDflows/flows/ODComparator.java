@@ -1,11 +1,8 @@
 package cdraggregated.densityANDflows.flows;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,12 +15,15 @@ import visual.text.TextPlotter;
 import cdraggregated.densityANDflows.Francia2IstatCode;
 import cdraggregated.densityANDflows.ObjectID2IstatCode;
 import cdraggregated.densityANDflows.ZoneConverter;
+import cdraggregated.densityANDflows.flows.scale.ScaleOnResidents;
 
 public class ODComparator {
 	
 	public static boolean LOG = true;
 	public static boolean INTERCEPT = true;
 	public static int THRESHOLD = 10;
+	
+	
 	
 	// istatH
 	// 1 prima delle 7,15;
@@ -32,38 +32,101 @@ public class ODComparator {
 	// 4 dopo le 9,14;
 	
 	public static void main(String[] args) throws Exception {
-		//go("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte",null,"Piemonte",1,new Francia2IstatCode(),new Francia2IstatCode());
-		//go("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,"Lombardia",1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode(),null);
-	
 		
+		ScaleOnResidents.PLOT_DEBUG = false;
 		/*
-		FilenameFilter ff1 = null;
-		FilenameFilter ff2 = new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-			return name.matches("[0-9]+_mod_20150504[0-9]+_20150504[0-9]+_calabrese_lombardia_comuni_istat.txt");
-			}
-		};
-		compareBetweenODs("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",ff1,"matrici_lombardia/orarie",ff2,
-				null,null,"ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia-VS-20150504_calabrese_lombardia_comuni_istat");
+		for(int istatH=1;istatH<=4;istatH++)
+		compareWIstat("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,"Lombardia",istatH,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),null);
+	
+		for(int istatH=1;istatH<=4;istatH++)
+		compareWIstat("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odpiemonte",null,"Piemonte",istatH,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odpiemonte.csv"),null);
+		
+		for(int istatH=1;istatH<=4;istatH++)
+		compareWIstat("ODMatrixHW_file_pls_er_file_pls_er_01-04-2015-30-04-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odemiliaromagna",null,"Emilia Romagna",istatH,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv"),null);
 		*/
 		
-		FilenameFilter ff1 = new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-			return name.matches("[0-9]+_mod_20150505[0-9]+_20150505[0-9]+_calabrese_lombardia_comuni_istat.txt");
-			}
-		};
+		for(int istatH=1;istatH<=4;istatH++)
+		compareWIstat("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia-scaled-on-residents",null,"Lombardia",istatH,null,null);
 		
-		FilenameFilter ff2 = new FilenameFilter() {
+		for(int istatH=1;istatH<=4;istatH++)
+		compareWIstat("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odpiemonte-scaled-on-residents",null,"Piemonte",istatH,null,null);
+			
+		for(int istatH=1;istatH<=4;istatH++)
+		compareWIstat("ODMatrixHW_file_pls_er_file_pls_er_01-04-2015-30-04-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odemiliaromagna-scaled-on-residents",null,"Emilia Romagna",istatH,null,null);
+			
+		
+		/*
+		THRESHOLD = 100;
+		FilenameFilter ff= null;
+		
+		ff = new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 			return name.matches("[0-9]+_mod_20150504[0-9]+_20150504[0-9]+_calabrese_lombardia_comuni_istat.txt");
 			}
 		};
-		compareBetweenODs("matrici_lombardia/orarie",ff1,"matrici_lombardia/orarie",ff2,
-				null,null,"20150505_calabrese_lombardia_comuni_istat-VS-20150504_calabrese_lombardia_comuni_istat");
+		for(int istatH=1;istatH<=4;istatH++)
+			compareWIstat("matrici_lombardia/orarie",ff,"Lombardia",istatH,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),null);
 		
+		ff = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150527[0-9]+_20150527[0-9]+_calabrese_piemonte_comuni\\+torinoasc.txt");
+			}
+		};
+		for(int istatH=1;istatH<=4;istatH++)
+			compareWIstat("matrici_piemonte/orarie",ff,"Piemonte",istatH,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odpiemonte.csv"),null);
+		
+		
+		ff = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150416[0-9]+_20150416[0-9]+_calabrese_emilia_regione\\+ascbologna.txt");
+			}
+		};
+		for(int istatH=1;istatH<=4;istatH++)
+			compareWIstat("matrici_emilia/orarie",ff,"Emilia Romagna",istatH,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv"),null);
+		*/
+		
+		
+		
+		
+		/*
+		THRESHOLD = 10;
+		FilenameFilter ff = null;
+		ff = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150504[0-9]+_20150504[0-9]+_calabrese_lombardia_comuni_istat.txt");
+			}
+		};
+		compareBetweenODs("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,"matrici_lombardia/orarie",ff,
+				null,null,"ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia-VS-20150504_calabrese_lombardia_comuni_istat");
+		
+		
+		
+		ff = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150527[0-9]+_20150527[0-9]+_calabrese_piemonte_comuni\\+torinoasc.txt");
+			}
+		};
+		compareBetweenODs("ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odpiemonte",null,"matrici_piemonte/orarie",ff,
+				null,null,"ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odpiemonte-VS-20150504_calabrese_piemonte_comuni_istat");
+		
+		
+		
+		ff = new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+			return name.matches("[0-9]+_mod_20150416[0-9]+_20150416[0-9]+_calabrese_emilia_regione\\+ascbologna.txt");
+			}
+		};
+		compareBetweenODs("ODMatrixHW_file_pls_er_file_pls_er_01-04-2015-30-04-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odemiliaromagna",null,"matrici_emilia/orarie",ff,
+				null,null,"ODMatrixHW_file_pls_er_file_pls_er_01-04-2015-30-04-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odemiliaromagna-VS-20150504_calabrese_emilia_comuni_istat");
+			
+		
+		*/
 	}
 	
 	
@@ -107,12 +170,12 @@ public class ODComparator {
 		double[] r2 = new double[24];
 		for(int i=0;i<f1.length;i++) {
 			if(f1[i]!=null && f2[i]!=null) {
-				Map<String,Double> odm1 = parse(f1[i].getAbsolutePath(),zc1);
-				Map<String,Double> odm2 = parse(f2[i].getAbsolutePath(),zc2);
+				Map<String,Double> odm1 = ODParser.parse(f1[i].getAbsolutePath(),zc1);
+				Map<String,Double> odm2 = ODParser.parse(f2[i].getAbsolutePath(),zc2);
 				System.out.println(f1[i].getName()+" VS. "+f2[i].getName());
 				
-				Map<String,Object> tm1 = parseHeader(f1[i].getAbsolutePath());
-				Map<String,Object> tm2 = parseHeader(f2[i].getAbsolutePath());
+				Map<String,Object> tm1 = ODParser.parseHeader(f1[i].getAbsolutePath());
+				Map<String,Object> tm2 = ODParser.parseHeader(f2[i].getAbsolutePath());
 				r2[i] = process(odm1,odm2,tm1,tm2,null);
 			}
 			h[i] = String.valueOf(i);
@@ -122,7 +185,7 @@ public class ODComparator {
 		new File(Config.getInstance().paper_folder+"/img/od/"+outdir.replaceAll("_", "-")).mkdirs();
 		
 		RPlotter.FONT_SIZE = 28;
-		RPlotter.drawBar(h, r2, "hour", "r2", Config.getInstance().paper_folder+"/img/od/"+outdir+"/r2.png", "");
+		RPlotter.drawBar(h, r2, "hour", "r2", Config.getInstance().paper_folder+"/img/od/"+outdir+"/r2.pdf", "");
 		
 	}
 	
@@ -130,7 +193,7 @@ public class ODComparator {
 	
 	
 	
-	public static void compareWIstat(String od_dir,FilenameFilter ff,String istatRegion,int istatH, ZoneConverter zc1, ZoneConverter zc2, String outdir) throws Exception {
+	public static double compareWIstat(String od_dir,FilenameFilter ff,String istatRegion,int istatH, ZoneConverter zc1, String outdir) throws Exception {
 		
 		//String file1 = Config.getInstance().base_folder+"/ODMatrix/emilia-romagna/4421_mod_201509140800_201509140900_calabrese_emilia_regione+ascbologna.txt";
 		//String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_Emilia Romagna_orario_uscita_-_1.csv";
@@ -151,7 +214,9 @@ public class ODComparator {
 		AddMap od1 = new AddMap();
 		Map<String,Object> tm1 = null;
 		
-		for(File f: new File(Config.getInstance().base_folder+"/ODMatrix/"+od_dir).listFiles(ff)) {
+		File based = new File(Config.getInstance().base_folder+"/ODMatrix/"+od_dir);
+		System.out.println(based);
+		for(File f: based.listFiles(ff)) {
 			boolean ok = false;
 			if(f.getName().equals("latlon.csv")) continue;
 			
@@ -163,21 +228,24 @@ public class ODComparator {
 			if(istatH == 3 && h == 9) ok = true;
 			if(istatH == 4 && h > 9 && h < 12) ok = true;
 			if(ok) {
-				if(tm1==null) tm1= parseHeader(f.getAbsolutePath());
-				od1.addAll(parse(f.getAbsolutePath(),zc1));	
+				if(tm1==null) tm1= ODParser.parseHeader(f.getAbsolutePath());
+				AddMap odx = ODParser.parse(f.getAbsolutePath(),zc1);
+				od1.addAll(odx);	
 				System.out.println("Adding... "+f);
 			}
 		}
 		
 		
-		String file2 = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_"+istatRegion+"_orario_uscita_-_"+istatH+".csv";
+		String istatFile = Config.getInstance().base_folder+"/ODMatrix/MatriceOD_-_"+istatRegion+"_orario_uscita_-_"+istatH+".csv";
 		
-		Map<String,Double> od2 = parse(file2, zc2);
-		Map<String,Object> tm2 = parseHeader(file2);
+		Map<String,Double> od2 = ODParser.parse(istatFile, new Francia2IstatCode());
+		Map<String,Object> tm2 = ODParser.parseHeader(istatFile);
 		
+		tm1.put("log", LOG);
+		tm1.put("istatH", istatH);
+		tm1.put("region",istatRegion);
 		
-		
-		process(od1,od2,tm1,tm2,Config.getInstance().paper_folder+"/img/od/"+outdir);
+		return process(od1,od2,tm1,tm2,Config.getInstance().paper_folder+"/img/od/"+outdir);
 	}
 	
 	
@@ -192,7 +260,8 @@ public class ODComparator {
 		for(String k: od1.keySet()) {
 			double v1 = od1.get(k);
 			Double v2 = od2.get(k);
-			if(v2!=null && v1 > THRESHOLD && v2 > THRESHOLD) {
+			if(v2 == null) v2 = 0.0;
+			if(v1 > THRESHOLD && v2 > THRESHOLD) {
 				//System.out.println(k+","+v1+","+v2);
 				lx.add(v1);
 				ly.add(v2);
@@ -226,11 +295,10 @@ public class ODComparator {
 			
 			String imgFile = "Compare2-"+tm2.get("name")+".pdf";
 			
-			tm1.put("log", LOG);
 			
-			System.out.println(odir);
+			System.out.println(odir+" ===================> r2 ="+r2);
 			
-			tm1.put("img", odir.substring(Config.getInstance().paper_folder.length())+imgFile);
+			tm1.put("img", odir.substring(Config.getInstance().paper_folder.length()+1)+"/"+imgFile);
 			tm1.put("r2", r2);
 			
 			String xlab = "Estimated"+(LOG?" (log)":"");
@@ -247,114 +315,11 @@ public class ODComparator {
 	}
 	
 	
-	/*
---------------------------------------------------------------
-Matrice Origine Destinazione
---------------------------------------------------------------
-- Metodo: HW
-- Zona interessata: odpiemonte
-- Istante di inizio: 01-06-2015
-- Soglia per italiani: 400
-- Applicato filtro privacy: 1
-- # di utenti su utenti del campione: 1000
-- Tipologia utenti: Tutti
-- Istante di fine: 01-07-2015
-- Soglia per stranieri: 400
--------------------------------------------------------------- 
-	*/
-	
-
-	
-	public static Map<String,Object> parseHeader(String file) {
-		Map<String,Object> tm = new HashMap<String,Object>();
-		StringBuffer all = new StringBuffer();
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(file));
-			
-			br.readLine();
-			br.readLine();
-			br.readLine();
-			String line;
-			int headerRows = 0;
-			while((line = br.readLine()).trim().length()>0) {
-				line = line.replaceAll("_", "-");
-				headerRows ++;
-				if(line.matches("-+")) break;
-				
-				String[] el = line.split(":");
-				tm.put(el[0].replaceAll("-","").trim(), el[1].trim());
-				all.append("-"+el[1].trim().replaceAll(" ", "-"));
-			}
-			System.out.println("Processed "+(headerRows+1)+" header rows");
-			
-			br.close();
-		}catch(Exception e) {
-			e.printStackTrace();
-		}
-
-		
-		tm.put("name", all.substring(1));
-		
-		for(String k: tm.keySet())
-			System.out.println(k+" --> "+tm.get(k));
-		
-		
-		
-		return tm;
-	}
 	
 	
-	public static AddMap parse(String file, ZoneConverter zc) throws Exception {
-		
-		
-		System.out.println(file);
-		
-		
-		AddMap od = new AddMap();
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		int headerRows = 0;
-		String line;
-		while((line = br.readLine()).trim().length()>0)
-			headerRows++;
-		System.out.println("Skipped "+(headerRows+1)+" header rows");
-		
-		//line = br.readLine();
-		
-		
-		
-		
-		line = br.readLine().trim(); // read first row
-		
-		
-		if(line.startsWith("\t\t"))
-			line = line.replaceFirst("\t", "");
-		
-		String[] cod = line.split("\t");
-		
-		int i = 0;
-		while((line=br.readLine())!=null) {
-			
-			
-			if(line.startsWith("\t"))
-				line = line.replaceFirst("\t", "");
-			
-			String[] codvals = line.split("\t");
-			if(!codvals[0].equals(cod[i])) System.err.println("error");
-			for(int j=1;j<codvals.length;j++) {
-				String a = zc == null ? cod[i] : zc.convert(cod[i]);
-				String b = zc == null ? cod[j-1] : zc.convert(cod[j-1]);
-				double x = Double.parseDouble(codvals[j]);
-				if(x > 0)
-					od.add(a+"-"+b, x);
-			}
-				
-				
-			i++;
-		}
-		br.close();
-		return od;
-		
-	}
+	
+	
+	
 	
 	
 	

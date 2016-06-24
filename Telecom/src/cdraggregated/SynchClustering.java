@@ -22,6 +22,8 @@ import region.RegionMap;
 import utils.AddMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.ListMapArrayBasicUtils;
+import utils.Mail;
 import visual.kml.KMLColorMap;
 import visual.r.RPlotter;
 import visual.text.TextPlotter;
@@ -37,7 +39,7 @@ import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.unsupervised.attribute.PrincipalComponents;
 import weka.filters.unsupervised.attribute.Remove;
 import cdraggregated.SynchAnalysis.Analysis;
-import cdraggregated.SynchAnalysis.Feature;
+import cdraggregated.SynchCompute.Feature;
 
 public class SynchClustering {
 	
@@ -45,35 +47,34 @@ public class SynchClustering {
 	
 	public static boolean USE_RELATIVE_TH = true;
 	
-	public static int DEMOGRAPHIC_RES_THRESHOLD = 200;
 	
-	private enum Cluster {XMEANS,DBSCAN};
+	private enum Cluster {XMEANS,DBSCAN,ALLTOGETHER,ALLDISJOINT};
 	public static Cluster USEC = Cluster.DBSCAN;
 	
-	public static boolean PCA = true;
+	public static boolean PCA = false;
 	
 	public static void main(String[] args) throws Exception {
 		
-		/*
-		/// RUN ALL
 		
+		/// RUN ALL
+		RPlotter.VIEW = false;
 		for(Cluster usec: Cluster.values()) {
 			USEC = usec;
-			for(Feature f: SynchAnalysis.Feature.values()) {
-				SynchAnalysis.USEF = f;
+			for(Feature f: SynchCompute.Feature.values()) {
+				SynchCompute.USEF = f;
 				for (boolean th: new boolean[]{true,false}) {
 					USE_RELATIVE_TH = th;
 					for (boolean pca: new boolean[]{true,false}) {
 						PCA = pca;
 						for(int tw: new int[]{-1,24}) {
-							SynchAnalysis.TIME_WINDOW = tw;
+							SynchCompute.TIME_WINDOW = tw;
 							
-							if(SynchAnalysis.USEF.equals(Feature.I)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
-							if(SynchAnalysis.USEF.equals(Feature.RSQ)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
-							if(SynchAnalysis.USEF.equals(Feature.EU)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~EU~'('~res[r]~';'~res[i!=r]~')')" : "expression(EU~'(res;!res)')";
+							if(SynchCompute.USEF.equals(Feature.I)) SynchCompute.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
+							if(SynchCompute.USEF.equals(Feature.RSQ)) SynchCompute.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
+							if(SynchCompute.USEF.equals(Feature.EU)) SynchCompute.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~EU~'('~res[r]~';'~res[i!=r]~')')" : "expression(EU~'(res;!res)')";
 							
 							
-							System.err.println(USEC+" "+SynchAnalysis.USEF+" REL_TH = "+USE_RELATIVE_TH+" PCA = "+PCA+" TW = "+SynchAnalysis.TIME_WINDOW);
+							System.err.println(USEC+" "+SynchCompute.USEF+" REL_TH = "+USE_RELATIVE_TH+" PCA = "+PCA+" TW = "+SynchCompute.TIME_WINDOW);
 							go();
 						}
 					}
@@ -82,37 +83,41 @@ public class SynchClustering {
 		}
 		
 		Mail.send("batch complete");
-		*/
 		
 		
+		/*
 		/// RUN SINGLE
 		
-		USEC = Cluster.DBSCAN;
+		USEC = Cluster.XMEANS;
 		PCA = true;
-		SynchAnalysis.USEF = SynchAnalysis.Feature.I;
+		SynchCompute.USEF = SynchCompute.Feature.RSQ;
 		
-		if(SynchAnalysis.USEF.equals(Feature.I)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
-		if(SynchAnalysis.USEF.equals(Feature.RSQ)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
-		if(SynchAnalysis.USEF.equals(Feature.EU)) SynchAnalysis.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~EU~'('~res[r]~';'~res[i!=r]~')')" : "expression(EU~'(res;!res)')";
+		if(SynchCompute.USEF.equals(Feature.I)) SynchCompute.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~I~'('~res[r]~';'~res[i!=r]~')')" : "expression(I~'(res;!res)')";
+		if(SynchCompute.USEF.equals(Feature.RSQ)) SynchCompute.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~bar(R)^{2}~'('~res[r]~','~res[i!=r]~')')" : "expression(bar(R)^{2}~'(res,!res)')";
+		if(SynchCompute.USEF.equals(Feature.EU)) SynchCompute.USE_FEATURE = (SynchAnalysis.TYPE.equals(Analysis.DEMOGRAPHIC_RES)) ? "expression(avg[i]~EU~'('~res[r]~';'~res[i!=r]~')')" : "expression(EU~'(res;!res)')";
 		
-		USE_RELATIVE_TH = false;
-		SynchAnalysis.TIME_WINDOW = 24;
+		USE_RELATIVE_TH = true;
+		SynchCompute.TIME_WINDOW = 24;
 		go();
-		
+		*/
 		
 	}
 	
 	static String STRINGF = "F";
+	
+	static List<String> bigCities = new ArrayList<String>();
+	static {
+		bigCities.add("napoli");bigCities.add("bari");bigCities.add("palermo");bigCities.add("roma");bigCities.add("venezia");bigCities.add("torino");bigCities.add("milano");
+	}
+	
 	public static void go() throws Exception {
 		
 		
-		if(SynchAnalysis.USEF.equals(SynchAnalysis.Feature.I)) STRINGF = "I";
-		if(SynchAnalysis.USEF.equals(SynchAnalysis.Feature.RSQ)) STRINGF = "R2";
-		if(SynchAnalysis.USEF.equals(SynchAnalysis.Feature.EU)) STRINGF = "EU";
+		if(SynchCompute.USEF.equals(SynchCompute.Feature.I)) STRINGF = "I";
+		if(SynchCompute.USEF.equals(SynchCompute.Feature.RSQ)) STRINGF = "R2";
+		if(SynchCompute.USEF.equals(SynchCompute.Feature.EU)) STRINGF = "EU";
 		
 		String[] cities = SynchAnalysis.CITIES;
-		
-		
 		
 		List<String> ln = new ArrayList<String>();
 		List<double[]> all = new ArrayList<double[]>();
@@ -121,42 +126,38 @@ public class SynchClustering {
 		double[] intrainterdiff = new double[cities.length];
 		
 		
-		List<String> bigCities = new ArrayList<String>();
-		bigCities.add("napoli");bigCities.add("bari");bigCities.add("palermo");bigCities.add("roma");bigCities.add("venezia");bigCities.add("torino");bigCities.add("milano");
 		
 		for(int i=0; i<cities.length;i++) {
 			String city = cities[i];
-			
-			
-			//if(city.equals("roma") || city.equals("milano")) DEMOGRAPHIC_RES_THRESHOLD = 0;
-			if(bigCities.contains(city)) DEMOGRAPHIC_RES_THRESHOLD = 200;
-			else DEMOGRAPHIC_RES_THRESHOLD = 100;
-			
-			
-			//DEMOGRAPHIC_RES_THRESHOLD = SynchAnalysis.CITY_POP.get(city) / 1000;
-			
 			
 			if(!QUIET) System.out.println("\n\n*************************************************** START PROCESSING "+city.toUpperCase());
 			DescriptiveStatistics[] all_intra_inter = run(city);
 			ln.add(city);
 			all.add(all_intra_inter[0].getValues());
 			intra.add(all_intra_inter[1].getValues());
-			if(all_intra_inter[2].getValues().length !=0) inter.add(all_intra_inter[2].getValues());
-			else inter.add(all_intra_inter[1].getValues()); // if inter is empty (meaning just 1 clutser, usa intra instead
+			inter.add(all_intra_inter[2].getValues());
+			
+			// This was a piece of code that in the case iter distribution is 0 (1 cluster) use itra distribution instead 
+			//if(all_intra_inter[2].getValues().length !=0) inter.add(all_intra_inter[2].getValues());
+			//else inter.add(all_intra_inter[1].getValues()); // if inter is empty (meaning just 1 clutser, usa intra instead
+			
 			//intrainterdiff[i] = all_intra_inter[1].getMean()-all_intra_inter[2].getMean();
 			intrainterdiff[i] = all_intra_inter[1].getPercentile(50)-all_intra_inter[2].getPercentile(50);
 			if(!QUIET) System.out.println("\n\n*************************************************** END PROCESSING "+city.toUpperCase());
 		}
 		
 		
-		String dir = Config.getInstance().paper_folder+"/img/batch/"+USEC+(PCA?"wPCA":"")+"-"+(USE_RELATIVE_TH?"REL-TH":"ABS-TH")+"-"+SynchAnalysis.USEF+""+SynchAnalysis.TIME_WINDOW;
+		String dir = Config.getInstance().paper_folder+"/img/batch/"+USEC+(PCA?"wPCA":"")+"-"+(USE_RELATIVE_TH?"REL-TH":"ABS-TH")+"-"+SynchCompute.USEF+""+SynchCompute.TIME_WINDOW;
 		new File(dir).mkdirs();
 		System.err.println(dir);
-		RPlotter.VIEW = true;
+		//RPlotter.VIEW = true;
 		
 		RPlotter.drawBoxplot(all,ln,"comuni2012","all-"+STRINGF,dir+"/boxplot-cluster-all.png",20,null);
-		RPlotter.drawBoxplot(inter,ln,"comuni2012","inter-"+STRINGF,dir+"/boxplot-cluster-inter.png",20,null);
-		RPlotter.drawBoxplot(intra,ln,"comuni2012","intra-"+STRINGF,dir+"/boxplot-cluster-intra.png",20,null);
+		RPlotter.drawBoxplot(inter,ln,"comuni2012","between-"+STRINGF,dir+"/boxplot-cluster-between.png",20,null);
+		RPlotter.drawBoxplot(intra,ln,"comuni2012","within-"+STRINGF,dir+"/boxplot-cluster-within.png",20,null);
+		
+		//System.exit(0);
+		
 		
 		//RPlotter.drawBar(ln.toArray(new String[cities.length]), intrainterdiff, "cities", "intra - inter", dir+"/intra-inter.png", "");
 		
@@ -164,40 +165,42 @@ public class SynchClustering {
 		Map<String,Double> avg_comuni = new HashMap<String,Double>();
 		Map<String,Double> avg_province = new HashMap<String,Double>();
 		Map<String,Double> avg_regioni = new HashMap<String,Double>();
-		for(int i=0; i<ln.size();i++) {
+		for(int i=0; i<ln.size();i++) { // [napoli, bari, caltanissetta, siracusa, benevento, palermo, campobasso, roma, siena, ravenna, ferrara, venezia, torino, asti, milano]
 			String key = (ln.get(i)+"-"+(SynchAnalysis.city2region.get(ln.get(i)).replaceAll("-", " ")).toLowerCase());
 			//System.out.println("*** "+key);
-			String cid = MEF_IRPEF_BLOG.name2id().get(key);
+			String cid = MEF_IRPEF_BLOG.name2id().get(key); // comune id (es. 63049 = Napoli)
 			//System.out.println(key+" ==> "+cid);
-			avg_comuni.put(cid, avg(inter.get(i)));
-			avg_province.put(ln.get(i).toUpperCase(), avg(inter.get(i)));
-			avg_regioni.put(SynchAnalysis.city2region.get(ln.get(i)), avg(inter.get(i)));
+			
+			double avg_inter = ListMapArrayBasicUtils.avg(inter.get(i));
+			avg_comuni.put(cid, avg_inter); 
+			avg_province.put(ln.get(i).toUpperCase(), avg_inter);
+			avg_regioni.put(SynchAnalysis.city2region.get(ln.get(i)), avg_inter);
 			
 		}
 		Deprivation dp = Deprivation.getInstance();
-		SynchAnalysis.plotCorrelation(avg_regioni,dp.getDepriv(),SynchAnalysis.USE_FEATURE,"deprivation",dir+"/clustering-deprivazione.png",null,true);
+		RPlotter.plotCorrelation(avg_regioni,dp.getDepriv(),SynchCompute.USE_FEATURE,"deprivation",dir+"/clustering-deprivazione.png",null,true);
 		
 		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
 		
-		SynchAnalysis.plotCorrelation(avg_comuni,mi.redditoPC(false),SynchAnalysis.USE_FEATURE,"per-capita income",dir+"/clustering-redPC.png",id2name,true);
+		RPlotter.plotCorrelation(avg_comuni,mi.redditoPC(false),SynchCompute.USE_FEATURE,"per-capita income",dir+"/clustering-redPC.png",id2name,true);
 		//SynchAnalysis.plotCorrelation(avg_comuni,mi.gini(false),SynchAnalysis.USE_FEATURE,"Gini",dir+"/clustering-gini.png",id2name,true);
-		SynchAnalysis.plotCorrelation(avg_province,mi.redditoPCProvince(),SynchAnalysis.USE_FEATURE,"per-capita income prov",dir+"/clustering-redPCP.png",null,true);
+		RPlotter.plotCorrelation(avg_province,mi.redditoPCProvince(),SynchCompute.USE_FEATURE,"per-capita income prov",dir+"/clustering-redPCP.png",null,true);
 		
 		
 		
 		SocialCapital sc = SocialCapital.getInstance();
-		SynchAnalysis.plotCorrelation(avg_province,sc.getAssoc(),SynchAnalysis.USE_FEATURE,"assoc",dir+"/clustering-assoc.png",null,true);
-		SynchAnalysis.plotCorrelation(avg_province,sc.getReferendum(),SynchAnalysis.USE_FEATURE,"referendum",dir+"/clustering-referendum.png",null,true);
-		SynchAnalysis.plotCorrelation(avg_province,sc.getBlood(),SynchAnalysis.USE_FEATURE,"blood",dir+"/clustering-blood.png",null,true);
-		SynchAnalysis.plotCorrelation(avg_province,sc.getSocCap(),SynchAnalysis.USE_FEATURE,"soccap",dir+"/clustering-soccap.png",null,true);
+		RPlotter.plotCorrelation(avg_province,sc.getAssoc(),SynchCompute.USE_FEATURE,"assoc",dir+"/clustering-assoc.png",null,true);
+		RPlotter.plotCorrelation(avg_province,sc.getReferendum(),SynchCompute.USE_FEATURE,"referendum",dir+"/clustering-referendum.png",null,true);
+		RPlotter.plotCorrelation(avg_province,sc.getBlood(),SynchCompute.USE_FEATURE,"blood",dir+"/clustering-blood.png",null,true);
+		RPlotter.plotCorrelation(avg_province,sc.getSocCap(),SynchCompute.USE_FEATURE,"soccap",dir+"/clustering-soccap.png",null,true);
 		
 		
 		Map<String,Object> tm = new HashMap<String,Object>();
 		//System.out.println(dir.toString());
 		tm.put("dir", dir.toString().substring(dir.toString().indexOf("img")));
 		tm.put("clustering", USEC);
-		tm.put("distance", SynchAnalysis.USEF);
-		tm.put("time_window", SynchAnalysis.TIME_WINDOW);
+		tm.put("distance", SynchCompute.USEF);
+		tm.put("time_window", SynchCompute.TIME_WINDOW);
 		tm.put("pca",PCA);
 		tm.put("threshold",(USE_RELATIVE_TH?"relative":"absolute"));
 		TextPlotter.getInstance().run(tm,"src/cdraggregated/SynchClustering.ftl", dir+"/text.tex");		
@@ -211,41 +214,46 @@ public class SynchClustering {
 		
 		
 		Instances datan = new DataSource(Config.getInstance().base_folder+"/TIC2015/cache/single/"+city+"-Demo-callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012-resident-CLEAN.arff").getDataSet();
-		
 		Instances dataz = new DataSource(Config.getInstance().base_folder+"/TIC2015/cache/single/"+city+"-Demo-callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012-resident-CLEANZ.arff").getDataSet();
-		
-		
-		
 		
 		Instances fdatan = new Instances(dataz,0,0);
 		Instances fdataz = new Instances(dataz,0,0);
 		for(int i=0; i<dataz.numInstances();i++) {
 			Double d = ISTAT.get(dataz.instance(i).stringValue(0));
-			double avg = avg(cast2Array(datan.instance(i)));
+			double avg = ListMapArrayBasicUtils.avg(cast2Array(datan.instance(i)));
 			//System.out.println(dataz.instance(i).stringValue(0)+" ==> "+d.intValue()+" VS. "+(int)avg);
 			
-			if((USE_RELATIVE_TH && avg/d > 0.1) || (!USE_RELATIVE_TH && avg > DEMOGRAPHIC_RES_THRESHOLD)) {
+			//if(dataz.instance(i).stringValue(0).equals("63049")){
+			//	System.out.println("Analyzing 63049 = Napoli");
+		    //}
+			
+			if((USE_RELATIVE_TH && avg/d > 0.01) || (!USE_RELATIVE_TH && avg > (bigCities.contains(city) ? 150: 100))) {
 				fdataz.add(dataz.instance(i));
 				fdatan.add(datan.instance(i));
 			}
 		}
 		
-		
-		
+	
 		
 		Clusterer actualClusterer = null;
 		
 		if(USEC.equals(Cluster.XMEANS)) {
 			XMeans xm = new XMeans();
-			xm.setDistanceF(new CustomDistance());
-			xm.setMinNumClusters(1);
-			xm.setMaxNumClusters(10);
+			if(!PCA) xm.setDistanceF(new CustomDistance());
+			xm.setMinNumClusters(2);
+			xm.setMaxNumClusters(fdataz.numInstances()-1);
 			actualClusterer = xm;
 		}
 		if(USEC.equals(Cluster.DBSCAN)){
 			DBSCAN dbsc = new DBSCAN();
 			dbsc.setMinPoints(0);
-			dbsc.setEpsilon(1.5);
+			if(!PCA) {
+				dbsc.setDistanceFunction(new CustomDistance());
+				dbsc.setEpsilon(0.25); 
+			}
+			else 
+				dbsc.setEpsilon(1.2); 
+			
 			actualClusterer = dbsc;
 		}
 		
@@ -253,34 +261,62 @@ public class SynchClustering {
 		//actualClusterer.setOptions(new String[]{"-L","SINGLE"});
 		//actualClusterer.setDistanceFunction(new R2Distance());
 		
+		double[] assignments = null;
+		int numClusters = 0;
+		if(actualClusterer!=null) {
+		
+			FilteredClusterer clusterer2 = new FilteredClusterer();
+			clusterer2.setFilter(new PrincipalComponents());
+			clusterer2.setClusterer(actualClusterer);
+			
+			Remove rm = new Remove();
+			rm.setAttributeIndices("1");  // remove 1st attribute
+			FilteredClusterer clusterer = new FilteredClusterer();
+			clusterer.setFilter(rm);
+			if(PCA) clusterer.setClusterer(clusterer2);
+			else clusterer.setClusterer(actualClusterer);
+			
+			clusterer.buildClusterer(fdataz);
+			
+			
+			ClusterEvaluation eval = new ClusterEvaluation();
+			
+			eval.setClusterer(clusterer);                                   // the cluster to evaluate
+			eval.evaluateClusterer(fdataz);                                	// data to evaluate the clusterer on
+			
+			
+			
+			assignments = eval.getClusterAssignments();
+			numClusters = eval.getNumClusters();
+		}
+		if(USEC.equals(Cluster.ALLDISJOINT)) {
+			assignments = new double[fdataz.numInstances()];
+			for(int i=0; i<assignments.length;i++)
+				assignments[i] = i;
+			numClusters = assignments.length;
+			
+		}
+		if(USEC.equals(Cluster.ALLTOGETHER)) {
+			assignments = new double[fdataz.numInstances()];
+			numClusters = 1;
+		}
+		
+		int[] cluster_count = new int[numClusters];
+		for(double a: assignments){
+			//System.out.println(a);
+			cluster_count[(int)a]++;
+		}
+		
+		StringBuffer s_cluster_count = new StringBuffer();
+		for(int i=0; i<cluster_count.length;i++)
+			s_cluster_count.append(","+i+":"+cluster_count[i]);
 		
 		
+		String ok = (numClusters > 1 && numClusters < dataz.numInstances())? "OK" : "NOK";
 		
-		FilteredClusterer clusterer2 = new FilteredClusterer();
-		clusterer2.setFilter(new PrincipalComponents());
-		clusterer2.setClusterer(actualClusterer);
-		
-		Remove rm = new Remove();
-		rm.setAttributeIndices("1");  // remove 1st attribute
-		FilteredClusterer clusterer = new FilteredClusterer();
-		clusterer.setFilter(rm);
-		if(PCA) clusterer.setClusterer(clusterer2);
-		else clusterer.setClusterer(actualClusterer);
-		
-		clusterer.buildClusterer(dataz);
-		
-		
-		ClusterEvaluation eval = new ClusterEvaluation();
-		
-		eval.setClusterer(clusterer);                                   // the cluster to evaluate
-		eval.evaluateClusterer(dataz);                                	// data to evaluate the clusterer on
-		
-		
-		
-		double[] assignments = eval.getClusterAssignments();
 		//for(int i=0; i<assignments.length;i++)
 		//	System.out.println(assignments[i]+" "+data.instance(i).stringValue(0));
-		if(!QUIET) System.out.println("NUM INSTANCES = "+dataz.numInstances()+", NUM CLUSTERS = "+eval.getNumClusters());
+		System.out.println(ok+" ... "+city.toUpperCase()+": NUM INSTANCES = "+dataz.numInstances()+" NUM FILTERED INSTANCES = "+fdataz.numInstances()+", NUM CLUSTERS = "+numClusters+", CLUSTER COUNTS = ["+s_cluster_count.substring(1)+"]");
 		
 		//System.out.println(eval.clusterResultsToString());
 		//System.out.println(eval.getLogLikelihood());
@@ -290,7 +326,7 @@ public class SynchClustering {
 		DescriptiveStatistics intra = new DescriptiveStatistics();
 		DescriptiveStatistics inter = new DescriptiveStatistics();
 		
-		DescriptiveStatistics[] per_intra_cluster_stat = new DescriptiveStatistics[eval.getNumClusters()];
+		DescriptiveStatistics[] per_intra_cluster_stat = new DescriptiveStatistics[numClusters];
 		for(int i=0; i<per_intra_cluster_stat.length;i++)
 			per_intra_cluster_stat[i] = new DescriptiveStatistics();
 		
@@ -321,23 +357,27 @@ public class SynchClustering {
 				
 				per_region_stat[i].addValue(s);
 				all.addValue(s);
+				
 				if(assignments[i] == assignments[j]) {
 					intra.addValue(s);
 					per_intra_cluster_stat[(int)assignments[i]].addValue(s);
 					
+					
+					/*// DE NADAI DEBUG 
 					if(city.equals("campobasso") && s > 1.2) 
 						System.out.println("==> "+fdataz.instance(i).stringValue(0)+" VS "+fdataz.instance(j).stringValue(0)+" = "+s+" avg1 = "+avg(cast2Array(fdatan.instance(i)))+" avg2 = "+avg(cast2Array(fdatan.instance(j))));
 					if(city.equals("campobasso") && (s >0.6 && s < 0.605)) 
 						System.out.println("MMMM> "+fdataz.instance(i).stringValue(0)+" VS "+fdataz.instance(j).stringValue(0)+" = "+s+" avg1 = "+avg(cast2Array(fdatan.instance(i)))+" avg2 = "+avg(cast2Array(fdatan.instance(j))));
-					if(city.equals("milano")) {
+					if(city.equals("milano")) 
 						System.out.println("==> "+fdataz.instance(i).stringValue(0)+" VS "+fdataz.instance(j).stringValue(0)+" = "+s+" avg1 = "+avg(cast2Array(fdatan.instance(i)))+" avg2 = "+avg(cast2Array(fdatan.instance(j))));
-					}
+					
 					
 					
 					if(fdatan.instance(i).stringValue(0).equals("70016")) printTimeSeriesForDebug("C:/Users/marco/Desktop",fdatan.instance(i));
 					if(fdatan.instance(i).stringValue(0).equals("70024")) printTimeSeriesForDebug("C:/Users/marco/Desktop",fdatan.instance(i));
 					if(fdatan.instance(i).stringValue(0).equals("70057")) printTimeSeriesForDebug("C:/Users/marco/Desktop",fdatan.instance(i));
 					if(fdatan.instance(i).stringValue(0).equals("70040")) printTimeSeriesForDebug("C:/Users/marco/Desktop",fdatan.instance(i));
+					*/
 				}
 				else inter.addValue(s);
 			}
@@ -416,17 +456,7 @@ public class SynchClustering {
 		return v;
 	}
 	
-	public static double avg(double[] x) {
-		
-		DescriptiveStatistics ds = new DescriptiveStatistics();
-		for(double v: x)
-			ds.addValue(v);
-		
-		//return ds.getMean();
-		return ds.getPercentile(50);
-		
-		
-	}
+	
 
 	
 	
@@ -469,22 +499,23 @@ public double sim(Instance first, Instance second) {
 	double[] x = SynchClustering.cast2Array(first);
 	double[] y = SynchClustering.cast2Array(second);
 	
-	if(SynchAnalysis.TIME_WINDOW == -1) return SynchAnalysis.reallyComputeFeature(x,y);
+	if(SynchCompute.TIME_WINDOW == -1) return SynchCompute.reallyComputeFeature(x,y);
 	
 	
-	double[] reduced1 = new double[SynchAnalysis.TIME_WINDOW];
-	double[] reduced2 = new double[SynchAnalysis.TIME_WINDOW];
+	double[] reduced1 = new double[SynchCompute.TIME_WINDOW];
+	double[] reduced2 = new double[SynchCompute.TIME_WINDOW];
 	
 	DescriptiveStatistics stat = new DescriptiveStatistics();
 	
-	for(int i=0; i<x.length - SynchAnalysis.TIME_WINDOW; i=i+SynchAnalysis.TIME_WINDOW) {
+	for(int i=0; i<x.length - SynchCompute.TIME_WINDOW; i=i+SynchCompute.TIME_WINDOW) {
 		
 		System.arraycopy(x, i, reduced1, 0, reduced1.length);
 		System.arraycopy(y, i, reduced2, 0, reduced2.length);
-		stat.addValue(SynchAnalysis.reallyComputeFeature(reduced1,reduced2));
+		stat.addValue(SynchCompute.reallyComputeFeature(reduced1,reduced2));
 	}
 	
 	//return stat.getPercentile(50);
+	//System.out.println("==> "+stat.getMean());
 	return stat.getMean();
 }
 

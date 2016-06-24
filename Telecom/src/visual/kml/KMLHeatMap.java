@@ -96,7 +96,7 @@ public class KMLHeatMap {
 			double val = density.get(r.getName().toLowerCase())==null? 0 : density.get(r.getName().toLowerCase());
 			//System.out.println(val);
 			
-			if(val > 0) {
+			if(val >= 0) {
 				r.setDescription(desc.get(r.getName().toLowerCase()));
 				out.println(r.toKml(Colors.val01_to_color(val/max),"44aaaaaa"));
 			}

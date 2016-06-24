@@ -32,7 +32,10 @@ public class PopulationDensityPlaces {
 		
 		
 		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
-		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
+		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour/results.csv", "comuni2012.ser", "HOME", null,"",0,0,0,0);
+		//pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour/results.csv", "odlombardia.ser", "HOME", null,"",0,0,0,0);
+		
+		pdp.runAll(Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour/results.csv", "MilanoCenter.ser", "HOME", null,"",0,0,0,0);
 		
 		
 		Logger.logln("Done!");

@@ -200,7 +200,7 @@ public class IstatCensus2011 {
 	}
 	
 	public AddMap computeDensity(int var, boolean procapita, boolean print) {
-		
+		System.err.println("Istat Census "+DIMENSIONS[var]);
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/comuni2012.ser"));
 		rm.setName(DIMENSIONS[var]);
 		AddMap density = new AddMap();

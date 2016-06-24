@@ -6,22 +6,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.Map;
 
-import otherdata.TIbigdatachallenge2015.IstatCensus2011;
 import region.RegionMap;
-import utils.AddMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.Mail;
 import utils.multithread.MultiWorker;
 import visual.r.RRoadNetwork;
-import cdraggregated.densityANDflows.density.DensityComparator;
-import cdraggregated.densityANDflows.density.DensityPlotter;
 import cdraggregated.densityANDflows.flows.MAPfromMOD;
-import cdraggregated.densityANDflows.flows.MODfromISTAT;
-import cdraggregated.densityANDflows.flows.ODComparator;
+import cdraggregated.densityANDflows.flows.ODParser;
 import cdrindividual.dataset.impl.PLSParser;
 import cdrindividual.dataset.impl.UserCDRCounter;
 import cdrindividual.dataset.impl.UserCellacXHour;
@@ -48,12 +42,37 @@ public class RunAllODAnalysisHW {
 
 	
 	public static void main(String[] args) throws Exception {
-		//go("file_pls_piem",new GregorianCalendar(2015,Calendar.JUNE,1),new GregorianCalendar(2015,Calendar.JUNE,31),8,20000,"comuni2012.ser","odpiemonte.ser","C:/DATASET/osm/piem/piem.osm",1, new Double[]{1.0}, 1,new Francia2IstatCode(),new Francia2IstatCode());
 		
+		
+		go("file_pls_er",new GregorianCalendar(2015,Calendar.APRIL,1),new GregorianCalendar(2015,Calendar.APRIL,30),8,20000,
+				"ModenaCenter.ser","ModenaCenter.ser","C:/DATASET/osm/er/emilia-romagna.osm",1, new Double[]{1.0}, 1,null,null);
+		
+		go("file_pls_piem",new GregorianCalendar(2015,Calendar.JUNE,1),new GregorianCalendar(2015,Calendar.JUNE,31),8,20000,
+				"TorinoCenter.ser","TorinoCenter.ser","C:/DATASET/osm/piem/piem.osm",1, new Double[]{1.0}, 1,null,null);
+		
+		
+		go("file_pls_lomb",new GregorianCalendar(2014,Calendar.MARCH,1),new GregorianCalendar(2014,Calendar.MARCH,30),8,20000,
+				"MilanoCenter.ser","MilanoCenter.ser","C:/DATASET/osm/lomb/lomb.osm",1, new Double[]{1.0}, 1,null,null);
+		
+		
+		
+		
+		/*
+		go("file_pls_piem",new GregorianCalendar(2015,Calendar.JUNE,1),new GregorianCalendar(2015,Calendar.JUNE,31),8,20000,
+				"comuni2012.ser","odpiemonte.ser","C:/DATASET/osm/piem/piem.osm",1, new Double[]{1.0}, 1,
+				new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode());
 		
 		go("file_pls_lomb",new GregorianCalendar(2014,Calendar.MARCH,1),new GregorianCalendar(2014,Calendar.MARCH,30),8,20000,
 				"comuni2012.ser","odlombardia.ser","C:/DATASET/osm/lomb/lomb.osm",1, new Double[]{1.0}, 1,
 				new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode());
+		
+		
+		go("file_pls_er",new GregorianCalendar(2015,Calendar.APRIL,1),new GregorianCalendar(2015,Calendar.APRIL,30),8,20000,
+				"comuni2012.ser","odemiliaromagna.ser","C:/DATASET/osm/er/emilia-romagna.osm",1, new Double[]{1.0}, 1,
+				new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv"),new Francia2IstatCode());
+				
+		*/
+		
 	}
 	
 	
@@ -93,6 +112,7 @@ public class RunAllODAnalysisHW {
 		dmins = (endTime - startTime) / 1000 / 60;
 		startTime = endTime;
 		if(dmins > 5) Mail.send("step UserCDRCounter at night completed after "+dmins+" mins");
+		
 		
 		
 		// 3. get bogus users
@@ -196,14 +216,14 @@ public class RunAllODAnalysisHW {
 		// Now I have both density and od aggregated information
 		
 		
-		
+		/*
 		// 10. plot density homes
-		
+		boolean log = true;
 		String file = f_aggregated_density.getName();
 		String rm_name = density_region_ser.replaceAll(".ser", "");
 		Map<String,Double> space_density = (Map<String,Double>)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/AggregatedSpaceDensity/"+file));
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+rm_name+".ser"));
-		DensityPlotter.plotSpaceDensity(file.substring(0,file.indexOf(".ser")),space_density,rm,0);
+		DensityPlotter.plotSpaceDensity(file.substring(0,file.indexOf(".ser")),space_density,rm,log,0);
 		
 		endTime = System.currentTimeMillis();
 		dmins = (endTime - startTime) / 1000 / 60;
@@ -222,46 +242,17 @@ public class RunAllODAnalysisHW {
 		if(dmins > 5) Mail.send("step compare density with istat completed after "+dmins+" mins");
 		
 		
-		// 12. project into road
 		
+		// 12. create od matrix line
 		
+		//File basedir = new File(Config.getInstance().base_folder+"/ODMatrix/ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia");
 		rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+od_region_ser));
-		String fileCoord = od_output_dir+"/latlon.csv";
-		
-		String video_dir = Config.getInstance().base_folder+"/Videos/"+od_output_dir.getName();
-		new File(video_dir).mkdirs();
-		
-		MAPfromMOD.tolleranza = od_theshold;
-		MAPfromMOD.ita = ita;
-		RRoadNetwork.VIEW = false;
-		
-		File od_img_out_dir = new File(Config.getInstance().paper_folder+"/img/od/"+od_output_dir.getName().replaceAll("_", "-"));
-		od_img_out_dir.mkdirs();
-		
-		for(File f: od_output_dir.listFiles()) {
-			if(f.getName().startsWith("od")) {
-				String imgFile = MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
-				
-				Map<String,Object> tm = ODComparator.parseHeader(f.toString());
-				String h = ((String)tm.get("Istante di inizio")).split(" ")[1];
-				if(h.length()==1) h = "0"+h;
-				
-							
-				Files.copy(Paths.get(imgFile), Paths.get(video_dir+"/img"+h+".png"), StandardCopyOption.REPLACE_EXISTING);
-			}
-		}
-		
-		new File(video_dir+"/out.mp4").delete();
-		// requires installing ffmpeg!!!!
-		// 0.5 is the number of second per frame
-		// 600 is the size of the video
-		Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
+		String subdir = od_output_dir.getName().replaceAll("_", "-")+"-LINE";
+		ODDrawLine.SCALE = false;
+		ODDrawLine.THRESHOLD = 1;
+		ODDrawLine.run(od_output_dir,null,rm,subdir,zc1);
 		
 		
-		endTime = System.currentTimeMillis();
-		dmins = (endTime - startTime) / 1000 / 60;
-		startTime = endTime;
-		if(dmins > 5) Mail.send("step road network completed after "+dmins+" mins");
 		
 		// 13. extract od matrix from istat data
 		
@@ -294,13 +285,58 @@ public class RunAllODAnalysisHW {
  
 		// 14. compare with istat
 		
-		ODComparator.compareWIstat(od_output_dir.getName(),null,MODfromISTAT.REGIONI[map.get(region)[0]],istatH,zc1,zc2,null);
+		ODComparator.compareWIstat(od_output_dir.getName(),null,MODfromISTAT.REGIONI[map.get(region)[0]],istatH,zc1,null);
 		
 		
 		endTime = System.currentTimeMillis();
 		dmins = (endTime - startTime) / 1000 / 60;
 		startTime = endTime;
 		if(dmins > 5) Mail.send("step compare od with istat completed after "+dmins+" mins");
+		
+		*/
+		
+		// 15. project into road
+		
+		
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+od_region_ser));
+		String fileCoord = od_output_dir+"/latlon.csv";
+				
+		String video_dir = Config.getInstance().base_folder+"/Videos/"+od_output_dir.getName();
+		new File(video_dir).mkdirs();
+				
+		MAPfromMOD.tolleranza = od_theshold;
+		MAPfromMOD.ita = ita;
+		RRoadNetwork.VIEW = false;
+				
+		File od_img_out_dir = new File(Config.getInstance().paper_folder+"/img/od/"+od_output_dir.getName().replaceAll("_", "-"));
+		od_img_out_dir.mkdirs();
+				
+		System.out.println(od_output_dir);
+				
+		for(File f: od_output_dir.listFiles()) {
+				if(f.getName().startsWith("od")) {
+					String imgFile = MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
+						
+					Map<String,Object> tm = ODParser.parseHeader(f.toString());
+					String h = ((String)tm.get("Istante di inizio")).split(" ")[1];
+					if(h.length()==1) h = "0"+h;
+						
+									
+					Files.copy(Paths.get(imgFile), Paths.get(video_dir+"/img"+h+".png"), StandardCopyOption.REPLACE_EXISTING);
+				}
+		}
+		new File(video_dir+"/out.mp4").delete();
+		// requires installing ffmpeg!!!!
+		// 0.5 is the number of second per frame
+		// 600 is the size of the video
+		Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
+				
+				
+		endTime = System.currentTimeMillis();
+		dmins = (endTime - startTime) / 1000 / 60;
+		startTime = endTime;
+		if(dmins > 5) Mail.send("step road network completed after "+dmins+" mins");
+	
 		
 		System.out.println("Done");
 		

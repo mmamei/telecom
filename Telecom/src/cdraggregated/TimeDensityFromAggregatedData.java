@@ -83,6 +83,7 @@ public class TimeDensityFromAggregatedData {
 		return res;
 	}
 	
+	
 	public static void add(Map<String,double[]> map, String key, double[] value) {
 		double[] v = map.get(key);
 		if(v == null) v = new double[value.length];
@@ -336,28 +337,5 @@ public class TimeDensityFromAggregatedData {
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public static void main(String[] args) {
-		String city = "venezia";
-		String type = "CallOut";
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-caps.ser"));
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,type,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/TELECOM/"+city+"/"+type+".tar.gz",new int[]{0,1,2,3},null,rm);
-		//td.plot("3693_3_1_3_1");
-		
-		/*
-		double fdtw = StatsUtils.fdtw(td.map.get("3693_3_1_3_1"), td.map.get("3693_3_1_2_1"));
-		System.out.println("fdtw = "+fdtw);
-		
-		double dtw = StatsUtils.dtw(td.map.get("3693_3_1_3_1"), td.map.get("3693_3_1_2_1"));
-		System.out.println("dtw = "+dtw);
-		
-		double ed = StatsUtils.ed(td.map.get("3693_3_1_3_1"), td.map.get("3693_3_1_2_1"));
-		System.out.println("ed = "+ed);
-		*/
-		System.out.println("Done!");
-	}
-		
-		
-		
+	}	
 }

@@ -1,14 +1,15 @@
 package cdraggregated.densityANDflows.density;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import region.RegionI;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import visual.html.HeatMapGoogleMaps;
-import visual.kml.KMLHeatMap;
 import visual.r.RHeatMap;
 import visual.text.TextPlotter;
 
@@ -18,25 +19,45 @@ public class DensityPlotter {
 		
 	
 		//String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
-		String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour-comuni2012-HOME-null.ser";
+		//String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour-comuni2012-HOME-null.ser";
+		String file = "file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour-MilanoCenter-HOME-null.ser";
+		
 		String rm_name = file.split("-")[6];
-		//System.out.println(rm_name);
+		System.out.println(rm_name);
 		
 		Map<String,Double> space_density = (Map<String,Double>)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/AggregatedSpaceDensity/"+file));
+		System.out.println(space_density);
+		
+		
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+rm_name+".ser"));
-		plotSpaceDensity(file.substring(0,file.indexOf(".ser")),space_density,rm,0);
+		plotSpaceDensity(file.substring(0,file.indexOf(".ser")),space_density,rm,false,0);
 	}
 	
 	
 
-	public static void plotSpaceDensity(String title, Map<String,Double> space_density, RegionMap rm, double threshold) throws Exception {
+	public static void plotSpaceDensity(String title, Map<String,Double> space_density, RegionMap rm, boolean log, double threshold) throws Exception {
 		//File d = new File(Config.getInstance().web_kml_folder);
 		//d.mkdirs();
 		title = title.replaceAll("_", "-");
 		String img = "img/density/"+title+".png";
-		RHeatMap.drawChoroplethMap(Config.getInstance().paper_folder+"/"+img,space_density,rm,true,"",true,threshold);
+		RHeatMap.drawChoroplethMap(Config.getInstance().paper_folder+"/"+img,"density",space_density,rm,log,true,threshold);
 		//KMLHeatMap.drawHeatMap(d.getAbsolutePath()+"/"+title+".kml",space_density,rm,title,true);
 		//HeatMapGoogleMaps.draw(d.getAbsolutePath()+"/"+title+".html", title, space_density, rm, threshold);
+		
+		
+		/**** TEST TO WRITE CSV FILE */
+		
+		PrintWriter out = new PrintWriter(new FileWriter(Config.getInstance().base_folder+"/test-vr-"+title+"-.csv"));
+		out.println("lat,lon,val");
+		for(RegionI r: rm.getRegions()) {
+			Double val = space_density.get(r.getName());
+			//System.out.println(r.getName()+" = "+val);
+			if(val != null && val > threshold) 
+				out.println(r.getLatLon()[0]+","+r.getLatLon()[1]+","+val);
+		}
+		out.close();
+		
+		
 		
 		Map<String,Object> tm = new HashMap<String,Object>();
 		tm.put("img", img);
@@ -51,6 +72,7 @@ public class DensityPlotter {
 	static {
 		REGION2REGION.put("piem", "Piemonte");
 		REGION2REGION.put("lomb", "Lombardia");
+		REGION2REGION.put("er", "Emilia Romagna");
 	}
 	
 	public static Map<String,Object> parseFileName(String file) {

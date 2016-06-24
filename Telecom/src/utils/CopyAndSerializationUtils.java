@@ -30,7 +30,9 @@ public class CopyAndSerializationUtils {
 			o = ois.readObject();
 			ois.close();
 		} catch(Exception e) {
-			e.printStackTrace();
+			System.err.println("Serialization error: "+file);
+			System.exit(0);
+			//e.printStackTrace();
 		}
 		
 		try {

@@ -37,12 +37,12 @@ public class LoadDensityFromAggregatedData {
 		List<TimeDensityFromAggregatedData> tds = new ArrayList<TimeDensityFromAggregatedData>();
 		//tds.add(td_in);
 		tds.add(td_out);
-		process2(city,rm,tds,new String[]{"","",""},-1);
+		process3(city,rm,tds,new String[]{"","",""},-1);
 
 		System.out.println("Done");
 	}	
 	
-	public static void process2(String city, RegionMap rm, List<TimeDensityFromAggregatedData> tds, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
+	private static void process3(String city, RegionMap rm, List<TimeDensityFromAggregatedData> tds, String[] COMPANY_CONSTRAINTS, int LIMIT) throws Exception {
 		
 		System.out.println("Processing "+city);
 		

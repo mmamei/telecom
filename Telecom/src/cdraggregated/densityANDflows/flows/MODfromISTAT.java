@@ -72,7 +72,9 @@ public class MODfromISTAT {
 	
 	public static void main(String[] args) throws Exception{
 		
-		run(new String[]{"07","11"},new Integer[1],1);
+		for(int regione: new int[]{1,3,8})
+		for(int istatH=1;istatH<=4;istatH++)
+			run(new String[]{"07","11"},new Integer[]{regione},istatH);
 		
 	}
 	

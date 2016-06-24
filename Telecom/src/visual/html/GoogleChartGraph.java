@@ -11,6 +11,15 @@ import java.util.Locale;
 public class GoogleChartGraph {
 	private static final DecimalFormat DF = new DecimalFormat("0.00",new DecimalFormatSymbols(Locale.US));
 	
+	
+	public static String getGraph(String[] x, double[] y, String name, String xlab, String ylab) {
+		List<double[]> ly = new ArrayList<>();
+		ly.add(y);
+		List<String> lnames = new ArrayList<>();
+		lnames.add(name);
+		return getGraph(x,ly,lnames,xlab,ylab);
+	}
+	
 	public static String getGraph(String[] x, List<double[]> y, List<String> names, String xlab, String ylab) {
 			
 		StringBuffer sb = new StringBuffer();

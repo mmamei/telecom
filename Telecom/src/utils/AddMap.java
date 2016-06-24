@@ -26,6 +26,7 @@ public class AddMap extends HashMap<String,Double> {
 	}
 	
 	public void addAll(Map<String,Double> map) {
+		if(map == null || map.keySet() == null) return;
 		for(String k: map.keySet())
 			this.add(k, map.get(k));
 	}

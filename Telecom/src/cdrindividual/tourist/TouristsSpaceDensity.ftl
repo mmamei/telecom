@@ -1,3 +1,4 @@
+
 <#macro profiles p l><#if p == 'Transit'><#if l == 'true'>people in transit<#else>People in transit</#if><#else><#if l == 'true'>${p?lower_case}s<#else>${p}s</#if></#if></#macro>
 <#if inout>
 In Figure \ref{fig:heat-${city}-${month}-inout} it is possible to see a heat map showing the locations in which different profiles enter and exit the region around ${city}.

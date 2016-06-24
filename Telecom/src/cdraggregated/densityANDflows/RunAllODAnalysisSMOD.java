@@ -5,7 +5,6 @@ import java.io.FilenameFilter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.Map;
 
 import region.RegionMap;
@@ -14,21 +13,20 @@ import utils.CopyAndSerializationUtils;
 import utils.Mail;
 import visual.r.RRoadNetwork;
 import cdraggregated.densityANDflows.flows.MAPfromMOD;
-import cdraggregated.densityANDflows.flows.MODfromISTAT;
-import cdraggregated.densityANDflows.flows.ODComparator;
+import cdraggregated.densityANDflows.flows.ODParser;
 
 public class RunAllODAnalysisSMOD {
 	
 	public static void main(String[] args) throws Exception {
-		/*
+		
 		go("matrici_piemonte/orarie","C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv","lovisolo_piemonte_comuni+torinoasc","20150523",
 				"TorinoCenter.ser","C:/DATASET/osm/piem/piem.osm",100,new Double[]{1.0},1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odpiemonte.csv"),new Francia2IstatCode());
-		*/
 		
-		/*
+		
+		
 		go("matrici_lombardia/orarie","G:/DATASET/GEO/telecom-2015-od/odlombardia.csv","calabrese_lombardia_comuni_istat","20150504",
 				"MilanoCenter.ser","C:/DATASET/osm/lomb/lomb.osm",500,new Double[]{1.0},1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),new Francia2IstatCode());
-		*/
+		
 		
 		go("matrici_emilia/orarie","G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv","lovisolo_emilia_regione+ascbologna","20150416",
 				"ModenaCenter.ser","C:/DATASET/osm/er/emilia-romagna.osm",500,new Double[]{1.0},1,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv"),new Francia2IstatCode());
@@ -93,7 +91,7 @@ public class RunAllODAnalysisSMOD {
 		
 		for(File f: files) {
 			String imgFile = MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
-			Map<String,Object> tm = ODComparator.parseHeader(f.toString());
+			Map<String,Object> tm = ODParser.parseHeader(f.toString());
 			// Istante di inizio: Sat, 23 May 2015 01:00
 			String[] orario = ((String)tm.get("Istante di inizio")).split(" ");
 			String h = orario[orario.length-1];
@@ -117,7 +115,7 @@ public class RunAllODAnalysisSMOD {
 		startTime = endTime;
 		if(dmins > 5) Mail.send("step MAPfromMOD completed after "+dmins+" mins");
 		
-		
+		/*
 		// 2. extract od matrix from istat data
 		
 		String osmName = new File(osmFile).getName();
@@ -155,7 +153,7 @@ public class RunAllODAnalysisSMOD {
 		 
 		// 3. compare with istat
 				
-		ODComparator.compareWIstat(od_dir,ff,MODfromISTAT.REGIONI[map.get(osmName)[0]],istatH,zc1,zc2,baseName);
+		ODComparator.compareWIstat(od_dir,ff,MODfromISTAT.REGIONI[map.get(osmName)[0]],istatH,zc1,baseName);
 				
 				
 		endTime = System.currentTimeMillis();
@@ -164,7 +162,7 @@ public class RunAllODAnalysisSMOD {
 		if(dmins > 5) Mail.send("step compare od with istat completed after "+dmins+" mins");
 				
 		System.out.println("Done");
-		
+		*/
 		
 	}
 	

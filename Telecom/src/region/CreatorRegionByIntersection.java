@@ -46,9 +46,9 @@ public class CreatorRegionByIntersection {
 	public static void main(String[] args) throws Exception {
 		String base_com = "comuni2012";
 		RegionMap comuni = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+base_com+".ser"));
-		RegionMap provincie = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic2-prov2011.ser"));
+		RegionMap provincie = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-prov2011.ser"));
 		
-		RegionMap rm = new RegionMap("tic2-"+base_com);
+		RegionMap rm = new RegionMap("tic-"+base_com);
 		
 		
 		Map<String,Geometry> infl_prov = new HashMap<String,Geometry>();

@@ -40,7 +40,7 @@ public class RHeatMap {
 		
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-milano.ser"));
 		Map<String,Double> density = new HashMap<String,Double>();
-		drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+rm.getName()+".png",density,rm,false,"",true,0);
+		drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+rm.getName()+".png","test",density,rm,false,true,0);
 				
 		Logger.logln("Done!");
 	}
@@ -52,7 +52,7 @@ public class RHeatMap {
 	
 	
 	
-	public static void drawChoroplethMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text, boolean ggmap, double threshold) {
+	public static void drawChoroplethMap(String file, String title, Map<String,Double> density, RegionMap rm, boolean log, boolean ggmap, double threshold) {
 		
 		
 		// extract arrays with all the coordinates, ids, and density values
@@ -96,11 +96,14 @@ public class RHeatMap {
 		
 		
 		
-		double buffer = 0.0;
-		lonlatBbox[0] -= buffer;
-		lonlatBbox[1] -= buffer;
-		lonlatBbox[2] += buffer;
-		lonlatBbox[3] += buffer;
+		lonlatBbox = getProperLonlatBbox(lonlatBbox);
+		
+		if(lonlatBbox == null) {
+			System.err.println("Cannot create map for "+file);
+			return;
+		}
+		
+		System.out.println(file+" bbox = ["+lonlatBbox[0]+","+lonlatBbox[1]+"]["+lonlatBbox[2]+","+lonlatBbox[3]+"]");
 		
 		
 		String code = "";
@@ -115,27 +118,93 @@ public class RHeatMap {
 			
 			//ggmap = false;
 			
-			
-			
 			code = "library(ggplot2);"
 				 + "library(ggmap);"
 				 + "z<-data.frame(lat,lon,id,val);"
-				 // *************************************************
-				 // BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE
-				 //+ (ggmap? "ggmap(get_map(location = c(bbox), source='stamen', maptype='watercolor', crop=FALSE))" : "ggplot()")
-				 + (ggmap?   "ggmap(get_map(location = c(bbox), maptype='terrain', color='bw', crop=FALSE))" : "ggplot()")
-				 
+				// BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE
+				 + "amap.map = get_map(location = c(bbox), maptype='terrain', color='bw', crop=FALSE);"
+				 //+ "amap.map = get_map(location = c(bbox), source='stamen', maptype='watercolor', crop=FALSE);"
+				 + (ggmap?   "ggmap(amap.map)" : "ggplot()")
 				 // *************************************************
 				 // BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE. FIRST FOR CHOROPLETH, SECOND FOR SHAPE ONLY
+				 + "+ scale_fill_continuous(low = 'red', high = 'blue',guide = guide_colorbar(title='"+title+"'))"
 				 + "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.5) + theme_bw() + theme(legend.position = c(0.95, 0.1));"
 				 //+ "+ geom_polygon(data = z, aes(x = lon, y = lat, group = id, fill = val), colour = 'black', alpha = 0.1) + theme_bw() + theme(legend.position = 'none');"
 				 + "ggsave('"+file+"',width=10, height=10);";
          
-			
-			  c.eval(code);
+			  c.eval(code);	
+			  //System.err.println(RPlotter.printRVector("id",id));
+			  //System.err.println(RPlotter.printRVector("lat",lat));
+			  //System.err.println(RPlotter.printRVector("lon",lon));
+			  //System.err.println(RPlotter.printRVector("val",val));
+			  //System.err.println(RPlotter.printRVector("bbox",lonlatBbox));
+			  //System.err.println(code.replaceAll(";", ";\n"));
+			  
+			  
 	          c.close();
 	          if(VIEW) Desktop.getDesktop().open(new File(file));
+	     			
+		}catch(Exception e) {
+			if(e.getMessage().startsWith("Cannot connect")) {
+             	System.err.println("You must launch the following code in R");
+             	System.err.println("library(Rserve)");
+             	System.err.println("Rserve()");
+            }
+            else {
+            	c.close();
+            	e.printStackTrace();
+            	System.err.println(RPlotter.printRVector("id",id));
+            	System.err.println(RPlotter.printRVector("lat",lat));
+  			  	System.err.println(RPlotter.printRVector("lon",lon));
+  			  	System.err.println(RPlotter.printRVector("val",val));
+  			  	System.err.println(RPlotter.printRVector("bbox",lonlatBbox));
+            	System.err.println(code.replaceAll(";", ";\n"));
+            }
+		}
+	}
+	
+	
+	private static double[] getProperLonlatBbox(final double[] lonlatBbox) {
+		String code = null;
+		try {
+			c = new RConnection();// make a new local connection on default port (6311)
 			
+			double buffer = 0;
+			double[] use_lonlatBbox = new double[4];
+			double[] real_lonlatBbox = new double[4];
+			while(!(real_lonlatBbox[0] < lonlatBbox[0] && real_lonlatBbox[1] < lonlatBbox[1] && 
+				  real_lonlatBbox[2] > lonlatBbox[2] && real_lonlatBbox[3] > lonlatBbox[3])) {
+				
+				use_lonlatBbox[0] = lonlatBbox[0] - buffer;
+				use_lonlatBbox[1] = lonlatBbox[1] - buffer;
+				use_lonlatBbox[2] = lonlatBbox[2] + buffer;
+				use_lonlatBbox[3] = lonlatBbox[3] + buffer;
+				//System.err.println(RPlotter.printRVector("bbox",use_lonlatBbox));
+				c.assign("bbox",use_lonlatBbox);	
+				code = "library(ggplot2);"
+					 + "library(ggmap);"
+					 // BELOW ARE TWO STYLES FOR MAP, UNCOMMENT THE ONE TO USE
+					 + "amap.map = get_map(location = c(bbox), maptype='terrain', color='bw', crop=FALSE);"
+					 //+ "amap.map = get_map(location = c(bbox), source='stamen', maptype='watercolor', crop=FALSE);"
+					 + "bbox <- attr(amap.map, 'bb');";
+	         
+				c.eval(code);
+				
+				
+				real_lonlatBbox[0] = c.eval("bbox$ll.lon").asDouble();
+				real_lonlatBbox[1] = c.eval("bbox$ll.lat").asDouble();
+				real_lonlatBbox[2] = c.eval("bbox$ur.lon").asDouble();
+				real_lonlatBbox[3] = c.eval("bbox$ur.lat").asDouble();
+				buffer += 0.1;
+				//System.out.println("-------------------- "+buffer);
+			}
+			
+			
+			
+	        c.close();
+	        return use_lonlatBbox;
+	        
+	        
 		}catch(Exception e) {
 			if(e.getMessage().startsWith("Cannot connect")) {
              	System.err.println("You must launch the following code in R");
@@ -148,8 +217,10 @@ public class RHeatMap {
             	System.err.println(code);
             }
 		}
+		
+		return null;
+		
 	}
-	
 	
 	public static void drawHeatMap(String file, Map<String,Double> density, RegionMap rm, boolean log, String text) {
 		List<double[]> points = new ArrayList<double[]>();

@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import region.RegionMap;
 import utils.Config;
@@ -59,7 +58,7 @@ public class MAPfromMOD {
 		
 //		il flusso degli spostamenti letti dal file origine/destinazione inferiori alla tolleranza
 //		non vengono presi in considerazione	
-		public static Double tolleranza=(double)  100;
+		public static Double tolleranza=(double)50;
 		
 		static boolean forecast = false;
 		static GHPoint daForecast = new GHPoint(44.798891, 7.630273);
@@ -105,7 +104,7 @@ public class MAPfromMOD {
 			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-torino-grid.ser"));
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/TorinoCenter.ser"));
 			String fileCoord = "C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv";
-			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
+			String osmFile = "C:/DATASET/osm/piem/piem.osm";
 			String video_dir = Config.getInstance().base_folder+"/Videos/20150523_Lovisolo_Piem-"+rm.getName();
 			new File(video_dir).mkdirs();
 			File dir = new File("C:/BASE/ODMatrix/matrici_piemonte/orarie");
@@ -118,7 +117,7 @@ public class MAPfromMOD {
 			
 			for(File f: files) {
 				String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile, Config.getInstance().paper_folder+"/img/od");
-				Map<String,Object> tm = ODComparator.parseHeader(f.toString());
+				Map<String,Object> tm = ODParser.parseHeader(f.toString());
 				// Istante di inizio: Sat, 23 May 2015 01:00
 				String[] orario = ((String)tm.get("Istante di inizio")).split(" ");
 				String h = orario[orario.length-1];
@@ -307,12 +306,14 @@ public class MAPfromMOD {
 						//System.out.println("Iterazione n° "+(iter+1)+" su "+(ita.length)+",   Tragitto numero: "+(count+1)+", Riga numero: "+r+" su "+ci.length+" "+c);
 							
 							ArrayList<Pair<GHPoint,GHPoint>> randomPoints= new ArrayList<Pair<GHPoint,GHPoint>>();
-							if(!polyMode){
+							
+							
+							if(!polyMode && !a.equals(da)){
 								da = coord.get(ci[r]);
 								a = coord.get(ci[c]);
 							}
 
-							if(polyMode||((!polyMode)&&(!a.equals(da)))){  //per non tener conto di tragitti con origine == alla destinazione nel caso non si sia in polymode
+							if(polyMode &&(!a.equals(da))){  //per non tener conto di tragitti con origine == alla destinazione nel caso non si sia in polymode
 								count++;
 //								n è la somma di tutti i flussi nelle vari iterazion(del ciclo while seguente), all'ultima iterazione sara pari a itaFlux
 								int n=0;
@@ -423,18 +424,16 @@ public class MAPfromMOD {
 			}
 			else System.out.println("Errore: inserire valori per la variabile 'ita' la cui somma sia 1 ");
 			
-			Set<Integer> keySet = edges.keySet();
-			PointList p = new PointList();
-			for(Integer id:keySet){
-				p = edges.get(id).getPoints();
-//				System.out.println(edges.get(id).getVia());
-				for(int j=0;j<p.size()-1;j++){
+			
+			for(Integer id : edges.keySet()){
+				PointList p = edges.get(id).getPoints();
+				double w = edges.get(id).getWeight();
+				System.out.println(edges.get(id).getVia()+" => "+w);
+				for(int j=0;j<p.size()-1;j++) {
 					String da = Util.round4(p.getLat(j))+","+Util.round4(p.getLon(j));
 					String a = Util.round4(p.getLat(j+1))+","+Util.round4(p.getLon(j+1));
-					
-					if(!da.equals(a)){
-						streets.put(da+":"+a, edges.get(id).getWeight());	
-					}
+					if(!da.equals(a))
+						streets.put(da+":"+a, w);	
 				}
 			}
 			
@@ -486,7 +485,7 @@ public class MAPfromMOD {
 			//create the map for text plotter with all relevant information
 			Map<String,Object> tm = new HashMap<String,Object>();
 			
-			tm.putAll(ODComparator.parseHeader(fileMOD));
+			tm.putAll(ODParser.parseHeader(fileMOD));
 			
 			
 			outdir = outdir.replaceAll("\\\\", "/");
@@ -495,7 +494,7 @@ public class MAPfromMOD {
 			
 			String label = ((String)tm.get("Istante di inizio")).replaceAll(" ", ":")+" - "+((String)tm.get("Istante di fine")).replaceAll(" ", ":");
 			
-			drawR(name,streets,rm,imgFile,label);
+			RRoadNetwork.drawR(name,streets,rm,10.0,false,imgFile,label);
 			TextPlotter.getInstance().run(tm,"src/cdraggregated/densityANDflows/flows/MAPfromMOD.ftl", imgFile.replaceAll(".png", ".tex"));
 				
 			
@@ -513,35 +512,6 @@ public class MAPfromMOD {
 		}
 		
 		
-		public static void drawR(String title, HashMap<String, Double> streets, RegionMap rm, String file, String label) {
-			//Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
-			
-			List<double[][]> latlon_segments = new ArrayList<>();
-			List<Double> weights = new ArrayList<>();
-			List<String> colors = new ArrayList<>();
-			boolean directed = false;
-			
-			double max = 0;
-			for(double w: streets.values()) {
-				max = Math.max(max, w);
-				//System.out.print(w+"  ");
-			}
-			//System.out.println();
-				
-			for(String k: streets.keySet()) {
-				String[] e = k.split(",|:");
-				double lat1 = Double.parseDouble(e[0]);
-				double lon1 = Double.parseDouble(e[1]);
-				double lat2 = Double.parseDouble(e[2]);
-				double lon2 = Double.parseDouble(e[3]);
-				double w = streets.get(k);
-				latlon_segments.add(new double[][]{{lat1,lon1},{lat2,lon2}});
-				weights.add(10*w/max);
-				//colors.add(Colors.val01_to_color(w/max));
-				colors.add("#ff0000");
-			}
-			
-			RRoadNetwork.draw(title, latlon_segments, weights, colors, directed, rm, file, label);
-		}
+		
 				
 }

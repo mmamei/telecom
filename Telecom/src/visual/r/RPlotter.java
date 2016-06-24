@@ -9,10 +9,12 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.rosuda.REngine.Rserve.RConnection;
 
 import utils.Config;
+import utils.StatsUtils;
 
 public class RPlotter {
 	
@@ -38,16 +40,15 @@ public class RPlotter {
             c.assign("x", x);
             c.assign("y", y);
             
-            String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
+            String end = opts==null || opts.length()==0 ? "+" : " + "+opts+"+";
             String code = 
             		   "library(ggplot2);"
             		 + "x <- ordered(x,levels=c(x));"
             	     + "z <- data.frame(x,y);"
             	     + "ggplot(z,aes(x=factor(x),y=y)) + geom_bar(stat='identity') + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"')"+end
-            	     + "ggsave('"+file+"',width=10);"
-            	     + "dev.off();";
+            	     + "ggsave('"+file+"',height=6,width=12);";
             
-            //System.out.println(code);
+            System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -98,7 +99,7 @@ public class RPlotter {
             	     + "ggsave('"+file+"',width=10);"
             	     + "dev.off();";
             
-            System.out.println(code);
+            //System.out.println(code);
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -193,7 +194,7 @@ public class RPlotter {
             	     + "ggsave('"+file+"',width=10);"
             	     + "dev.off();";
             
-            System.out.println(code);
+            //System.out.println(code);
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -229,14 +230,16 @@ public class RPlotter {
             if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
             
             
-            String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
+            
+            String end = opts==null || opts.length()==0 ? "+" : " + "+opts+"+";
             String code = 
             		   "library(ggplot2);"
             	     + "z <- data.frame(x,y);"
             	     + "ggplot(z,aes(x=x,y=y))"+(opts.contains("geom_point")?"":"+ geom_point()")+ " + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
-            	     + "ggsave('"+file+"');"
-            	     + "dev.off();";
-            System.out.println(code);
+            	     + "ggsave('"+file+"');";
+            //System.out.println(printRVector("x",x));
+            //System.out.println(printRVector("y",y));
+            //System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -266,6 +269,10 @@ public class RPlotter {
             c.assign("l", labels);
             
             
+            //System.out.println(printRVector("x",x));
+            //System.out.println(printRVector("y",y));
+            //System.out.println(printRVector("l",labels));
+            
             if(!xlab.startsWith("expression")) xlab = "'"+xlab+"'";
             if(!ylab.startsWith("expression")) ylab = "'"+ylab+"'";
             
@@ -274,9 +281,8 @@ public class RPlotter {
             		   "library(ggplot2);"
             	     + "z <- data.frame(x,y);"
             	     + "ggplot(z,aes(x=x,y=y)) + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+") + geom_text(aes(label=l), size=3)"+end
-            	     + "ggsave('"+file+"');"
-            	     + "dev.off();";
-            //System.out.println(code);
+            	     + "ggsave('"+file+"');";
+            //System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -338,8 +344,7 @@ public class RPlotter {
             code +=  "z <- rbind("+zl+");\n"
             		 + "names(z) <- c('x','"+kind+"','value');"
             	     + "ggplot(z,aes(x=x, y=value, linetype="+kind+", group="+kind+", shape="+kind+")) + geom_point() + theme_bw(base_size = "+FONT_SIZE+") +xlab('"+xlab+"') + ylab('"+ylab+"')"+end
-            	     + "ggsave('"+file+"');\n"
-            	     + "dev.off();\n";
+            	     + "ggsave('"+file+"');\n";
             
             System.out.println(code);
             c.eval(code);
@@ -356,6 +361,54 @@ public class RPlotter {
         }      
 	}
 	
+	private static final DecimalFormat DF = new DecimalFormat("0.00",new DecimalFormatSymbols(Locale.US));
+	private static final boolean LM = false;
+	public static double plotCorrelation(Map<String,Double> mapx, Map<String,Double> mapy, String titx, String tity, String file, Map<String,String> name2name, boolean use_labels) {
+		
+		
+		List<Double> lx = new ArrayList<Double>();
+		List<Double> ly = new ArrayList<Double>();
+		List<String> labels = new ArrayList<String>();
+		
+		for(String k: mapx.keySet()) {
+			//if(k.equals("97091")) continue;
+			double vx = mapx.get(k);
+			
+			//if(vx < 1  || vx > 10.7) continue;
+			
+			Double vy = mapy.get(k);
+			if(!Double.isNaN(vx) && vy != null) {
+				lx.add(vx);
+				ly.add(vy);
+				String ll = k.replace("'", "");
+				if(name2name!=null && name2name.get(ll) != null) ll =  name2name.get(ll).toUpperCase().split("-")[0];
+				labels.add(ll);
+			}
+		}
+		
+		double[] x = new double[lx.size()];
+		double[] y = new double[ly.size()];
+		String[] l = new String[labels.size()];
+		for(int i=0; i<x.length;i++) {
+			x[i] = lx.get(i);
+			y[i] = ly.get(i);
+			l[i] = labels.get(i);
+		}
+		
+		//System.out.println(titx+" map = "+mapx.size()+" array = "+x.length);
+		//System.out.println(tity+" map = "+mapy.size()+" array = "+y.length);
+		
+		double r = StatsUtils.r(x, y);
+		double r2v = StatsUtils.r2(x, y);
+		String r2 = "annotate(\"text\", parse=TRUE, size=10, fontface='bold', x="+(r > 0 ? "-" : "")+"Inf, y=Inf, label=\"r^2 == "+DF.format(r2v)+"\", hjust="+(r > 0 ? "-0.2" : "1.2")+", vjust=1.2)";
+		
+		if(use_labels) RPlotter.drawScatterWLabels(x,y,l,titx, tity, file, "stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + "+r2);
+		else RPlotter.drawScatter(x,y,titx, tity, file,"stat_smooth("+(LM?"":"method=lm,")+"colour='black') + theme(legend.position='none') + geom_point(alpha=0.2,size = 5) + "+r2);
+	
+		return r2v;
+
+	}
+
 	
 	/************************************************************************************************************/
 	/************************************************************************************************************/
@@ -437,8 +490,10 @@ public class RPlotter {
 			file = file.replaceAll("_", "-");
             c = new RConnection();// make a new local connection on default port (6311)
             
-            for(int i=0; i<y.size();i++)
+            for(int i=0; i<y.size();i++) {
             	c.assign("y"+i, y.get(i));
+            	System.out.println(printRVector("y"+i,y.get(i)));
+            }
             
                       
             String end = opts==null || opts.length()==0 ? ";" : " + "+opts+";";
@@ -461,10 +516,9 @@ public class RPlotter {
             
             	     code += "z <- rbind("+sby.substring(1)+");"   
             	     	  + "ggplot(z,aes(x=factor(variable),y=value)) + geom_boxplot(notch = TRUE) + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
-            	          + "ggsave('"+file+"',width="+width+");"
-            	          + "dev.off();";
+            	          + "ggsave('"+file+"',width="+width+");";
             
-            //System.out.println(code.replaceAll(";", ";\n"));
+            System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));
@@ -493,6 +547,26 @@ public class RPlotter {
             else e.printStackTrace();
         	c.close();
         }      
+	}
+	
+	
+	//public static DecimalFormat F = new DecimalFormat("##.##",DecimalFormatSymbols.getInstance(Locale.US)); 
+	public static int MAX = 500;
+	public static String printRVector(String name, double[] x) {
+		if(x.length==0) return "";
+		StringBuffer sb = new StringBuffer(name+"<-c("+F.format(x[0]));
+		for(int i=1; i<Math.min(x.length, MAX);i++)
+			sb.append(","+F.format(x[i]));
+		sb.append(");");
+		return sb.toString();
+	}
+	public static String printRVector(String name, String[] x) {
+		if(x.length==0) return "";
+		StringBuffer sb = new StringBuffer(name+"<-c('"+x[0]+"'");
+		for(int i=1; i<Math.min(x.length, MAX);i++)
+			sb.append(",'"+x[i]+"'");
+		sb.append(");");
+		return sb.toString();
 	}
 	
 	

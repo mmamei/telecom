@@ -8,11 +8,11 @@ import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.functions.Logistic;
 import weka.classifiers.functions.MultilayerPerceptron;
-import weka.classifiers.lazy.IB1;
+import weka.classifiers.lazy.IBk;
 import weka.classifiers.meta.ClassificationViaClustering;
-import weka.classifiers.neural.lvq.Som;
 import weka.classifiers.rules.OneR;
 import weka.classifiers.trees.J48;
+import weka.clusterers.SelfOrganizingMap;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -84,19 +84,18 @@ public class WekaTrainer {
 			c = log;
 		}
 		else if(classifier.equals("nn1")) {
-			IB1 ib1 = new IB1();
+			IBk ib1 = new IBk();
+			ib1.setKNN(1);
 			c = ib1;
 		}
 		else if(classifier.startsWith("clustering")) {
 			ClassificationViaClustering cvc = new ClassificationViaClustering();
 			String type = classifier.substring(classifier.indexOf("-")+1);
-			if(type.equals("kmeans")) {
+			if(type.equals("kmeans")) 
 				cvc.setClusterer(new SimpleKMeans());
-				c = cvc;
-			}
-			if(type.equals("som")) {
-				c = new Som();
-			}
+			if(type.equals("som")) 
+				cvc.setClusterer(new SelfOrganizingMap());
+			c = cvc;
 		}
 		
 		

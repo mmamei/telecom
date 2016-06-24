@@ -11,7 +11,7 @@ import region.RegionI;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
-import utils.ListArrayUtils;
+import utils.ListMapArrayBasicUtils;
 import utils.Logger;
 import visual.r.RPlotter;
 import cdrindividual.Constraints;
@@ -28,8 +28,8 @@ public class ODMatrixHW {
 		
 		//String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_users_200_100/results.csv";
 		//String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour/results.csv";
-		String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour/results.csv";
-		String time_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour/resultsTime.csv";
+		String places_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour/results.csv";
+		String time_file = Config.getInstance().base_folder+"/PlaceRecognizer/file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour/resultsTime.csv";
 		
 		
 		
@@ -175,10 +175,10 @@ public class ODMatrixHW {
 		
 		
 		List<double[]> y = new ArrayList<>();
-		y.add(ListArrayUtils.toArray(home_minTime));
-		y.add(ListArrayUtils.toArray(home_maxTime));
-		y.add(ListArrayUtils.toArray(work_minTime));
-		y.add(ListArrayUtils.toArray(work_maxTime));
+		y.add(ListMapArrayBasicUtils.toArray(home_minTime));
+		y.add(ListMapArrayBasicUtils.toArray(home_maxTime));
+		y.add(ListMapArrayBasicUtils.toArray(work_minTime));
+		y.add(ListMapArrayBasicUtils.toArray(work_maxTime));
 		
 		List<String> names = new ArrayList<>();
 		names.add("HminT");

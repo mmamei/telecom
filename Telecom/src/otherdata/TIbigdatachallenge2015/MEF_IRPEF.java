@@ -137,7 +137,7 @@ public class MEF_IRPEF {
 		PROV_TO_2LETTERS.put("siena".toUpperCase(),"SI");
 		PROV_TO_2LETTERS.put("ravenna".toUpperCase(),"RA");
 		PROV_TO_2LETTERS.put("ferrara".toUpperCase(),"FE");
-		//PROV_TO_2LETTERS.put("modena".toUpperCase(),"MO");
+		PROV_TO_2LETTERS.put("modena".toUpperCase(),"MO");
 		PROV_TO_2LETTERS.put("venezia".toUpperCase(),"VE");
 		PROV_TO_2LETTERS.put("torino".toUpperCase(),"TO");
 		PROV_TO_2LETTERS.put("asti".toUpperCase(),"AT");

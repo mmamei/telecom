@@ -9,7 +9,8 @@ We use a ${threshold} threshold to consider only those regions with enough data.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=1.0\columnwidth]{${dir}/boxplot-cluster-intra.png}
+\includegraphics[width=1.0\columnwidth]{${dir}/boxplot-cluster-within.png}
+\includegraphics[width=1.0\columnwidth]{${dir}/boxplot-cluster-between.png}
 \includegraphics[width=0.31\columnwidth]{${dir}/clustering-deprivazione.png}
 \includegraphics[width=0.31\columnwidth]{${dir}/clustering-redPC.png}
 \includegraphics[width=0.31\columnwidth]{${dir}/clustering-redPCP.png}
