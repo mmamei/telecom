@@ -1,517 +1,382 @@
 package cdraggregated.densityANDflows.flows;
-
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
-import region.RegionMap;
-import utils.Config;
-import utils.CopyAndSerializationUtils;
-import utils.Mail;
 import utils.mod.CoordinateUtil;
+import utils.mod.Route;
 import utils.mod.Util;
 import utils.mod.Util.Pair;
 import utils.mod.Write;
+import utils.multithread2.MultiWorker;
+import utils.mygraphhopper.MyGHResponse;
 import utils.mygraphhopper.MyGraphHopper;
 import utils.mygraphhopper.WEdge;
-import visual.r.RRoadNetwork;
-import visual.text.TextPlotter;
 
 import com.graphhopper.GHRequest;
-import com.graphhopper.GHResponse;
-import com.graphhopper.routing.Path;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.storage.GraphHopperStorage;
 import com.graphhopper.storage.index.LocationIndex;
 import com.graphhopper.storage.index.QueryResult;
-import com.graphhopper.util.DistanceCalc2D;
+import com.graphhopper.util.DistanceCalc3D;
 import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.PointList;
 import com.graphhopper.util.shapes.GHPoint;
 import com.vividsolutions.jts.geom.Geometry;
 
-public class MAPfromMOD {
-		
-//		se true		usa dati con origini e destinazioni generati casualmente in un'area		
-//		se false	usa dati con origini e destinazioni puntuali
-		static boolean polyMode = true;
-		
-//		static Double[] ita={0.2,0.2,0.2,0.2,0.2};
-		public static Double[] ita = {1.0};
-//		static Double[] ita = {0.8,0.2};
-
-		
-//		usato solo se polyMode = true:
-//		è il flusso massimo che si può assegnare a un singolo routing
-//		minore sarà "parameterForRandomAssigment" più punti random verranno
-//		generati all'interno dell'area di origine (e dell'area di destinazione)
-		static Integer parameterForRandomAssigment = 50;
-		
-//		il flusso degli spostamenti letti dal file origine/destinazione inferiori alla tolleranza
-//		non vengono presi in considerazione	
-		public static Double tolleranza=(double)50;
-		
-		static boolean forecast = false;
-		static GHPoint daForecast = new GHPoint(44.798891, 7.630273);
-		static GHPoint aForecast = new GHPoint(44.809944, 7.61198);
-		
-		
-		static GHPoint revGeocoding = new GHPoint (45.027936,7.600243);
-		
-		
-		
-		public static void main(String[] args) throws Exception{
-			
-			RRoadNetwork.VIEW = true;
-			
-			
-			
-			//String fileMOD = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte/od-0-1-0.csv";
-			//String fileCoord = "C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte/latlon.csv";
-			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piem2011.ser"));
-			//String osmFile = "C:/DATASET/osm/piem2/piem.osm";
-			
-			//String fileMOD = "C:/BASE/ODMatrix/emilia-romagna/4406_mod_201509142300_201509150000_calabrese_emilia_regione+ascbologna.txt";
-			//String fileCoord = "G:/DATASET/GEO/EmiliaRomagna/EmiliaRomagna.csv";
-			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/EmiliaRomagnaId.ser"));	
-			//String osmFile = "C:/DATASET/osm/er/emilia-romagna.osm";
-			
-			
-			
-			
-			
-			
-			
-			/*
-			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piemonteId.ser"));
-			String fileCoord = "C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv";
-			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
-			String fileMOD = "C:/BASE/ODMatrix/matrici_piemonte/orarie/4957_mod_201505231800_201505231900_lovisolo_piemonte_comuni+torinoasc.txt";
-			go(fileMOD,fileCoord,rm,osmFile);
-			*/
-			
-			
-			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piemonteId.ser"));
-			//RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-torino-grid.ser"));
-			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/TorinoCenter.ser"));
-			String fileCoord = "C:/BASE/ODMatrix/matrici_piemonte/map/piemonte.csv";
-			String osmFile = "C:/DATASET/osm/piem/piem.osm";
-			String video_dir = Config.getInstance().base_folder+"/Videos/20150523_Lovisolo_Piem-"+rm.getName();
-			new File(video_dir).mkdirs();
-			File dir = new File("C:/BASE/ODMatrix/matrici_piemonte/orarie");
-			File[] files = dir.listFiles(new FilenameFilter() {
-			    							@Override
-			    							public boolean accept(File dir, String name) {
-			    							return name.matches("[0-9]+_mod_20150523[0-9]+_20150523[0-9]+_lovisolo_piemonte_comuni\\+torinoasc.txt");
-			    							}
-										});
-			
-			for(File f: files) {
-				String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile, Config.getInstance().paper_folder+"/img/od");
-				Map<String,Object> tm = ODParser.parseHeader(f.toString());
-				// Istante di inizio: Sat, 23 May 2015 01:00
-				String[] orario = ((String)tm.get("Istante di inizio")).split(" ");
-				String h = orario[orario.length-1];
-				if(h.contains(":")) h = h.substring(0,h.indexOf(":"));
-				if(h.length()==1) h = "0"+h;
-				System.out.println("==>"+h);
-				
-				Files.copy(Paths.get(imgFile), Paths.get(video_dir+"/img"+h+".png"), StandardCopyOption.REPLACE_EXISTING);
-			}
-			System.out.println("Creating video");
-			
-			new File(video_dir+"/out.mp4").delete();
-			// requires installing ffmpeg!!!!
-			// 0.5 is the number of second per frame
-			// 600 is the size of the video
-			Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
-			
-			
-			
-			/* TO MAKE VIDEO
-			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/piem2011.ser"));
-			String osmFile = "C:/DATASET/osm/piem2/piem.osm";
-			File dir = new File("C:/BASE/ODMatrix/ODMatrixHW_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour_odpiemonte");
-			String fileCoord = dir+"/latlon.csv";
-			
-			String video_dir = Config.getInstance().base_folder+"/Videos/ODMatrixHW_file_pls_piem";
-			new File(video_dir).mkdirs();
-			
-			for(File f: dir.listFiles()) {
-				if(f.getName().startsWith("od")) {
-					String imgFile = go(f.getAbsolutePath(), fileCoord, rm, osmFile);
-					
-					
-					Map<String,Object> tm = ODComparator.parseHeader(f.toString());
-					String h = ((String)tm.get("Istante di inizio")).split(" ")[1];
-					if(h.length()==1) h = "0"+h;
-					
-								
-					Files.copy(Paths.get(imgFile), Paths.get(video_dir+"/img"+h+".png"), REPLACE_EXISTING);
-				}
-			}
-			
-			System.out.println("Creating video");
-			
-			new File(video_dir+"/out.mp4").delete();
-			// requires installing ffmpeg!!!!
-			// 0.5 is the number of second per frame
-			// 600 is the size of the video
-			Runtime.getRuntime().exec("G:/Programmi/ffmpeg/bin/ffmpeg.exe -framerate 1/0.5 -i "+video_dir+"/img%02d.png  -filter:v scale=600:-1 -c:v libx264 -r 30 -pix_fmt yuv420p "+video_dir+"/out.mp4");
-			*/
-			
-			
-			
-			
-			System.out.println("The End!");
-			Mail.send("Movie done");
-		}
-		
-		
-		public static String go(String fileMOD, String fileCoord, RegionMap rm, String osmFile, String outdir) throws Exception {
-			
-			fileMOD = fileMOD.replaceAll("\\\\", "/");
-			
-			MyGraphHopper gh = new MyGraphHopper();
-			gh.setPreciseIndexResolution(1000);
-			
-			
+public class MAPfromMOD{
+//	nome e percorso file della MOD
+	static String fileMOD = "temp/MatriceOD_per_-_Lombardia__orario_uscita_-_1.csv";
+//	static String fileMOD = "temp/od.csv";
 	
-			String osmDir = osmFile.substring(0,osmFile.lastIndexOf("/"));
-			gh.setOSMFile(osmFile);
-			gh.setGraphHopperLocation(osmDir);
-			
-			
-			
-			
-			gh.setEncodingManager(new EncodingManager(EncodingManager.CAR));
-			gh.setCHEnable(false);
-			gh.importOrLoad();
-			EdgeIteratorState edgeDa;
-			EdgeIteratorState edgeA;
-			LocationIndex index = gh.getLocationIndex();
-			GraphHopperStorage graph = gh.getGraphHopperStorage();
-			
-			HashMap<String, GHPoint> coord = new HashMap<String, GHPoint>();
-//			Formato HashMap coord: <String: cod Istat del comune "cc"+"-"+cp, String corrdinate del comune:"lat"+":"+"lon">
-			
-			HashMap<Integer, WEdge> edges = new HashMap<Integer, WEdge>();
-//			Formato HashMap edges: <Integer: edge ID, WEdge: tutte le informazioni sul relativo edge>
-			
-			HashMap<String, Double> streets = new HashMap<String, Double>();
-//			Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
-			
-			HashMap<String, Double> streetsForecast = new HashMap<String, Double>();
-//			Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
-			
-			Map<String,Geometry> polycoord = new HashMap<String,Geometry>();
-//			Formato HashMap polycoord: <String: cod Istat del comune "cc"+"-"+cp, Geometry: area del comune>
-			
-			HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes = new HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> ();
-//			Formato HashMap randomPoints: <String: cod Istat del comune di partenza "cc"+"-"+cp+":"+"cc"+"-"+"cp" cod Istat del comune d'arrivo, ArrayList<GHPoint[]: [0] GHPoint partenza, [1] GHPoint arrivo>>		
-			
-			ArrayList<Integer> fe = new ArrayList<Integer>();
-			fe = MyGraphHopper.getForbiddenEdge();
-			gh.determineForbiddenEdges(fe);
-			EdgeIteratorState forecastEdge = null;			
-			if(forecast){
-				QueryResult aqr, bqr;
-				aqr = index.findClosest(daForecast.lat, daForecast.lon,  EdgeFilter.ALL_EDGES);
-				bqr = index.findClosest(aForecast.lat, aForecast.lon,  EdgeFilter.ALL_EDGES);
-				DistanceCalc2D dc = new DistanceCalc2D();
-				forecastEdge = graph.edge(aqr.getClosestEdge().getBaseNode(), bqr.getClosestEdge().getBaseNode(), dc.calcDist( daForecast.lat, daForecast.lon, aForecast.lat, aForecast.lon ), true);
-				graph.flush();
-				
-			}
-			
-			if(polyMode){
-				//polycoord = CoordinateUtil.setPolycoord("G:/DATASET/OD-ALBERTO-FRANCIA/Geometry/comuni2014.csv");
-				polycoord = CoordinateUtil.setPolycoord(fileCoord);
-				
-				//for(String k: polycoord.keySet())
-				//	System.out.println(k);
-				
-			}
-			else{
-//				coord=CoordinateUtil.setCoord(fileMOD,fileCoord);
-				String fileMBOD ="MatriceBoolean.csv";
-				fileMBOD = Write.BooleanMatrix(tolleranza, fileMOD);
-				coord = CoordinateUtil.setCoord(fileMBOD, fileMOD, fileCoord);
-			}
-			
-//			ordino i valori di ita
-			ita = Util.bubbleSort(ita);
-//			controllo che i valori dell'algoritmo "ita" siano corretti
-			double itaControl = 0;
-			for(int iter = 0; iter<ita.length; iter++){
-				itaControl+=ita[iter];
-			}
-			if((1-itaControl)<0.00001)			
-				
-			for(int iter = 0; iter<ita.length; iter++){
-				int count=0;
-				gh.determineBusyEdges(edges);
-				
-				BufferedReader br = new BufferedReader(new FileReader(fileMOD));
-				
-				int headerRows = 0;
-				String line;
-				while((line = br.readLine()).trim().length()>0)
-					headerRows++;
-				System.out.println("Skipped "+(headerRows+1)+" header rows");
-				
-				line = br.readLine();
-				
-				if(line.startsWith("\t\t"))
-					line = line.replaceFirst("\t", "");
-				
-				//System.err.println(line);
-				
-				String ci[]=line.split("\t");
-				
-				int r=0;
-				int countGhostRoute=0;	// il  numero di tragitti del quale non si è riuscito a calcolcare il percorso
+//	Le province visualizzate nel file html che verrà generato
+	static String[] provToVisualize = {"015"};
+	
+//	I comuni visualizzati nel file html che verrà generato
+	static String[] comToVisualize = {};
+	
+	static String percorsoInput = "C:/BASE/Francia";
+	static String percorsoOutput = "C:/BASE/Francia/html";
+	
+//	se true		usa dati con origini e destinazioni generati casualmente in un'area		
+//	se false	usa dati con origini e destinazioni puntuali
+	static boolean polyMode = true;
+	static String weight = "traffic";
+	//	quanto viene preso in considerazione il "traffico statico"	 
+	//  funziona solo per lombardia
+	//  guarda il tasso di motorizzazione e alloca t = 0.1 (10%) del traffico sulle strade
+	static double ta = 0.1;
+//	static Double[] ita = {1.0};
+	static Double[] ita = {0.6,0.4};
+//	static Double[] ita = {0.6,0.3,0.1};
+//	static Double[] ita={0.2,0.4,0.1,0.3};
 
-				while((line=br.readLine())!=null){
-					r++;
-//					System.out.println(ci[r]);
+//	usato solo se polyMode = true:
+//	è il flusso massimo che si può assegnare a un singolo routing
+//	minore sarà "parameterForRandomAssigment" più punti random verranno
+//	generati all'interno dell'area di origine (e dell'area di destinazione)
+	static Integer parameterForRandomAssigment = 100;
+	
+//	il flusso degli spostamenti letti dal file origine/destinazione inferiori alla tolleranza
+//	non vengono presi in considerazione	
+	static Double tolleranza = (double)  100;
+	
+	
+	// serve per l'analisi dei tempi.
+	// se ci sono meno di analizeTollerance persone, questo tragitto non viene considerato nel confronte dei tempi
+	
+	static Double analizeTollerance = 20.0;
+	
+//	se si vuole aggiungere una nuova strada
+	static boolean forecast = false;
+	static GHPoint daForecast = new GHPoint(45.418591, 9.205387);
+	static GHPoint aForecast = new GHPoint(45.431696, 9.223983);
+	
+//	se true i comuni sono identificati da un codice formato istat
+// serve per trattere i codici dei comuni. daIstat = true sono i codici istat.
+	static boolean daIstat = true;
 			
-					GHPoint da = new GHPoint(0.0,0.0);
-					GHPoint a = new GHPoint(1.0,1.0);
+//	per ottenere informazioni sul traffico in questo punto (OLD)
+	static GHPoint revGeocoding = new GHPoint (45.027936,7.600243);
+	
+//	stringa contenente le informazioni sui tragitti "delay", ossia quelli che non rientrano più in questa fascia oraria
+//	formato str: "da.lat"-"da.lon"-"da.lat"-"da.lon"-"flusso"-"nuovo orario"|
+	
+	static int countGhostRoute = 0; // non dovrebbe servire
+// il  numero di tragitti del quale non si è riuscito a calcolcare il percorso
+	
+	public static void main(String[] args) throws Exception{
+//		calcolo lo StaticTraffic
+		Double stc=0.0;
+		if(weight.equalsIgnoreCase("traffic")){
+//			leggo il numero totale del parco veicolare preso in considerazione nelle matrici OD
+			BufferedReader b = new BufferedReader(new FileReader(percorsoInput+"/"+fileMOD));
+			for(int i=0;i<3;i++)	b.readLine();	//skip header
+			String s = b.readLine();
+			double tot= Double.parseDouble(s.split("=")[1]);
+			stc=Util.getStaticTrafficCost(b.readLine().replaceAll("regioni in considerazione =", "").replaceAll(",", "").split("\t"), tot, ta);
+			b.close();
+		}
+		System.out.println("--------------------->>> "+stc);
+		
+//		Write.genericWrite(percorsoInput+"/temp/delays.dat", str);
 					
-					if(line.startsWith("\t"))
-						line = line.replaceFirst("\t", "");
-					
-					//System.out.println(line);
-					String l[]=line.split("\t");
-					for(int c=1; c<l.length; c++){
-						//if(ci[r].equals("5,0") && ci[c].equals("6,0"))	System.out.println("==>"+l[c]);
-						
-						
-						
-						double flux=Double.parseDouble(l[c]);
-						if(flux>=tolleranza){
-							double itaFlux=(flux*ita[iter]);
-//							gh.determinebusyEdges(edges);
-							
-						//System.out.println("Iterazione n° "+(iter+1)+" su "+(ita.length)+",   Tragitto numero: "+(count+1)+", Riga numero: "+r+" su "+ci.length+" "+c);
-							
-							ArrayList<Pair<GHPoint,GHPoint>> randomPoints= new ArrayList<Pair<GHPoint,GHPoint>>();
-							
-							
-							if(!polyMode && !a.equals(da)){
-								da = coord.get(ci[r]);
-								a = coord.get(ci[c]);
+		if(!percorsoInput.endsWith("/")){
+			percorsoInput += "/";
+		}
+		
+		String fileCoord = percorsoInput+"temp/latlon.csv";		
+		if(daIstat)	{
+			fileCoord = percorsoInput+"Dati/Map/Coord/CoordinateDecimaliComuni.csv";
+		}
+		
+		MyGraphHopper gh = new MyGraphHopper();
+		gh.setPreciseIndexResolution(10000);
+		gh.setOSMFile("C:/DATASET/osm/lomb/lomb.osm");
+		gh.setGraphHopperLocation(percorsoInput+"Dati/Map");
+		EncodingManager eM = new EncodingManager(EncodingManager.CAR);
+		gh.forDesktop();
+		gh.setEncodingManager(eM);
+		gh.setCHEnable(false);
+		gh.determineStc(stc);
+		gh.importOrLoad();
+		gh.setWayPointMaxDistance(100);
+		LocationIndex index = gh.getLocationIndex();
+		GraphHopperStorage graph = gh.getGraphHopperStorage();
+		
+
+		int op=0;
+		int ow=0;
+		
+		
+		HashMap<String, GHPoint> coord = new HashMap<String, GHPoint>();
+//		Formato HashMap coord: <String: cod Istat del comune "cc"+"-"+cp, String corrdinate del comune:"lat"+":"+"lon">
+		
+		HashMap<String, WEdge> edges = new HashMap<String, WEdge>();
+//		Formato HashMap edges: <Integer: edge ID, WEdge: tutte le informazioni sul relativo edge>
+		
+		HashMap<String, Double> streets = new HashMap<String, Double>();
+//		Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
+		
+		HashMap<String, Double> streetsForecast = new HashMap<String, Double>();
+//		Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
+		
+		HashMap<String,Geometry> polycoord = new HashMap<String,Geometry>();
+//		Formato HashMap polycoord: <String: cod Istat del comune "cc"+"-"+cp, Geometry: area del comune>
+		
+		HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes = new HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> ();
+//		Formato HashMap randomPoints: <String: cod Istat del comune di partenza "cc"+"-"+cp+":"+"cc"+"-"+"cp" cod Istat del comune d'arrivo, ArrayList<GHPoint[]: [0] GHPoint partenza, [1] GHPoint arrivo>>		
+		
+//		HashMap<String, Double> time = new HashMap<String, Double>();
+		HashMap<String, double[][]> timeM = new HashMap<String, double[][]>();
+//		Formato HashMap Time: <Pair<String: cod Istat del comune di partenza "cc"+"-"+cp+":",String "cc"+"-"+"cp" cod Istat del comune d'arrivo>,Double[i] # persone che compiono nella fascia oraria i-esima>
+		
+		HashMap<String, Route> hm = new HashMap<String, Route>();
+		
+		
+		ArrayList<Integer> fe = new ArrayList<Integer>();
+		fe = Util.getForbiddenEdge(percorsoInput);
+		gh.determineForbiddenEdges(fe);
+		
+		BufferedWriter bw= new BufferedWriter(new FileWriter(new File(percorsoInput+"temp/delay.csv")));
+//		prima di tutto vado a calcolare i tragitti derivanti dalle scorse iterazioni del programma nelle diverse fascie orarie
+		BufferedReader dr = new BufferedReader(new FileReader(percorsoInput+"/temp/delays.csv"));
+		String m[] = fileMOD.split("_-_");
+		int orario = (Integer.parseInt(m[2].replace(".csv", "")));
+		
+		String ds ="";
+		if(weight.equalsIgnoreCase("traffic")){
+			while((ds=dr.readLine())!=null){
+				String dst[] = ds.split("|");
+				for(int i=0; i<dst.length; i++){
+					String dstt[] = dst[i].split("-");
+					if(Integer.parseInt(dstt[5])==orario){
+						double daLat = Double.parseDouble(dstt[0]);
+						double daLon = Double.parseDouble(dstt[1]);
+						double aLat = Double.parseDouble(dstt[2]);
+						double aLon = Double.parseDouble(dstt[3]);
+						MyGHResponse res = new MyGHResponse();
+						do{
+							GHRequest req = new GHRequest(daLat,daLon, aLat,aLon);
+							req.setWeighting(weight);
+							res = gh.route(req, eM, orario, Util.round(Double.parseDouble(dstt[4]), 4), "");
+	//						da++; a++;
+							if(res.hasErrors()){
+								daLat+=0.001;
+								daLon+=0.001;
+								aLat+=0.001;
+								aLon+=0.001;
 							}
-
-							if(polyMode &&(!a.equals(da))){  //per non tener conto di tragitti con origine == alla destinazione nel caso non si sia in polymode
-								count++;
-//								n è la somma di tutti i flussi nelle vari iterazion(del ciclo while seguente), all'ultima iterazione sara pari a itaFlux
-								int n=0;
-//								f sarà il flusso da assegnare al traffico per ogni a getPath, non può superare parameterForRandomAssigment
-								double f=itaFlux;
-								while(n<itaFlux){			
-									
-									if(itaFlux-n<parameterForRandomAssigment){
-										f=itaFlux-n;
-									}
-									else{
-										if(itaFlux>parameterForRandomAssigment){
-											f=parameterForRandomAssigment;
-										}
-									}
-									n+=parameterForRandomAssigment;
-									
-									
-//									in randomRoutes vengono memorizzati i tragitti casuali generati. avendo ordinato ita in ordine
-//									decrescente non dovrebbero esserci eccezioni out of bounds, garantendo durante le seconde iterazioni
-//									dell'algoritmo che il traffico continui ad essere assegnato agli stessi tragitti anche generati casualmente
-									if(polyMode){
-										//System.out.println(ci.length+" "+r+" "+c);
-										if(randomRoutes.containsKey(ci[r]+":"+ci[c])){
-											da	= randomRoutes.get(ci[r]+":"+ci[c]).get((n/parameterForRandomAssigment)-1).first;
-											a	= randomRoutes.get(ci[r]+":"+ci[c]).get((n/parameterForRandomAssigment)-1).second;
-										}
-										else{
-											
-											//System.out.println("====> "+ci[c]);
-											
-											if(polycoord.containsKey(ci[c]) && polycoord.containsKey(ci[r])){
-												da = CoordinateUtil.GenerateRandomPoint(polycoord.get(ci[r]));
-												a = CoordinateUtil.GenerateRandomPoint(polycoord.get(ci[c]));
-												randomPoints.add(new Pair<GHPoint,GHPoint>(da,a));
-											}
-											else	{
-												if(polycoord.containsKey(ci[c])) System.out.println("ERROR NOT CONTEINED INPOLYCOORD:"+ci[r]);
-												else System.out.println("ERROR NOT CONTEINED INPOLYCOORD:"+ci[c]);
-											}
-											
-										}				
-									}
-									
-									
-									
-									List<Path> lp;
-									GHRequest req = new GHRequest(Util.round4(da.lat),Util.round4(da.lon),Util.round4(a.lat),Util.round4(a.lon));
-									req.setWeighting("TRAFFIC");
-									GHResponse res = gh.route(req);    
-									lp=MyGraphHopper.getPaths(gh,req, res);
-									
-									//	getPaths restituisce una lista di path (che ho sempre visto avere dimensione uno)
-									//	Un path è un oggetto contenente edge (archi, in questo caso gli edge del percorso ricercato
-									
-									if(lp.size()>1)System.out.println("WWOOOOOOOOOOOOWWWWWWWWW");
-									for(int i=0; i<	lp.size();i++){
-										List<EdgeIteratorState> thisPath=lp.get(i).calcEdges();
-										
-										//	devo trattare il primo e l'ultimo tratto del percorso in modo diverso rispetto agli altri:
-										//	il primo (ultimo) edge è un'edge che non esiste in graphhopper,
-										//	dato che ha come punto di partenza (fine) un punto fornito dall'utente. gethPath() infatti
-										//	restituirebbe come primo (ultimo) edge un nuovo edge generato appositamente per questo singolo
-										//	routing, assegnandogli, per ogni volta che calcolo un tragitto, lo stesso nuovo ID. Ad ogni
-										//	nuovo routing quindi si andrebbe ad aggiungere un peso non esistente al primo (ultimo) edge generato
-										//	Il primo edge quindi viene trovato tramite 	il metodo getClosestEdge, a discapito di una meno
-										//	precisa localizzazione del punto di partenza (arrivo).
-										
-										edgeDa = index.findClosest(da.lat, da.lon, EdgeFilter.ALL_EDGES).getClosestEdge();
-										if(edges.containsKey(edgeDa.getEdge()))	{
-											edges.get(edgeDa.getEdge()).addWeight(f);
-										}
-										else	edges.put(edgeDa.getEdge(), new WEdge(edgeDa, f));
-										if(ci[r].equals("5,0")&&ci[c].equals("6,0"))
-											System.out.println("ok "+thisPath.size());
-										
-										for (int j=1; j<thisPath.size()-1; j++){
-											if(edges.containsKey(thisPath.get(j).getEdge())){
-												edges.get(thisPath.get(j).getEdge()).addWeight(f);
-												
-//							    				System.out.println(thisPath.get(j).toString()+" f = "+flux+"  "+thisPath.get(j).getEdge());
-//							 	   				if(thisPath.get(j).getEdge()==306074)System.out.println("ooooooooooooooo"+thisPath.get(j).fetchWayGeometry(3));
-											}
-											else {
-												edges.put(thisPath.get(j).getEdge(), new WEdge(thisPath.get(j), f));
-//												System.out.println(thisPath.get(j).toString());
-//								    			if(thisPath.get(j).getEdge()==49345) System.out.println(thisPath.get(j).fetchWayGeometry(0)+" flusso "+flux)
-												
-											}			    				
-										}
-										edgeA = index.findClosest(a.lat, a.lon, EdgeFilter.ALL_EDGES).getClosestEdge();
-										if(edges.containsKey(edgeA.getEdge()))	edges.get(edgeA.getEdge()).addWeight(f);
-										else	edges.put(edgeA.getEdge(), new WEdge(edgeA, f));
-									}
-									if(lp.size()==0&&!(ci[r].equals(ci[r]))){
-										countGhostRoute++;
-									}
-								}
-							}
-							if(!randomPoints.isEmpty())
-								randomRoutes.put(ci[r]+":"+ci[c], randomPoints);
-						}
-					}
-				}
-				System.out.println("tragitti calcolati:"+count+"  tragitti di cui non si è potuto calcolare il percorso:"+countGhostRoute);
-				System.out.println(edges.size());
-				br.close();
-			}
-			else System.out.println("Errore: inserire valori per la variabile 'ita' la cui somma sia 1 ");
-			
-			
-			for(Integer id : edges.keySet()){
-				PointList p = edges.get(id).getPoints();
-				double w = edges.get(id).getWeight();
-				System.out.println(edges.get(id).getVia()+" => "+w);
-				for(int j=0;j<p.size()-1;j++) {
-					String da = Util.round4(p.getLat(j))+","+Util.round4(p.getLon(j));
-					String a = Util.round4(p.getLat(j+1))+","+Util.round4(p.getLon(j+1));
-					if(!da.equals(a))
-						streets.put(da+":"+a, w);	
-				}
-			}
-			
-
-			/*
-			if(forecast){	
-				p = forecastEdge.fetchWayGeometry(3);
-				for(int j=0;j<p.size()-1;j++){
-					String da = Util.round4(p.getLat(j))+","+Util.round4(p.getLon(j));
-					String a = Util.round4(p.getLat(j+1))+","+Util.round4(p.getLon(j+1));
-					
-					if(!da.equals(a)){
-						if(edges.containsKey(forecastEdge.getEdge())){
-							streetsForecast.put(da+":"+a, edges.get(forecastEdge.getEdge()).getWeight());
-						}
-						else{
-							streetsForecast.put(da+":"+a, 0.0);
-						}
+						}while(res.hasErrors());
+						if(!res.equals("null"))	bw.write(res.getDelayInfo()+"\n");
 					}
 				}
 			}
-			*/
-			/*
-			QueryResult cqr;
-			cqr = index.findClosest(revGeocoding.lat, revGeocoding.lon,  EdgeFilter.ALL_EDGES);
-			EdgeIteratorState revGeo = cqr.getClosestEdge(); 
-			if(!edges.containsKey(revGeo.getEdge())){
-				System.out.println("Traffico su "+revGeo.getName()+": "+0);
-//				System.out.println("velocità media : "+revGeo.getDistance()/revGeo.getFlags());
-			}
-			else{
-				System.out.println("Traffico su "+revGeo.getName()+": "+edges.get(revGeo.getEdge()).getWeight());
-				System.out.println("velocità media : "+edges.get(revGeo.getEdge()).getDistance()/edges.get(revGeo.getEdge()).getWeight());
-			}
+		}
+		dr.close();
+		
+		EdgeIteratorState forecastEdge = null;			
+		if(forecast){
+			QueryResult aqr, bqr;
+			aqr = index.findClosest(daForecast.lat, daForecast.lon,  EdgeFilter.ALL_EDGES);
+			bqr = index.findClosest(aForecast.lat, aForecast.lon,  EdgeFilter.ALL_EDGES);
+			DistanceCalc3D dc = new DistanceCalc3D();
+			forecastEdge = graph.edge(aqr.getClosestEdge().getBaseNode(), bqr.getClosestEdge().getBaseNode(), dc.calcDist( daForecast.lat, daForecast.lon, aForecast.lat, aForecast.lon ), true);
+			graph.flush();
 			
-			for(int id: edges.keySet()) {
-				System.out.println("---- "+edges.get(id).getVia()+" => "+edges.get(id).getWeight());
-			}
-			*/
-			
-			
-			
-			
-			String name = fileMOD.substring("C:/BASE/ODMatrix/".length(), fileMOD.lastIndexOf("/"));
-			name = name.replaceAll("_", "-");
-			
-			
-			
-			//create the map for text plotter with all relevant information
-			Map<String,Object> tm = new HashMap<String,Object>();
-			
-			tm.putAll(ODParser.parseHeader(fileMOD));
-			
-			
-			outdir = outdir.replaceAll("\\\\", "/");
-			String imgFile = outdir+"/"+tm.get("name")+".png";
-			tm.put("img", imgFile.substring(Config.getInstance().paper_folder.length()+1));
-			
-			String label = ((String)tm.get("Istante di inizio")).replaceAll(" ", ":")+" - "+((String)tm.get("Istante di fine")).replaceAll(" ", ":");
-			
-			RRoadNetwork.drawR(name,streets,rm,10.0,false,imgFile,label);
-			TextPlotter.getInstance().run(tm,"src/cdraggregated/densityANDflows/flows/MAPfromMOD.ftl", imgFile.replaceAll(".png", ".tex"));
-				
-			
-			
-			
-			//MyGraphHopper.addForbiddenEdge(forecastEdge);
-			//System.out.println(streets.size());
-			//Write.simpleHTML(streets, streetsForecast);
-			//Write.advancedHTML(streets);
-
-			//Util.save(new File("temp/edges.dat"), Util.serialize(edges));
-			//System.out.println("Fine");
-			
-			return imgFile;
 		}
 		
 		
+		polycoord = CoordinateUtil.setPolycoord("G:/DATASET/OD-ALBERTO-FRANCIA/Geometry/comuniUpdated.csv", daIstat);
 		
+		
+		
+		
+		
+		if(!polyMode){
+//			coord=CoordinateUtil.setCoord(fileMOD,fileCoord);
+			String fileMBOD = percorsoInput+"temp/MatriceBoolean.csv";
+			fileMBOD = Write.BooleanMatrix(tolleranza, fileMOD, percorsoInput);
+			coord = CoordinateUtil.setCoord(fileMBOD, fileMOD, fileCoord);
+		}
+		
+//		ordino i valori di ita
+		ita = Util.bubbleSort(ita);
+//		controllo che i valori dell'algoritmo "ita" siano corretti
+		double itaControl = 0;
+		for(int iter = 0; iter<ita.length; iter++){
+			itaControl+=ita[iter];
+		}
+		
+		if((1-itaControl)<0.00001)
+		for(int iter = 0; iter<ita.length; iter++){
+			BufferedReader br = new BufferedReader(new FileReader(percorsoInput+fileMOD));
+			for(int i=0;i<14;i++)	br.readLine();	//skip header
+			
+			String line = br.readLine();
+			String ci[] = line.split("\t");
+							
+			System.out.println("Iterazione n° "+(iter+1)+" su "+(ita.length));
+			
+			DoLine dl = new DoLine(bw, ci, tolleranza, parameterForRandomAssigment, orario, ita[iter], polyMode, analizeTollerance, coord, randomRoutes, polycoord, gh, eM, weight);
+			MultiWorker.run(percorsoInput+fileMOD, dl);
+			randomRoutes=dl.getRandomRoutes();
+			hm=dl.getRoutes();
+			System.out.println("hm size "+hm.size() );
+			gh.updateBusyEdge();
+			br.close();
+		}
+		else System.out.println("Errore: inserire valori per la variabile 'ita' la cui somma sia 1 ");
+		
+		edges=gh.getBusyEdges();
+		
+		Util.serialize(new File(percorsoInput+"temp/edges.csv"), edges);
+		
+		Analize an = new Analize(edges, eM, ita.length);
+		ArrayList<Route> routes = new ArrayList<Route>();
+	
+		for(String k: hm.keySet())
+			routes.add(hm.get(k));
+		System.out.println("finish route hm converter: "+routes.size());
+//		hm.clear();
+//		coord.clear();
+		
+		MultiWorker.run(routes, an);
+		
+		
+		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesTraffic.dat"), an.getResultTimeTraffic());
+		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest.dat"), an.getResultTimeFastest());
+		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesOldTraffic.dat"), an.getResultTimeOldTraffic());
+		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest2.dat"), an.getResultTimeOldTraffic());
+		
+		
+//		System.out.println("tragitti calcolati:"+count+"  tragitti di cui non si è potuto calcolare il percorso:"+countGhostRoute);
+		System.out.println("time size "+timeM.size());
+		System.out.println(edges.size());
+		
+		
+		
+		
+		Set<String> keySet = edges.keySet();
+		PointList p = new PointList();
+		for(String id:keySet){
+			p = edges.get(id).getPoints();
+//			System.out.println(edges.get(id).getVia());
+			for(int j=0;j<p.size()-1;j++){
+				String da = Util.round(p.getLat(j), 4)+","+Util.round(p.getLon(j), 4);
+				String a = Util.round(p.getLat(j+1), 4)+","+Util.round(p.getLon(j+1), 4);
 				
+				if(!da.equals(a)){
+					streets.put(da+":"+a, (edges.get(id).getFlux(edges.get(id).getBaseNode())+edges.get(id).getFlux(edges.get(id).getAdjNode())));
+				}
+			}
+		}
+		
+		
+		if(forecast){
+			p = forecastEdge.fetchWayGeometry(3);
+			for(int j=0;j<p.size()-1;j++){
+				String da = Util.round(p.getLat(j), 4)+","+Util.round(p.getLon(j), 4);
+				String a = Util.round(p.getLat(j+1), 4)+","+Util.round(p.getLon(j+1), 4);
+				
+				if(!da.equals(a)){
+					if(edges.containsKey(forecastEdge.getEdge()+"")){
+						streetsForecast.put(da+":"+a, (edges.get(forecastEdge.getEdge()+"").getFlux(forecastEdge.getBaseNode())+edges.get(forecastEdge.getEdge()+"").getFlux(forecastEdge.getAdjNode())));
+					}
+					else{
+						streetsForecast.put(da+":"+a, 0.0);
+					}
+				}
+			}
+		}
+//	//	REV GEOCODING
+//		QueryResult cqr;
+//		cqr = index.findClosest(revGeocoding.lat, revGeocoding.lon,  EdgeFilter.ALL_EDGES);
+//		EdgeIteratorState revGeo = cqr.getClosestEdge(); 
+//		if(!edges.containsKey(revGeo.getEdge())){
+//			System.out.println("Traffico su "+revGeo.getName()+": "+0);
+//		}
+//		else{
+//			System.out.println("Traffico su "+revGeo.getName()+": "+edges.get(revGeo.getEdge()).getWeight());
+//			System.out.println("velocità media : "+edges.get(revGeo.getEdge()).getDistance()/edges.get(revGeo.getEdge()).getWeight());
+//		}
+	
+//		QUA
+		if(forecast){
+			MyGraphHopper.addForbiddenEdge(forecastEdge, percorsoInput);
+		}
+		System.out.println("streets size: "+streets.size());
+
+//		Write.advancedHTML(streets, streetsForecast, polycoord, comToVisualize, provToVisualize, percorsoOutput);
+		
+//	=====>	if(daIstat) Write.averageTime(time, percorsoInput, orario, tolleranza, weight, ita, polyMode, parameterForRandomAssigment, ta);
+
+//		if(daIstat)	Write.averageTime2(time, fileMOD, percorsoInput, orario);
+		
+		
+		System.out.println("Fine av time");	
+		System.out.println("busyEdges size:"+gh.getBusyEdges().size());
+		Util.save(new File(percorsoInput+"/temp/HashMaps/matrixTimeProject.dat"), timeM);
+
+		
+		
+		/*
+		 * Questo pezzo di codice carica il file edges.csv 
+		 * la chiave è l'id osm (graphopper) che ideintifica un tratto di srtata
+		 * WEDge contiene informaioni sul numero di macchinae e il tempo di percorrenza (per conforntare dopo con istat)
+		 */
+		
+		
+		HashMap<String, WEdge> desEdges = Util.deserializeWedges(new File(percorsoInput+"temp/edges.csv"), gh);
+		for(String k:desEdges.keySet()){
+			if(edges.containsKey(k)){
+				if(desEdges.get(k).getFlux(desEdges.get(k).getBaseNode())!=edges.get(k).getFlux(edges.get(k).getBaseNode())  ){
+					if(desEdges.get(k).getFlux(desEdges.get(k).getAdjNode())==edges.get(k).getFlux(edges.get(k).getBaseNode())  ){
+						System.out.println("ERRORE FLUSSI INVERTITI");
+					}
+					else{
+						System.out.println("NO NO NO NO:"+edges.get(k).getFlux(edges.get(k).getBaseNode())+" != "+desEdges.get(k).getFlux(desEdges.get(k).getAdjNode()));
+					}
+				}
+//				else System.out.println("ok");
+			}
+			else	System.out.println("ERRORE ID");
+		}
+		
+		// inizializzo i pesi di graphopper sulla base del traffico salvato in edges.csv (e caricato in desEdges).
+		// Instradamenti che faccio dopo, tengono conto del traffico assegnato.
+		
+		gh.determineBusyEdge(desEdges);
+		gh.updateBusyEdge();
+		
+		Write.simpleHTML(streets, streetsForecast, polycoord, comToVisualize, provToVisualize, percorsoOutput);
+		System.out.println("op= "+op+" ow= "+ow);
+		System.out.println("Fine");
+	}
 }

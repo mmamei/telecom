@@ -3,6 +3,8 @@ package cdraggregated.synch;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +26,7 @@ import visual.kml.KMLColorMap;
 public class TimeDensityFromAggregatedData {
 	
 	enum UseResidentType {ALL,RESIDENTS,NOT_RESIDENTS};
-	static UseResidentType res_type = UseResidentType.ALL;
+	static UseResidentType res_type =null;
 	
 	static boolean ENABLE_CACHE = true;
 	
@@ -36,12 +38,26 @@ public class TimeDensityFromAggregatedData {
 	
 	
 	public static void main(String[] args) throws Exception {
-		String city = "napoli";
+		String city = "milano";
+		res_type = UseResidentType.ALL;
 		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
+		System.out.println("Done");
 		
+		String cell = "3950_2_3_0_0_0_1";
+		String[] time = td.tc.getTimeLabels();
+		double[] cdr = td.map.get(cell);
+		double[] z = td.mapz.get(cell);
+		
+		PrintWriter out = new PrintWriter(new FileWriter("C:/BASE/"+city+"-"+cell+".csv"));
+		out.println("time,cdr,z");
+		for(int i=0; i<time.length;i++)
+			out.println(time[i]+","+cdr[i]+","+z[i]);
+		out.close();
 		
 		
 		System.out.println("Done");
+		
+		
 	}
 	
 
@@ -88,9 +104,9 @@ public class TimeDensityFromAggregatedData {
 			File f = null;
 			
 			switch(res_type) {
-				case ALL : f = new File(Config.getInstance().base_folder+"/TIC2015/cache/all/"+city+".ser");
-				case RESIDENTS: f = new File(Config.getInstance().base_folder+"/TIC2015/cache/residents/"+city+".ser");
-				case NOT_RESIDENTS: f = new File(Config.getInstance().base_folder+"/TIC2015/cache/not_residents/"+city+".ser");
+				case ALL : f = new File(Config.getInstance().base_folder+"/TIC2015/cache/all/"+city+".ser"); break;
+				case RESIDENTS: f = new File(Config.getInstance().base_folder+"/TIC2015/cache/residents/"+city+".ser"); break;
+				case NOT_RESIDENTS: f = new File(Config.getInstance().base_folder+"/TIC2015/cache/not_residents/"+city+".ser"); break;
 			}
 			
 				
@@ -166,9 +182,9 @@ public class TimeDensityFromAggregatedData {
 			boolean to_be_considered = true;
 			
 			switch(res_type) {
-				case ALL : to_be_considered = true;
-				case RESIDENTS: to_be_considered = residents.contains(meta);
-				case NOT_RESIDENTS: to_be_considered = !residents.contains(meta);
+				case ALL : to_be_considered = true; break;
+				case RESIDENTS: to_be_considered = residents.contains(meta); break;
+				case NOT_RESIDENTS: to_be_considered = !residents.contains(meta); break;
 			}
 			if(to_be_considered) {
 				double[] v = map.get(cell);

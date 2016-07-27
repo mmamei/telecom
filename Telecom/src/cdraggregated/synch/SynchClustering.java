@@ -19,7 +19,7 @@ import visual.kml.KMLColorMap;
 public class SynchClustering extends Thread {
 	
 	public static void main(String [] args) throws Exception {
-		runExperiment(TimeDensityFromAggregatedData.UseResidentType.ALL,-1,Feature.I);
+		runExperiment(TimeDensityFromAggregatedData.UseResidentType.ALL,24,Feature.I);
 	}
 	
 	
@@ -27,27 +27,29 @@ public class SynchClustering extends Thread {
 	
 	public static void runExperiment( TimeDensityFromAggregatedData.UseResidentType resType, int time_window, SynchCompute.Feature use_feature) throws Exception {
 		
+		System.out.println("RUNNING EXPERIMENT WITH: RESTYPE = "+resType+", TIME WINDOW = "+time_window+", FEATURE = "+use_feature);
+		
 		TimeDensityFromAggregatedData.res_type = resType;
 		SynchCompute.TIME_WINDOW = time_window;
 		SynchCompute.USEF = use_feature;
 		
 		List<String> cities = new ArrayList<>();
-		cities.add("napoli");
-		cities.add("bari");
-		cities.add("caltanissetta");
-		cities.add("siracusa");
-		cities.add("benevento");
-		cities.add("palermo");
-		cities.add("campobasso");
+		//cities.add("napoli");
+		//cities.add("bari");
+		//cities.add("caltanissetta");
+		//cities.add("siracusa");
+		//cities.add("benevento");
+		//cities.add("palermo");
+		//cities.add("campobasso");
 		cities.add("roma");
-		cities.add("siena");
-		cities.add("ravenna");
-		cities.add("ferrara");
-		cities.add("modena");
-		cities.add("venezia");
-		cities.add("torino");
-		cities.add("asti");
-		cities.add("milano");
+		//cities.add("siena");
+		//cities.add("ravenna");
+		//cities.add("ferrara");
+		//cities.add("modena");
+		//cities.add("venezia");
+		//cities.add("torino");
+		//cities.add("asti");
+		//cities.add("milano");
 		
 		
 		

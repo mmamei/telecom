@@ -14,7 +14,7 @@ import utils.CopyAndSerializationUtils;
 import utils.Mail;
 import utils.multithread.MultiWorker;
 import visual.r.RRoadNetwork;
-import cdraggregated.densityANDflows.flows.MAPfromMOD;
+import cdraggregated.densityANDflows.flows.XXX_MAPfromMOD;
 import cdraggregated.densityANDflows.flows.ODParser;
 import cdrindividual.dataset.impl.PLSParser;
 import cdrindividual.dataset.impl.UserCDRCounter;
@@ -304,8 +304,8 @@ public class RunAllODAnalysisHW {
 		String video_dir = Config.getInstance().base_folder+"/Videos/"+od_output_dir.getName();
 		new File(video_dir).mkdirs();
 				
-		MAPfromMOD.tolleranza = od_theshold;
-		MAPfromMOD.ita = ita;
+		XXX_MAPfromMOD.tolleranza = od_theshold;
+		XXX_MAPfromMOD.ita = ita;
 		RRoadNetwork.VIEW = false;
 				
 		File od_img_out_dir = new File(Config.getInstance().paper_folder+"/img/od/"+od_output_dir.getName().replaceAll("_", "-"));
@@ -315,7 +315,7 @@ public class RunAllODAnalysisHW {
 				
 		for(File f: od_output_dir.listFiles()) {
 				if(f.getName().startsWith("od")) {
-					String imgFile = MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
+					String imgFile = XXX_MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
 						
 					Map<String,Object> tm = ODParser.parseHeader(f.toString());
 					String h = ((String)tm.get("Istante di inizio")).split(" ")[1];

@@ -68,15 +68,16 @@ public class CoordinateUtil {
 	
 	
 //	riempie l'hashmap PolyCoord con codIstat e le sue relative coordinate geometriche
-	public static HashMap<String,Geometry> setPolycoord(String nomefile) throws Exception	{
+	public static HashMap<String,Geometry> setPolycoord(String nomefile, boolean daIstat) throws Exception	{
 		HashMap<String,Geometry> p = new HashMap<String,Geometry> ();
 		String line;
 		BufferedReader bfr = new BufferedReader(new FileReader(nomefile));
 		line=bfr.readLine();	// skip header
 		while((line = bfr.readLine())!=null) {
 			String[] e = line.split("\t");
-			//p.put(Util.uniformeCode(e[7]), new WKTReader().read(e[0].replaceAll("\"", "")));
-			p.put(e[1], new WKTReader().read(e[0].replaceAll("\"", "")));
+			if(daIstat)	p.put(Util.uniformeCode(e[7]), new WKTReader().read(e[0].replaceAll("\"", "")));
+			else	p.put(e[1], new WKTReader().read(e[0].replaceAll("\"", "")));
+			
 		}
 		bfr.close();
 		return p;

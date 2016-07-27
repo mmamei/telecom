@@ -17,7 +17,7 @@ public class SynchCompute {
 	
 	
 	enum Feature {RSQ, I,EU};
-	public static Feature USEF = Feature.RSQ;
+	public static Feature USEF = null;
 	
 	static String USE_FEATURE = "F";
 	
@@ -37,9 +37,9 @@ public class SynchCompute {
     	setUSEF();
     	String dir = "";
     	switch(TimeDensityFromAggregatedData.res_type) {
-			case ALL : dir="all";
-			case RESIDENTS: dir="residents";
-			case NOT_RESIDENTS: dir="not_residents";
+			case ALL : dir="all"; break;
+			case RESIDENTS: dir="residents"; break;
+			case NOT_RESIDENTS: dir="not_residents"; break;
     	}
     	
     	return Config.getInstance().paper_folder+"/img/"+dir+"/"+USEF+"-"+TIME_WINDOW;

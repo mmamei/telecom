@@ -12,7 +12,7 @@ import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.Mail;
 import visual.r.RRoadNetwork;
-import cdraggregated.densityANDflows.flows.MAPfromMOD;
+import cdraggregated.densityANDflows.flows.XXX_MAPfromMOD;
 import cdraggregated.densityANDflows.flows.ODParser;
 
 public class RunAllODAnalysisSMOD {
@@ -56,8 +56,8 @@ public class RunAllODAnalysisSMOD {
 		// 1. project into road
 		
 		
-		MAPfromMOD.tolleranza = od_theshold;
-		MAPfromMOD.ita = ita;
+		XXX_MAPfromMOD.tolleranza = od_theshold;
+		XXX_MAPfromMOD.ita = ita;
 		RRoadNetwork.VIEW = false;
 		
 		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/"+od_region_ser));
@@ -90,7 +90,7 @@ public class RunAllODAnalysisSMOD {
 		
 		
 		for(File f: files) {
-			String imgFile = MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
+			String imgFile = XXX_MAPfromMOD.go(f.getAbsolutePath(), fileCoord, rm, osmFile, od_img_out_dir.getAbsolutePath());
 			Map<String,Object> tm = ODParser.parseHeader(f.toString());
 			// Istante di inizio: Sat, 23 May 2015 01:00
 			String[] orario = ((String)tm.get("Istante di inizio")).split(" ");

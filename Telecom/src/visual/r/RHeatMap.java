@@ -38,8 +38,12 @@ public class RHeatMap {
 		
 		
 		
-		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2014-milano.ser"));
+		RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-roma-grid.ser"));
 		Map<String,Double> density = new HashMap<String,Double>();
+		for(RegionI r: rm.getRegions())
+			if(r.getName().startsWith("3420"))
+				density.put(r.getName(), 1.0);
+		
 		drawChoroplethMap(Config.getInstance().base_folder+"/Images/"+rm.getName()+".png","test",density,rm,false,true,0);
 				
 		Logger.logln("Done!");

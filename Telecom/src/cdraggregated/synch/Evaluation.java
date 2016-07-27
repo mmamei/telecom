@@ -27,7 +27,7 @@ public class Evaluation {
 	static List<String> cities_whose_map_we_draw = new ArrayList<String>();
 	static {
 		cities_whose_map_we_draw.add("roma");
-		cities_whose_map_we_draw.add("milano");
+		//cities_whose_map_we_draw.add("milano");
 	}
 	
 	static final String YLAB = SynchCompute.USE_FEATURE;
@@ -43,9 +43,9 @@ public class Evaluation {
 		String dir =SynchCompute.getDir();
 		new File(dir).mkdirs();
 		System.err.println(dir);
+		writeFeatureFile(cities,city_stats,dir);
 		drawMap(cities,city_stats,dir);
 		drawBoxPlots(cities,city_stats,dir);
-		writeFeatureFile(cities,city_stats,dir);
 		//drawCorrelationsOLD(cities,city_stats,dir);
 	}
 	
@@ -93,7 +93,6 @@ public class Evaluation {
 			double mean = ds.getMean();
 			if(Double.isNaN(mean))
 				mean = 0;
-				
 			density.put(comune, mean);
 			kml_descriptions.put(comune, "num_cell="+cellXComuneCount.get(comune)+",mean="+mean+", median="+ds.getPercentile(50));
 		}
@@ -102,6 +101,17 @@ public class Evaluation {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		// print density to csv
+		try {
+			PrintWriter out = new PrintWriter(new FileWriter(dir+"/map-"+city+"-"+title+".csv"));
+			for(String k: density.keySet())
+				out.println(k+","+density.get(k));
+			out.close();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		RHeatMap.drawChoroplethMap(dir+"/map-"+city+"-"+title+".png", title+" synch", density, rm, false, true, -1);
 	}
 	
@@ -165,6 +175,8 @@ public class Evaluation {
 	}
 	*/
 	
+	static boolean MEAN = false; // false = MEDIAN
+	
 	private static void writeFeatureFile(List<String> cities,  List<StatsCollection> city_stats,String dir) {
 		try {
 			MEF_IRPEF mi = MEF_IRPEF.getInstance();
@@ -180,9 +192,9 @@ public class Evaluation {
 			
 			
 			PrintWriter out = new PrintWriter(new FileWriter(dir+"/features-data.csv"));
-			out.println("city,regione,avg_intra,avg_inter,sd_intra,sd_inter,bond,bridge,depriv,rpc,blood,assoc,referendum,soccap");
+			out.println("city,regione,avg_intra,avg_inter,sd_intra,sd_inter,avg,sd,depriv,rpc,blood,assoc,referendum,soccap");
 			
-			List<double[]> bond_bridge = computeBondingBridgingBruno(city_stats);
+			//List<double[]> bond_bridge = computeBondingBridgingBruno(city_stats);
 			
 			for(int i=0; i<cities.size();i++) { // [napoli, bari, caltanissetta, siracusa, benevento, palermo, campobasso, roma, siena, ravenna, ferrara, venezia, torino, asti, milano]
 				
@@ -191,14 +203,21 @@ public class Evaluation {
 				
 				StatsCollection stc = city_stats.get(i);
 				
-				double avg_intra = stc.intra.getMean();
-				double avg_inter = stc.inter.getMean();
+				double avg_intra = MEAN ? stc.intra.getMean() : stc.intra.getPercentile(50);
+				double avg_inter = MEAN ? stc.inter.getMean() : stc.inter.getPercentile(50);
 				
-				double sd_intra = stc.intra.getStandardDeviation();
-				double sd_inter = stc.inter.getStandardDeviation();
+				double sd_intra = MEAN ? stc.intra.getStandardDeviation() : (stc.intra.getPercentile(75) - stc.intra.getPercentile(25));
+				double sd_inter = MEAN ? stc.inter.getStandardDeviation() : (stc.inter.getPercentile(75) - stc.inter.getPercentile(25));
 				
-				double bond = bond_bridge.get(i)[0];
-				double bridge = bond_bridge.get(i)[1];
+				//System.out.print("intra = "+stc.intra.getN()+" inter = "+stc.inter.getN());
+				
+				for(double v: stc.intra.getSortedValues())
+					stc.inter.addValue(v);
+				
+				//System.out.println(" all = "+stc.inter.getN());
+				
+				double avg = MEAN ? stc.inter.getMean() : stc.inter.getPercentile(50);
+				double sd = MEAN ? stc.inter.getStandardDeviation() : (stc.inter.getPercentile(75) - stc.inter.getPercentile(25));
 				
 				double depriv = map_depriv.get(regione);
 				double rpc = map_rpc.get(provincia);
@@ -207,7 +226,7 @@ public class Evaluation {
 				double referendum = map_referendum.get(provincia);
 				Double soccap = map_soccap.get(provincia);
 				
-				String line = cities.get(i)+","+regione+","+avg_intra+","+avg_inter+","+sd_intra+","+sd_inter+","+bond+","+bridge+","+depriv+","+rpc+","+blood+","+assoc+","+referendum+","+soccap;
+				String line = cities.get(i)+","+regione+","+avg_intra+","+avg_inter+","+sd_intra+","+sd_inter+","+avg+","+sd+","+depriv+","+rpc+","+blood+","+assoc+","+referendum+","+soccap;
 				System.out.println(line);
 				out.println(line);
 			}
@@ -216,7 +235,7 @@ public class Evaluation {
 			e.printStackTrace();
 		}
 	}
-	
+	/*
 	// compute bonding and bridging features like Bruno proposed in 31-5-2016 mail
 	private static List<double[]> computeBondingBridgingBruno(List<StatsCollection> city_stats) {
 		List<double[]> bond_bridge = new ArrayList<>();
@@ -233,7 +252,7 @@ public class Evaluation {
 		}
 		return bond_bridge;
 	}
-	
+	*/
 	
 	private static void writeCSV(List<String> ln, List<double[]> dist, String file) {
 		try {

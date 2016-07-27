@@ -11,6 +11,7 @@ public class FileUtils {
 			int count = 0;
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String line;
+			for(int i=0;i<15;i++)	br.readLine();	//skip header
 			while((line = br.readLine()) != null)
 				if(!line.startsWith("//"))
 					count++;

@@ -70,8 +70,8 @@ public class CodIstatCoord {
 			}
 			
 			if(!trovato&&!trovatoo){
-				System.out.println("Codice non corrispondeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-				ghostcode.put(d[i], "fottiti: "+trovato+" "+trovatoo);
+				System.out.println("New GhostCode");
+				ghostcode.put(d[i], " "+trovato+" "+trovatoo);
 				k++;
 			}	
 		}
@@ -102,7 +102,6 @@ public class CodIstatCoord {
 				String ccy=c[3].substring(3,6);
 				System.out.println(d+" è uguale a "+cpy+"-"+ccy);
 				if(d.equals(cpy+"-"+ccy)){
-					System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 					///inserisci c[5] come codice giusto in lineu la riga con codice corretto presa da coordcom2
 					BufferedReader bee = new BufferedReader(new FileReader("Dati/Map/Coord/ComuniCoord.txt"));
 					while((linee = bee.readLine())!=null&&!trovatoo) {
@@ -121,11 +120,6 @@ public class CodIstatCoord {
 							lineu=e[0]+";"+cpy+";"+ccy+";"+e[3]+";"+e[4]+";"+e[5]+";"+e[6]+";"+e[7]+";"+e[8]+";"+e[9]+";"+e[10]+";"+e[11]+";"+e[12]+";"+e[13]+";"+e[14]+";"+e[15];
 							
 							trovatoo=true;
-							System.out.println();
-							System.out.println();
-							System.out.println("FATTOOOOOOOOOOOOOOOOOOOOoooooooooooOOOOOOOOOOOOOOOOOOOOOOOOOOoOOOOOOoOooOoOooOooooooooooooooooooooooooooooooooooooooooooooo");
-							System.out.println();
-							System.out.println();
 						}
 					}
 					bee.close();
