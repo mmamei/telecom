@@ -60,7 +60,7 @@ public class Evaluation {
 			
 			StatsCollection stats = city_stats.get(i);
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
-			TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
+			TimeDensityTIM td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
 			Map<String,String> mapping = td.getMapping(rm); // 2026_3_0_3_1=63073, 
 			Map<String,Integer> assignments = KMLColorMap.toIntAssignments(mapping); // 2026_3_0_3_1=0,
 			

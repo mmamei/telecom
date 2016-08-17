@@ -36,7 +36,7 @@ public class SynchCompute {
     static String getDir() {
     	setUSEF();
     	String dir = "";
-    	switch(TimeDensityFromAggregatedData.res_type) {
+    	switch(TimeDensityTIM.res_type) {
 			case ALL : dir="all"; break;
 			case RESIDENTS: dir="residents"; break;
 			case NOT_RESIDENTS: dir="not_residents"; break;

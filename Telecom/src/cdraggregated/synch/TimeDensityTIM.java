@@ -23,7 +23,7 @@ import visual.kml.KMLColorMap;
 
 
 
-public class TimeDensityFromAggregatedData {
+public class TimeDensityTIM implements TimeDensity {
 	
 	enum UseResidentType {ALL,RESIDENTS,NOT_RESIDENTS};
 	static UseResidentType res_type =null;
@@ -40,7 +40,7 @@ public class TimeDensityFromAggregatedData {
 	public static void main(String[] args) throws Exception {
 		String city = "milano";
 		res_type = UseResidentType.ALL;
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
+		TimeDensityTIM td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
 		System.out.println("Done");
 		
 		String cell = "3950_2_3_0_0_0_1";
@@ -74,7 +74,7 @@ public class TimeDensityFromAggregatedData {
 		}
 	}
 	
-	
+	@Override
 	public Map<String,String> getMapping(RegionMap rm) {
 		Map<String,String> result = new HashMap<>();
 		for(RegionI r: grid.getRegions()) {
@@ -95,7 +95,7 @@ public class TimeDensityFromAggregatedData {
 	}
 	
 	
-	public TimeDensityFromAggregatedData(String city, String file) {
+	TimeDensityTIM(String city, String file) {
 		this.city = city;
 		grid = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-grid.ser"));
 		try {
@@ -129,18 +129,18 @@ public class TimeDensityFromAggregatedData {
 			
 	}
 	
-	
+	@Override
 	public List<String> getKeys() {
 		List<String> keys = new ArrayList<>();
 		for(String k: map.keySet())
 			keys.add(k);
 		return keys;
 	}
-	
+	@Override
 	public double[] get(String key) {
 		return map.get(key);
 	}
-	
+	@Override
 	public double[] getz(String key) {
 		return mapz.get(key);
 	}

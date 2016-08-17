@@ -19,17 +19,17 @@ import visual.kml.KMLColorMap;
 public class SynchClustering extends Thread {
 	
 	public static void main(String [] args) throws Exception {
-		runExperiment(TimeDensityFromAggregatedData.UseResidentType.ALL,24,Feature.I);
+		runExperiment(TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
 	}
 	
 	
 	
 	
-	public static void runExperiment( TimeDensityFromAggregatedData.UseResidentType resType, int time_window, SynchCompute.Feature use_feature) throws Exception {
+	public static void runExperiment( TimeDensityTIM.UseResidentType resType, int time_window, SynchCompute.Feature use_feature) throws Exception {
 		
 		System.out.println("RUNNING EXPERIMENT WITH: RESTYPE = "+resType+", TIME WINDOW = "+time_window+", FEATURE = "+use_feature);
 		
-		TimeDensityFromAggregatedData.res_type = resType;
+		TimeDensityTIM.res_type = resType;
 		SynchCompute.TIME_WINDOW = time_window;
 		SynchCompute.USEF = use_feature;
 		
@@ -86,7 +86,7 @@ public class SynchClustering extends Thread {
 		DescriptiveStatistics inter = new DescriptiveStatistics();
 		
 		
-		TimeDensityFromAggregatedData td = new TimeDensityFromAggregatedData(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
+		TimeDensity td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
 		Map<String,Integer> assignments = KMLColorMap.toIntAssignments(td.getMapping((RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"))));
 		
 		

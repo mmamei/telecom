@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="cdraggregated/densityANDflows/flows/XXX_MAPfromMOD.java|cdraggregated/densityANDflows/flows/XXX_MODfromISTAT.java|cdraggregated/densityANDflows/RunAllODAnalysisHW.java|cdraggregated/densityANDflows/RunAllODAnalysisSMOD.java" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/Jama-1.0.2.jar"/>
