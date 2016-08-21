@@ -1,4 +1,4 @@
-package cdraggregated.synch;
+package cdraggregated.synch.timedensity;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,16 +25,45 @@ import visual.kml.KMLColorMap;
 
 public class TimeDensityTIM implements TimeDensity {
 	
-	enum UseResidentType {ALL,RESIDENTS,NOT_RESIDENTS};
-	static UseResidentType res_type =null;
+	public enum UseResidentType {ALL,RESIDENTS,NOT_RESIDENTS};
+	public static UseResidentType res_type =null;
 	
 	static boolean ENABLE_CACHE = true;
 	
-	String city;
-	RegionMap grid;
-	TimeConverter tc = null;
+	private String city;
+	private RegionMap grid;
+	private TimeConverter tc = null;
 	private Map<String,double[]> map = new HashMap<String,double[]>();
 	private Map<String,double[]> mapz = new HashMap<String,double[]>();
+
+	public List<String> getKeys() {
+		List<String> keys = new ArrayList<>();
+		for(String k: map.keySet())
+			keys.add(k);
+		return keys;
+	}
+	
+	
+	public double[] get(String key) {
+		return map.get(key);
+	}
+	
+	public double[] getz(String key) {
+		return mapz.get(key);
+	}
+	
+	private void printKML(String file, Map<String,Integer> assignments) {
+		
+		Map<String,String> desc = new HashMap<>();
+		for(String r: map.keySet()) {
+			desc.put(r, GoogleChartGraph.getGraph(tc.getTimeLabels(), map.get(r), "demo", "date", "cdr"));
+		}
+		try {
+			KMLColorMap.drawColorMap(file, assignments, grid, desc);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	
 	
 	public static void main(String[] args) throws Exception {
@@ -55,24 +84,9 @@ public class TimeDensityTIM implements TimeDensity {
 		out.close();
 		
 		
-		System.out.println("Done");
-		
-		
+		System.out.println("Done");		
 	}
-	
 
-	private void printKML(String file, Map<String,Integer> assignments) {
-		
-		Map<String,String> desc = new HashMap<>();
-		for(String r: map.keySet()) {
-			desc.put(r, GoogleChartGraph.getGraph(tc.getTimeLabels(), map.get(r), "demo", "date", "cdr"));
-		}
-		try {
-			KMLColorMap.drawColorMap(file, assignments, grid, desc);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 	
 	@Override
 	public Map<String,String> getMapping(RegionMap rm) {
@@ -81,7 +95,7 @@ public class TimeDensityTIM implements TimeDensity {
 			float[] f = rm.computeAreaIntersection(r);
 			
 			int max = -1;
-			for(int i=1;i<f.length;i++)
+			for(int i=0;i<f.length;i++)
 				if(f[i] > 0 && (max == -1 || f[i] > f[max]))
 					max = i;
 		
@@ -99,7 +113,7 @@ public class TimeDensityTIM implements TimeDensity {
 		this.city = city;
 		grid = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-grid.ser"));
 		try {
-			tc = TimeConverter.getInstance();
+			tc = TimeConverter.getInstance("2015-03-31:0:0:0","2015-04-30:23:59:59");
 			
 			File f = null;
 			
@@ -129,21 +143,8 @@ public class TimeDensityTIM implements TimeDensity {
 			
 	}
 	
-	@Override
-	public List<String> getKeys() {
-		List<String> keys = new ArrayList<>();
-		for(String k: map.keySet())
-			keys.add(k);
-		return keys;
-	}
-	@Override
-	public double[] get(String key) {
-		return map.get(key);
-	}
-	@Override
-	public double[] getz(String key) {
-		return mapz.get(key);
-	}
+	
+	
 
 	private void processFile(String city, String file) throws Exception {
 		BufferedReader br = new BufferedReader(new FileReader(file));
@@ -169,8 +170,7 @@ public class TimeDensityTIM implements TimeDensity {
 				time = Long.parseLong(x[0]);
 
 			// extra time constraint
-			if (time < TimeConverter.getInstance().startTime
-					|| time > TimeConverter.getInstance().endTime) {
+			if (time < tc.startTime || time > tc.endTime) {
 				skipped_lines++;
 				continue;
 			}
@@ -215,5 +215,10 @@ public class TimeDensityTIM implements TimeDensity {
 			comuni.add(name);
 		}
 		return comuni;
+	}
+
+	@Override
+	public TimeConverter getTimeConverter() {
+		return tc;
 	}
 }

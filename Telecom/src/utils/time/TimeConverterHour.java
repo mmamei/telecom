@@ -7,6 +7,7 @@ public class TimeConverterHour extends TimeConverter {
 	
 	
 	TimeConverterHour(String start_date, String end_date) throws Exception {
+		System.out.println("Creating TimeConverterHour from "+start_date+" to "+end_date);
 		start = Calendar.getInstance();
 		start.setTime(F.parse(start_date));
 		end = Calendar.getInstance();

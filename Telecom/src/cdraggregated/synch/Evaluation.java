@@ -20,6 +20,9 @@ import utils.CopyAndSerializationUtils;
 import visual.kml.KMLColorMap;
 import visual.kml.KMLHeatMap;
 import visual.r.RHeatMap;
+import cdraggregated.synch.TableNames.Country;
+import cdraggregated.synch.timedensity.TimeDensity;
+import cdraggregated.synch.timedensity.TimeDensityFactory;
 
 public class Evaluation {
 	
@@ -39,19 +42,19 @@ public class Evaluation {
 		if(SynchCompute.USEF.equals(SynchCompute.Feature.EU)) YLAB_SIMPLE = "EU";
 	}
 	
-	public static void evaluate(List<String> cities, List<StatsCollection> city_stats) {
+	public static void evaluate(List<String> cities, Country country, List<StatsCollection> city_stats) {
 		String dir =SynchCompute.getDir();
 		new File(dir).mkdirs();
 		System.err.println(dir);
 		writeFeatureFile(cities,city_stats,dir);
-		drawMap(cities,city_stats,dir);
+		drawMap(cities,country,city_stats,dir);
 		drawBoxPlots(cities,city_stats,dir);
 		//drawCorrelationsOLD(cities,city_stats,dir);
 	}
 	
 	
 	
-	private static void drawMap(List<String> cities,  List<StatsCollection> city_stats,String dir) {
+	private static void drawMap(List<String> cities,  Country country, List<StatsCollection> city_stats, String dir) {
 		for(int i=0; i<cities.size();i++) {
 			String city = cities.get(i);
 			
@@ -60,7 +63,7 @@ public class Evaluation {
 			
 			StatsCollection stats = city_stats.get(i);
 			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
-			TimeDensityTIM td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
+			TimeDensity td = TimeDensityFactory.getInstance(city,country);
 			Map<String,String> mapping = td.getMapping(rm); // 2026_3_0_3_1=63073, 
 			Map<String,Integer> assignments = KMLColorMap.toIntAssignments(mapping); // 2026_3_0_3_1=0,
 			

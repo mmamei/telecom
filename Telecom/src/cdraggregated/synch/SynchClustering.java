@@ -9,23 +9,27 @@ import java.util.Set;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
-import cdraggregated.synch.SynchCompute.Feature;
 import region.RegionMap;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
 import utils.ListMapArrayBasicUtils;
 import visual.kml.KMLColorMap;
+import cdraggregated.synch.SynchCompute.Feature;
+import cdraggregated.synch.TableNames.Country;
+import static cdraggregated.synch.TableNames.Country.*;
+import cdraggregated.synch.timedensity.TimeDensity;
+import cdraggregated.synch.timedensity.TimeDensityFactory;
+import cdraggregated.synch.timedensity.TimeDensityTIM;
 
 public class SynchClustering extends Thread {
 	
 	public static void main(String [] args) throws Exception {
-		runExperiment(TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
+		//runExperiment(Italy,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
+		runExperiment(IvoryCoast1Month,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
 	}
 	
-	
-	
-	
-	public static void runExperiment( TimeDensityTIM.UseResidentType resType, int time_window, SynchCompute.Feature use_feature) throws Exception {
+
+	public static void runExperiment(Country country, TimeDensityTIM.UseResidentType resType, int time_window, SynchCompute.Feature use_feature) throws Exception {
 		
 		System.out.println("RUNNING EXPERIMENT WITH: RESTYPE = "+resType+", TIME WINDOW = "+time_window+", FEATURE = "+use_feature);
 		
@@ -33,30 +37,13 @@ public class SynchClustering extends Thread {
 		SynchCompute.TIME_WINDOW = time_window;
 		SynchCompute.USEF = use_feature;
 		
-		List<String> cities = new ArrayList<>();
-		//cities.add("napoli");
-		//cities.add("bari");
-		//cities.add("caltanissetta");
-		//cities.add("siracusa");
-		//cities.add("benevento");
-		//cities.add("palermo");
-		//cities.add("campobasso");
-		cities.add("roma");
-		//cities.add("siena");
-		//cities.add("ravenna");
-		//cities.add("ferrara");
-		//cities.add("modena");
-		//cities.add("venezia");
-		//cities.add("torino");
-		//cities.add("asti");
-		//cities.add("milano");
-		
-		
+		List<String> cities = TableNames.getAvailableProvinces(country);
+		//List<String> cities = new ArrayList<>(); cities.add(TableNames.getAvailableProvinces(country).get(0)); cities.add(TableNames.getAvailableProvinces(country).get(1));
 		
 		List<StatsCollection> city_stats = new ArrayList<>();
 		List<SynchClustering> executors = new ArrayList<>();
 		for(String city: cities) 
-			executors.add(new SynchClustering(city));
+			executors.add(new SynchClustering(city,country));
 		for(SynchClustering e: executors)
 			e.start();
 		for(SynchClustering e: executors)
@@ -64,17 +51,19 @@ public class SynchClustering extends Thread {
 		for(int i=0; i<executors.size();i++)
 			city_stats.add(executors.get(i).getStats());
 		
-		Evaluation.evaluate(cities, city_stats);
+		//Evaluation.evaluate(cities, country, city_stats);
 		
 		
 		System.out.println("Done");
 	}
 	
 	
+	private Country country;
 	private String city;
 	private StatsCollection result;
-	public SynchClustering(String city) {
+	public SynchClustering(String city, Country country) {
 		this.city = city;
+		this.country = country;
 	}
 	
 	public void run() {
@@ -85,9 +74,17 @@ public class SynchClustering extends Thread {
 		DescriptiveStatistics intra = new DescriptiveStatistics();
 		DescriptiveStatistics inter = new DescriptiveStatistics();
 		
+		TimeDensity td = TimeDensityFactory.getInstance(city,country);
 		
-		TimeDensity td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
-		Map<String,Integer> assignments = KMLColorMap.toIntAssignments(td.getMapping((RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"))));
+		RegionMap rm = null;
+		if(country.equals(Italy))
+			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
+		if(country.equals(IvoryCoast) || country.equals(IvoryCoast1Month))
+			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastComuni.ser"));
+		if(country.equals(Senegal) || country.equals(Senegal1Month))
+			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-comuni.ser"));
+		
+		Map<String,Integer> assignments = KMLColorMap.toIntAssignments(td.getMapping(rm));
 		
 		
 		//count assignments to get the number of comuni
@@ -121,7 +118,7 @@ public class SynchClustering extends Thread {
 			}
 			
 			//double s = SynchCompute.reallyComputeFeature(td.getz(k_i),td.getz(k_j));
-			List<Double> ls = SynchCompute.computeFeature(td.get(k_i),td.get(k_j));
+			List<Double> ls = SynchCompute.computeFeature(td.get(k_i),td.get(k_j),td.getTimeConverter());
 			double s = ListMapArrayBasicUtils.avg(ls);
 			
 			//for(double s:ls) {

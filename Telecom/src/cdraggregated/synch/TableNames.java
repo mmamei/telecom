@@ -1,6 +1,14 @@
 package cdraggregated.synch;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import region.RegionI;
+import region.RegionMap;
+import utils.Config;
+import utils.CopyAndSerializationUtils;
 
 public class TableNames {
 	
@@ -29,5 +37,41 @@ public class TableNames {
 	static {
 	for(String province: new String[]{"torino","milano","venezia","roma","napoli","bari","palermo","campobasso","siracusa","benevento","caltanissetta","modena","siena","asti","ferrara","ravenna"})
 		city2province.put(province,province.toUpperCase());
+	}
+	
+	public enum Country {Italy,IvoryCoast,Senegal,IvoryCoast1Month,Senegal1Month};
+	
+	
+	public static List<String> getAvailableProvinces(Country country) {
+		List<String> provinces = new ArrayList<>();
+		if(country.equals(Country.Italy)) {
+			provinces.add("napoli");
+			provinces.add("bari");
+			provinces.add("caltanissetta");
+			provinces.add("siracusa");
+			provinces.add("benevento");
+			provinces.add("palermo");
+			provinces.add("campobasso");
+			provinces.add("roma");
+			provinces.add("siena");
+			provinces.add("ravenna");
+			provinces.add("ferrara");
+			provinces.add("modena");
+			provinces.add("venezia");
+			provinces.add("torino");
+			provinces.add("asti");
+			provinces.add("milano");
+		}
+		if(country.equals(Country.IvoryCoast) || country.equals(Country.IvoryCoast1Month) ) {
+			RegionMap rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastProvince.ser"));
+			for(RegionI r: rm_lvl2.getRegions())
+				provinces.add(r.getName());
+		}
+		if(country.equals(Country.Senegal) || country.equals(Country.Senegal1Month) ) {
+			RegionMap rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-province.ser"));
+			for(RegionI r: rm_lvl2.getRegions())
+				provinces.add(r.getName());
+		}
+		return provinces;
 	}
 }

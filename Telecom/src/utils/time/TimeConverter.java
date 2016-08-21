@@ -8,10 +8,6 @@ import java.util.GregorianCalendar;
 
 public abstract class TimeConverter implements Serializable {
 	public static final SimpleDateFormat F = new SimpleDateFormat("yyyy-MM-dd:HH:mm:ss");
-	
-	public static final String start_date = "2015-03-31:0:0:0";
-	public static final String end_date = "2015-04-30:23:59:59";
-	
 	public Calendar start;
 	public Calendar end;
 	public long startTime;
@@ -19,18 +15,17 @@ public abstract class TimeConverter implements Serializable {
 	public int time_size;
 	
 	
-	private static TimeConverter tc = null;
+	// MISTERO: se non metto synchronized vengono errori ?????
 	
-	public static TimeConverter getInstance() throws Exception { 
-		if(tc == null)
-			//tc = new TimeConverter15Mins(start_date, end_date);
-			tc = new TimeConverterHour(start_date, end_date);
-			//tc = new TimeConverterHour1Day(start_date, end_date);
-		    //tc = new TimeConverterDay(start_date, end_date);
-		
-		return tc;
+	public static synchronized TimeConverter getInstance(String sdate, String edate) { 
+		try {
+			return new TimeConverterHour(sdate, edate);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
+			return null;
+		}
 	}
-	
 	
 	public String getName(){
 		return this.getClass().getSimpleName();
@@ -73,7 +68,7 @@ public abstract class TimeConverter implements Serializable {
 	
 	// main for testing purposes
 	public static void main(String[] args) throws Exception  {
-		TimeConverter tc = TimeConverter.getInstance();
+		TimeConverter tc = TimeConverter.getInstance("2015-03-31:0:0:0","2015-04-30:23:59:59");
 		System.out.println(tc);
 		System.out.println(tc.getTimeSize());
 		Calendar c = new GregorianCalendar(2015,Calendar.MARCH,1,0,15,10);

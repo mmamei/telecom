@@ -170,9 +170,9 @@ public class CreatorRegionMapFromGIS {
 				Geometry g = GeomUtils.openGis2Geom(poly);
 				if(max_g == null || g.getArea() > max_g.getArea()) 
 					max_g = g;
-				//rm.add(new Region(polys.length > 1 ? n+"_"+i : n,g)); // this is to add all the regions in the multipolygon with a progressive counter
+				rm.add(new Region(polys.length > 1 ? n+"_"+i : n,g)); // this is to add all the regions in the multipolygon with a progressive counter
 			}
-			rm.add(new Region(n,max_g)); // this is to add the region (in the multipolygon) with the max area
+			//rm.add(new Region(n,max_g)); // this is to add the region (in the multipolygon) with the max area
 		}
 		
 		br.close();

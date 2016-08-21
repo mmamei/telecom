@@ -9,6 +9,7 @@ import utils.ListMapArrayBasicUtils;
 import utils.StatsUtils;
 import utils.time.TimeConverter;
 import JavaMI.Entropy;
+import cdraggregated.synch.timedensity.TimeDensityTIM;
 
 public class SynchCompute {
 	
@@ -47,15 +48,12 @@ public class SynchCompute {
     }
     
     
-	static List<Double> computeFeature(double[] series1, double[] series2) {
+	static List<Double> computeFeature(double[] series1, double[] series2,TimeConverter tc) {
 		setUSEF();
 		
 		List<Double> result = new ArrayList<Double>();
 		
 		try {
-			TimeConverter tc = TimeConverter.getInstance();
-			
-			
 	        int BIN = USEF.equals(Feature.I)? NBIN : 0;
 	        
 			//int LAG = FILTER ? 50 : 24*7;
