@@ -103,7 +103,6 @@ public class TimeDensityTIM implements TimeDensity {
 			if(o != null) 
 				result.put(r.getName(), o.getName());
 			//else System.err.println("mapping error "+r.getName());
-			 
 		}
 		return result;
 	}

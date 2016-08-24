@@ -15,7 +15,8 @@ public abstract class TimeConverter implements Serializable {
 	public int time_size;
 	
 	
-	// MISTERO: se non metto synchronized vengono errori ?????
+	// SimpleDateFormat is not thread safe!
+	// Devo mettere synchronized.
 	
 	public static synchronized TimeConverter getInstance(String sdate, String edate) { 
 		try {

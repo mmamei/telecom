@@ -42,7 +42,6 @@ public class SynchCompute {
 			case RESIDENTS: dir="residents"; break;
 			case NOT_RESIDENTS: dir="not_residents"; break;
     	}
-    	
     	return Config.getInstance().paper_folder+"/img/"+dir+"/"+USEF+"-"+TIME_WINDOW;
 		
     }

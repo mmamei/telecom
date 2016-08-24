@@ -75,7 +75,7 @@ public class TimeDensityD4D implements TimeDensity {
 		if(c.equals(IvoryCoast1Month))
 			tc = TimeConverter.getInstance("2012-02-01:0:0:0","2012-03-11:23:59:59");
 		if(c.equals(Senegal1Month))
-			tc = TimeConverter.getInstance("2013-01-01:0:0:0","2013-01-31:23:59:59");
+			tc = TimeConverter.getInstance("2013-03-01:0:0:0","2013-03-31:23:59:59");
 		
 		if(c.equals(IvoryCoast) || c.equals(IvoryCoast1Month)) 
 			processAntennaLocations("G:/DATASET/D4D_IVORYCOAST/ORIGINAL/data/ANT_POS.TSV",2,1, false); // 1	-4.143452	5.342044
@@ -87,7 +87,7 @@ public class TimeDensityD4D implements TimeDensity {
 			rm_lvl3 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastComuni.ser"));
 		}
 		if(c.equals(Senegal) || c.equals(Senegal1Month)) {
-			rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-province.ser"));
+			rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-regioni.ser"));
 			rm_lvl3 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-comuni.ser"));
 		}
 		
@@ -387,8 +387,8 @@ public class TimeDensityD4D implements TimeDensity {
 	
 	
 	public static void main(String[] args) throws Exception {
-		TimeDensity td1 = TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(0), IvoryCoast1Month);	
-		TimeDensity td2 = TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(1), IvoryCoast1Month);	
+		TimeDensity td1 = TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(Senegal).get(0), Senegal1Month);	
+		//TimeDensity td2 = TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(1), IvoryCoast1Month);	
 		System.out.println("Done.");
 	}
 }

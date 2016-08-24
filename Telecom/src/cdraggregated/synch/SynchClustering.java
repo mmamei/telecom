@@ -25,7 +25,8 @@ public class SynchClustering extends Thread {
 	
 	public static void main(String [] args) throws Exception {
 		//runExperiment(Italy,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
-		runExperiment(IvoryCoast1Month,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
+		runExperiment(Senegal1Month,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
+		//runExperiment(IvoryCoast1Month,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
 	}
 	
 
@@ -51,7 +52,7 @@ public class SynchClustering extends Thread {
 		for(int i=0; i<executors.size();i++)
 			city_stats.add(executors.get(i).getStats());
 		
-		//Evaluation.evaluate(cities, country, city_stats);
+		Evaluation.evaluate(cities, country, city_stats);
 		
 		
 		System.out.println("Done");
@@ -75,14 +76,7 @@ public class SynchClustering extends Thread {
 		DescriptiveStatistics inter = new DescriptiveStatistics();
 		
 		TimeDensity td = TimeDensityFactory.getInstance(city,country);
-		
-		RegionMap rm = null;
-		if(country.equals(Italy))
-			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
-		if(country.equals(IvoryCoast) || country.equals(IvoryCoast1Month))
-			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastComuni.ser"));
-		if(country.equals(Senegal) || country.equals(Senegal1Month))
-			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-comuni.ser"));
+		RegionMap rm = TableNames.getRegionMap(city, country);
 		
 		Map<String,Integer> assignments = KMLColorMap.toIntAssignments(td.getMapping(rm));
 		
@@ -92,6 +86,8 @@ public class SynchClustering extends Thread {
 		for(Integer a: assignments.values())
 			allassignments.add(a);
 		int n_comuni = allassignments.size();
+		
+		System.out.println("Province "+city+" has "+n_comuni+" comuni with "+assignments.size()+" cells");
 		
 		DescriptiveStatistics[] intraXcomune = new DescriptiveStatistics[n_comuni];
 		DescriptiveStatistics[] interXcomune = new DescriptiveStatistics[n_comuni];

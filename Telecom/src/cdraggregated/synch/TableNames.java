@@ -1,5 +1,11 @@
 package cdraggregated.synch;
 
+import static cdraggregated.synch.TableNames.Country.Italy;
+import static cdraggregated.synch.TableNames.Country.IvoryCoast;
+import static cdraggregated.synch.TableNames.Country.IvoryCoast1Month;
+import static cdraggregated.synch.TableNames.Country.Senegal;
+import static cdraggregated.synch.TableNames.Country.Senegal1Month;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,34 +18,45 @@ import utils.CopyAndSerializationUtils;
 
 public class TableNames {
 	
-	static HashMap<String,String> city2region = new HashMap<String,String>();
-	static {
-		city2region.put("torino", "PIEMONTE");
-		city2region.put("milano", "LOMBARDIA");
-		city2region.put("venezia", "VENETO");
-		city2region.put("roma", "LAZIO");
-		city2region.put("napoli", "CAMPANIA");
-		city2region.put("bari", "PUGLIA");
-		city2region.put("palermo", "SICILIA");
-		
-		city2region.put("campobasso", "MOLISE");
-		city2region.put("siracusa", "SICILIA");
-		city2region.put("benevento", "CAMPANIA");
-		city2region.put("caltanissetta", "SICILIA");
-		city2region.put("modena", "EMILIA-ROMAGNA");
-		city2region.put("siena", "TOSCANA");
-		city2region.put("asti", "PIEMONTE");
-		city2region.put("ferrara", "EMILIA-ROMAGNA");
-		city2region.put("ravenna", "EMILIA-ROMAGNA");
-	}
 	
-	static HashMap<String,String> city2province = new HashMap<String,String>();
-	static {
-	for(String province: new String[]{"torino","milano","venezia","roma","napoli","bari","palermo","campobasso","siracusa","benevento","caltanissetta","modena","siena","asti","ferrara","ravenna"})
-		city2province.put(province,province.toUpperCase());
-	}
+	
+	
 	
 	public enum Country {Italy,IvoryCoast,Senegal,IvoryCoast1Month,Senegal1Month};
+	
+	
+	static HashMap<String,String> ITcity2region = new HashMap<String,String>();
+	static {
+		ITcity2region.put("torino", "PIEMONTE");
+		ITcity2region.put("milano", "LOMBARDIA");
+		ITcity2region.put("venezia", "VENETO");
+		ITcity2region.put("roma", "LAZIO");
+		ITcity2region.put("napoli", "CAMPANIA");
+		ITcity2region.put("bari", "PUGLIA");
+		ITcity2region.put("palermo", "SICILIA");
+		
+		ITcity2region.put("campobasso", "MOLISE");
+		ITcity2region.put("siracusa", "SICILIA");
+		ITcity2region.put("benevento", "CAMPANIA");
+		ITcity2region.put("caltanissetta", "SICILIA");
+		ITcity2region.put("modena", "EMILIA-ROMAGNA");
+		ITcity2region.put("siena", "TOSCANA");
+		ITcity2region.put("asti", "PIEMONTE");
+		ITcity2region.put("ferrara", "EMILIA-ROMAGNA");
+		ITcity2region.put("ravenna", "EMILIA-ROMAGNA");
+	}
+	
+	public static String city2region(String city, Country country) {
+		if(country.equals(Country.Italy)) 
+			return ITcity2region.get(city);
+		return city;
+	}
+	
+	public static String city2province(String city, Country country) {
+		if(country.equals(Country.Italy)) 
+			return city.toUpperCase();
+		return city;
+	}
 	
 	
 	public static List<String> getAvailableProvinces(Country country) {
@@ -68,10 +85,23 @@ public class TableNames {
 				provinces.add(r.getName());
 		}
 		if(country.equals(Country.Senegal) || country.equals(Country.Senegal1Month) ) {
-			RegionMap rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-province.ser"));
+			RegionMap rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-regioni.ser"));
 			for(RegionI r: rm_lvl2.getRegions())
 				provinces.add(r.getName());
 		}
 		return provinces;
 	}
+	
+	
+	public static RegionMap getRegionMap(String city, Country country) {
+		RegionMap rm = null;
+		if(country.equals(Italy))
+			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
+		if(country.equals(IvoryCoast) || country.equals(IvoryCoast1Month))
+			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastComuni.ser"));
+		if(country.equals(Senegal) || country.equals(Senegal1Month))
+			rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-comuni.ser"));
+		return rm;
+	}
+	
 }

@@ -81,7 +81,7 @@ public class RHeatMap {
 			}
 		}
 		
-		double[] lonlatBbox = new double[]{200,200,0,0};
+		double[] lonlatBbox = new double[]{200,200,-200,-200};
 		double[] lat = new double[llat.size()];
 		double[] lon = new double[llon.size()];
 		String[] id = new String[lid.size()];

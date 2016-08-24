@@ -1,18 +1,26 @@
 package cdraggregated.synch;
 
+import static cdraggregated.synch.TableNames.Country.Italy;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import otherdata.TIbigdatachallenge2015.Deprivation;
 import otherdata.TIbigdatachallenge2015.MEF_IRPEF;
 import otherdata.TIbigdatachallenge2015.SocialCapital;
+import otherdata.d4d.afrobarometer.AfroBarometer;
+import otherdata.d4d.ophi.Ophi;
+import region.RegionI;
 import region.RegionMap;
 import utils.AddMap;
 import utils.Config;
@@ -30,7 +38,8 @@ public class Evaluation {
 	static List<String> cities_whose_map_we_draw = new ArrayList<String>();
 	static {
 		cities_whose_map_we_draw.add("roma");
-		//cities_whose_map_we_draw.add("milano");
+		cities_whose_map_we_draw.add("Diourbel");
+		cities_whose_map_we_draw.add("Abidjan");
 	}
 	
 	static final String YLAB = SynchCompute.USE_FEATURE;
@@ -46,10 +55,10 @@ public class Evaluation {
 		String dir =SynchCompute.getDir();
 		new File(dir).mkdirs();
 		System.err.println(dir);
-		writeFeatureFile(cities,city_stats,dir);
+		drawBoxPlots(cities,country,city_stats,dir);
+		writeFeatureFile(cities,country,city_stats,dir);
 		drawMap(cities,country,city_stats,dir);
-		drawBoxPlots(cities,city_stats,dir);
-		//drawCorrelationsOLD(cities,city_stats,dir);
+		
 	}
 	
 	
@@ -58,14 +67,29 @@ public class Evaluation {
 		for(int i=0; i<cities.size();i++) {
 			String city = cities.get(i);
 			
-			if(!cities_whose_map_we_draw.contains(city)) continue;
+			if(cities_whose_map_we_draw != null && !cities_whose_map_we_draw.contains(city)) continue;
 			
 			
 			StatsCollection stats = city_stats.get(i);
-			RegionMap rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-comuni2012-"+city+".ser"));
+			
+			RegionMap rm = TableNames.getRegionMap(city, country);
+			
+			
 			TimeDensity td = TimeDensityFactory.getInstance(city,country);
 			Map<String,String> mapping = td.getMapping(rm); // 2026_3_0_3_1=63073, 
 			Map<String,Integer> assignments = KMLColorMap.toIntAssignments(mapping); // 2026_3_0_3_1=0,
+			
+			
+			Set<String> comuni = new HashSet<String>();
+			for(String c: mapping.values())
+				comuni.add(c);
+					
+			// trimmed map. Considers only regions (i.e., comuni) that are within the city. 
+			RegionMap trm = new RegionMap(city);
+			for(RegionI r: rm.getRegions())
+				if(comuni.contains(r.getName()))
+				trm.add(r);
+			
 			
 			AddMap cellXComuneCount = new AddMap();
 			Map<String,Integer> comune2assignement = new HashMap<>();
@@ -82,8 +106,9 @@ public class Evaluation {
 					comune2assignement.put(comune, assignment);
 			}
 			
-			reallyDraw(dir,city,"within",rm,comune2assignement,cellXComuneCount,stats.intraXcomune);
-			reallyDraw(dir,city,"between",rm,comune2assignement,cellXComuneCount,stats.interXcomune);
+			new File(dir+"/maps").mkdirs();
+			reallyDraw(dir+"/maps",city,"within",trm,comune2assignement,cellXComuneCount,stats.intraXcomune);
+			reallyDraw(dir+"/maps",city,"between",trm,comune2assignement,cellXComuneCount,stats.interXcomune);
 		}
 		
 	}
@@ -97,8 +122,11 @@ public class Evaluation {
 			if(Double.isNaN(mean))
 				mean = 0;
 			density.put(comune, mean);
-			kml_descriptions.put(comune, "num_cell="+cellXComuneCount.get(comune)+",mean="+mean+", median="+ds.getPercentile(50));
+			kml_descriptions.put(comune.toLowerCase(), "num_cell="+cellXComuneCount.get(comune)+",mean="+mean+", median="+ds.getPercentile(50));
 		}
+		
+		
+		
 		try {
 			KMLHeatMap.drawHeatMap(dir+"/map-"+city+"-"+title+".kml", density, rm, kml_descriptions, false);
 		} catch (Exception e) {
@@ -122,87 +150,43 @@ public class Evaluation {
 	
 	
 	
-	private static void drawBoxPlots(List<String> cities,  List<StatsCollection> city_stats,String dir) {
+	private static void drawBoxPlots(List<String> cities,  Country country, List<StatsCollection> city_stats,String dir) {
 		List<double[]> intra = new ArrayList<double[]>();
 		List<double[]> inter = new ArrayList<double[]>();	
 		for(StatsCollection sc: city_stats) {
-			intra.add(sc.intra.getValues());
-			inter.add(sc.inter.getValues());
-		}
-		writeCSV(cities,intra,dir+"/within.csv");
-		writeCSV(cities,inter,dir+"/between.csv");
-		RPlotterWithinBetweenSynch.drawBoxplot(dir+"/within.csv", dir+"/between.csv", "", YLAB_SIMPLE, dir+"/boxplot.png");
-	}
-	
-	/*
-	private static void drawCorrelationsOLD(List<String> cities,  List<StatsCollection> city_stats,String dir) {
-		
-		
-		MEF_IRPEF mi = MEF_IRPEF.getInstance();
-		Map<String,Double> avg_comuni = new HashMap<String,Double>();
-		Map<String,Double> avg_province = new HashMap<String,Double>();
-		AddMap avg_regioni = new AddMap();
-		
-		
-		for(int i=0; i<cities.size();i++) { // [napoli, bari, caltanissetta, siracusa, benevento, palermo, campobasso, roma, siena, ravenna, ferrara, venezia, torino, asti, milano]
-			String key = (cities.get(i)+"-"+(TableNames.city2region.get(cities.get(i)).replaceAll("-", " ")).toLowerCase());
-			//System.out.println("*** "+key);
-			String cid = MEF_IRPEF_BLOG.name2id().get(key); // comune id (es. 63049 = Napoli)
-			//System.out.println(key+" ==> "+cid);
+			double[] v = sc.intra.getValues();
+			//if(v==null || v.length==0) v = new double[]{0};
+			intra.add(v);
 			
-			double avg_inter = city_stats.get(i)[2].getMean();
-			avg_comuni.put(cid, avg_inter); 
-			avg_province.put(cities.get(i).toUpperCase(), avg_inter);
-			avg_regioni.add(TableNames.city2region.get(cities.get(i)), avg_inter);
+			v = sc.inter.getValues();
+			//if(v==null || v.length==0) v = new double[]{0};
+			inter.add(v);
 		}
-		
-		
-		avg_regioni.mean(); // there can be multiple data for each region
-		
-		Deprivation dp = Deprivation.getInstance();
-		RPlotter.plotCorrelation(avg_regioni,dp.getDepriv(),YLAB,"deprivation",dir+"/clustering-deprivazione.png",null,true);
-		
-		Map<String,String> id2name = MEF_IRPEF_BLOG.id2name();
-		
-		RPlotter.plotCorrelation(avg_comuni,mi.redditoPC(false),YLAB,"per-capita income",dir+"/clustering-redPC.png",id2name,true);
-		//SynchAnalysis.plotCorrelation(avg_comuni,mi.gini(false),SynchAnalysis.USE_FEATURE,"Gini",dir+"/clustering-gini.png",id2name,true);
-		RPlotter.plotCorrelation(avg_province,mi.redditoPCProvince(),YLAB,"per-capita income prov",dir+"/clustering-redPCP.png",null,true);
-		
-	
-		SocialCapital sc = SocialCapital.getInstance();
-		RPlotter.plotCorrelation(avg_province,sc.getAssoc(),YLAB,"assoc",dir+"/clustering-assoc.png",null,true);
-		RPlotter.plotCorrelation(avg_province,sc.getReferendum(),YLAB,"referendum",dir+"/clustering-referendum.png",null,true);
-		RPlotter.plotCorrelation(avg_province,sc.getBlood(),YLAB,"blood",dir+"/clustering-blood.png",null,true);
-		RPlotter.plotCorrelation(avg_province,sc.getSocCap(),YLAB,"soccap",dir+"/clustering-soccap.png",null,true);
-		
+		writeCSV(cities,intra,dir+"/within"+country+".csv");
+		writeCSV(cities,inter,dir+"/between"+country+".csv");
+		RPlotterWithinBetweenSynch.drawBoxplot(dir+"/within"+country+".csv", dir+"/between"+country+".csv", "", YLAB_SIMPLE, dir+"/boxplot"+country+".png");
 	}
-	*/
+	
+	
 	
 	static boolean MEAN = false; // false = MEDIAN
 	
-	private static void writeFeatureFile(List<String> cities,  List<StatsCollection> city_stats,String dir) {
+	private static void writeFeatureFile(List<String> cities,  Country country, List<StatsCollection> city_stats, String dir) {
 		try {
-			MEF_IRPEF mi = MEF_IRPEF.getInstance();
-			SocialCapital sc = SocialCapital.getInstance();
-			
-			Map<String,Double> map_depriv = Deprivation.getInstance().getDepriv();
-			Map<String,Double> map_rpc = mi.redditoPCProvince();
-			Map<String,Double> map_blood = sc.getBlood();
-			Map<String,Double> map_assoc = sc.getAssoc();
-			Map<String,Double> map_referendum = sc.getReferendum();
-			Map<String,Double> map_soccap = sc.getSocCap();
 			
 			
+			Map<String,Map<String,Double>> socioeconomicV = getSocioEconomicVariables(country);
 			
-			PrintWriter out = new PrintWriter(new FileWriter(dir+"/features-data.csv"));
-			out.println("city,regione,avg_intra,avg_inter,sd_intra,sd_inter,avg,sd,depriv,rpc,blood,assoc,referendum,soccap");
-			
-			//List<double[]> bond_bridge = computeBondingBridgingBruno(city_stats);
+			PrintWriter out = new PrintWriter(new FileWriter(dir+"/features-data"+country+".csv"));
+			out.print("city,regione,avg_intra,avg_inter,sd_intra,sd_inter,avg,sd");
+			for(String k: socioeconomicV.keySet())
+				out.print(","+k);
+			out.println();
 			
 			for(int i=0; i<cities.size();i++) { // [napoli, bari, caltanissetta, siracusa, benevento, palermo, campobasso, roma, siena, ravenna, ferrara, venezia, torino, asti, milano]
 				
-				String provincia = cities.get(i).toUpperCase();
-				String regione = TableNames.city2region.get(cities.get(i));
+				String provincia = TableNames.city2province(cities.get(i),country);
+				String regione = TableNames.city2region(cities.get(i),country);
 				
 				StatsCollection stc = city_stats.get(i);
 				
@@ -221,41 +205,56 @@ public class Evaluation {
 				
 				double avg = MEAN ? stc.inter.getMean() : stc.inter.getPercentile(50);
 				double sd = MEAN ? stc.inter.getStandardDeviation() : (stc.inter.getPercentile(75) - stc.inter.getPercentile(25));
-				
-				double depriv = map_depriv.get(regione);
-				double rpc = map_rpc.get(provincia);
-				double blood = map_blood.get(provincia);
-				double assoc = map_assoc.get(provincia);
-				double referendum = map_referendum.get(provincia);
-				Double soccap = map_soccap.get(provincia);
-				
-				String line = cities.get(i)+","+regione+","+avg_intra+","+avg_inter+","+sd_intra+","+sd_inter+","+avg+","+sd+","+depriv+","+rpc+","+blood+","+assoc+","+referendum+","+soccap;
-				System.out.println(line);
-				out.println(line);
+					
+				out.print(cities.get(i)+","+regione+","+avg_intra+","+avg_inter+","+sd_intra+","+sd_inter+","+avg+","+sd);
+				for(String k: socioeconomicV.keySet()) {
+					Map<String,Double> m = socioeconomicV.get(k);
+					Double v  = k.equals("depriv")? m.get(regione): m.get(provincia);
+					out.print(","+v);
+				}
+				out.println(); 
 			}
 			out.close();
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-	/*
-	// compute bonding and bridging features like Bruno proposed in 31-5-2016 mail
-	private static List<double[]> computeBondingBridgingBruno(List<StatsCollection> city_stats) {
-		List<double[]> bond_bridge = new ArrayList<>();
-		for(StatsCollection stc: city_stats) {
-			DescriptiveStatistics bond = new DescriptiveStatistics();
-			DescriptiveStatistics bridge = new DescriptiveStatistics();
-			for(int i=0;i<stc.intraXcomune.length;i++) {
-				if(stc.intraXcomune[i].getN() > 0) {
-					bond.addValue(stc.intraXcomune[i].getStandardDeviation());
-					bridge.addValue(stc.intraXcomune[i].getMean());
-				}
-			}
-			bond_bridge.add(new double[]{bond.getMean(),bridge.getStandardDeviation()});
+	
+	
+	private static Map<String,Map<String,Double>> getSocioEconomicVariables(Country country) {
+		Map<String,Map<String,Double>> socioeconomicV = new TreeMap<>();
+		if(country.equals(Italy)) {
+			MEF_IRPEF mi = MEF_IRPEF.getInstance();
+			SocialCapital sc = SocialCapital.getInstance();
+			socioeconomicV.put("depriv", Deprivation.getInstance().getDepriv());
+			socioeconomicV.put("rpc", mi.redditoPCProvince());
+			socioeconomicV.put("blood", sc.getBlood());
+			socioeconomicV.put("assoc", sc.getAssoc());
+			socioeconomicV.put("referendum", sc.getReferendum());
+			socioeconomicV.put("soccap", sc.getSocCap());
 		}
-		return bond_bridge;
+		if(country.equals(Country.IvoryCoast) || country.equals(Country.IvoryCoast1Month) ) {
+			Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-ivorycoast.csv");
+			AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-ivorycoast.csv");
+			socioeconomicV.put("ophi", ophi.getDepriv());
+			socioeconomicV.put("assoc", ab.proportion("Q19B", new String[]{"Official Leader","Active Member"}));
+			socioeconomicV.put("meeting", ab.proportion("Q20A", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));
+			socioeconomicV.put("join2raise", ab.proportion("Q20B", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));
+			socioeconomicV.put("vote", ab.proportion("Q21", new String[]{"You voted in the elections"}));
+		}
+		if(country.equals(Country.Senegal) || country.equals(Country.Senegal1Month) ) {
+			Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-senegal.csv");
+			AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-senegal.csv");
+			socioeconomicV.put("ophi", ophi.getDepriv());
+			socioeconomicV.put("assoc", ab.proportion("Q19B", new String[]{"Official Leader","Active Member"}));
+			socioeconomicV.put("meeting", ab.proportion("Q20A", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));
+			socioeconomicV.put("join2raise", ab.proportion("Q20B", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));
+			socioeconomicV.put("vote", ab.proportion("Q21_SEN", new String[]{"You voted in the elections"}));
+		}
+		
+		return socioeconomicV;
+		
 	}
-	*/
 	
 	private static void writeCSV(List<String> ln, List<double[]> dist, String file) {
 		try {
