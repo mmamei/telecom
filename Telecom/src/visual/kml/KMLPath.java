@@ -90,16 +90,16 @@ public class KMLPath {
 						double lon2 = r1.getLatLon()[1] + jitter(pe1);
 						double lat2 = r1.getLatLon()[0] + jitter(pe1);
 						//out.println(KMLArrow.printArrow(lon1, lat1, lon2, lat2, 2, Colors.RANDOM_COLORS[color_index],true));
-						out.println(KMLArrowCurved.printArrow(lon1, lat1, lon2, lat2, 2, Colors.RANDOM_COLORS[color_index],true));
+						out.println(KMLArrowCurved.printArrow(lon1, lat1, lon2, lat2, 2, Colors.KML_RANDOM_COLORS[color_index],true));
 					}
 				}
 				else {
 					color_index ++;
-					if(color_index >= Colors.RANDOM_COLORS.length) color_index = 0;
+					if(color_index >= Colors.KML_RANDOM_COLORS.length) color_index = 0;
 				}
 			}
 			color_index ++;
-			if(color_index >= Colors.RANDOM_COLORS.length) color_index = 0;
+			if(color_index >= Colors.KML_RANDOM_COLORS.length) color_index = 0;
 			kml.closeFolder(out);
 		}
 		

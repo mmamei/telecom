@@ -135,7 +135,7 @@ import visual.kml.KML;
 			if(rm.getNumRegions() > 0) {
 				System.out.println(rm.getName()+" ==> "+rm.getNumRegions());
 				kml.printFolder(out, name);
-				out.println(rm.toKml(Colors.RANDOM_COLORS[index]));
+				out.println(rm.toKml(Colors.KML_RANDOM_COLORS[index]));
 				index ++;
 				kml.closeFolder(out);
 			}

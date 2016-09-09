@@ -69,7 +69,7 @@ public class TimeDensityTIM implements TimeDensity {
 	public static void main(String[] args) throws Exception {
 		String city = "milano";
 		res_type = UseResidentType.ALL;
-		TimeDensityTIM td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012");
+		TimeDensityTIM td = new TimeDensityTIM(city,Config.getInstance().dataset_folder+"/TI-CHALLENGE-2015/DEMOGRAPHIC/"+city+"/callsLM_"+city.substring(0,2).toUpperCase()+"_COMUNI2012","2015-03-31:0:0:0","2015-04-30:23:59:59");
 		System.out.println("Done");
 		
 		String cell = "3950_2_3_0_0_0_1";
@@ -91,6 +91,7 @@ public class TimeDensityTIM implements TimeDensity {
 	@Override
 	public Map<String,String> getMapping(RegionMap rm) {
 		Map<String,String> result = new HashMap<>();
+		
 		for(RegionI r: grid.getRegions()) {
 			float[] f = rm.computeAreaIntersection(r);
 			
@@ -108,11 +109,11 @@ public class TimeDensityTIM implements TimeDensity {
 	}
 	
 	
-	TimeDensityTIM(String city, String file) {
+	TimeDensityTIM(String city, String file,String startTime, String endTime) {
 		this.city = city;
 		grid = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/tic-"+city+"-grid.ser"));
 		try {
-			tc = TimeConverter.getInstance("2015-03-31:0:0:0","2015-04-30:23:59:59");
+			tc = TimeConverter.getInstance(startTime,endTime);
 			
 			File f = null;
 			

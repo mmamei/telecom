@@ -1,8 +1,10 @@
 package utils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -81,6 +83,43 @@ public class ListMapArrayBasicUtils {
 			d.put(k, ListMapArrayBasicUtils.avg(x.get(k)));
 		}
 		return d;
+	}
+	
+	public static <T,V,X> Map<T,V> concatenate(Map<T,X> a, Map<X,V> b) {
+		Map<T,V> result = new HashMap<>();
+		for(T x: a.keySet())
+			result.put(x, b.get(a.get(x)));
+		return result;
+	}
+	
+	
+	
+	public static <K,V> Map<V,Set<K>> invert(Map<K,V> m) {
+		Map<V,Set<K>> r = new HashMap<V,Set<K>>();
+		for(K k: m.keySet()) {
+			V v = m.get(k);
+			Set<K> x = r.get(v);
+			if(x == null) {
+				x = new HashSet<K>();
+				r.put(v, x);
+			}
+			x.add(k);
+		}
+		return r;
+	}
+	
+	public static void main(String[] args) {
+		
+		Map<String,String> m1 = new HashMap<>();
+		m1.put("a", "x");
+		m1.put("b", "y");
+		
+		Map<String,Integer> m2 = new HashMap<>();
+		m2.put("x", 1);
+		m2.put("y", 2);
+		
+		Map<String,Integer> m3 = concatenate(m1,m2);
+		System.out.println(m3);
 	}
 	
 	

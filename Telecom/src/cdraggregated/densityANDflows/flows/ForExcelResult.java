@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.HashMap;
 
+import utils.CopyAndSerializationUtils;
 import utils.mod.Route;
 import utils.mod.Util;
 
@@ -19,15 +20,15 @@ public class ForExcelResult {
 		FileWriter fw = new FileWriter(new File(percorsoInput+"/Excel/infoOk.csv"));
 		
 		@SuppressWarnings("unchecked")
-		HashMap<String, Double> traffic = (HashMap<String, Double>) Util.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesTraffic.dat"));
+		HashMap<String, Double> traffic = (HashMap<String, Double>) CopyAndSerializationUtils.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesTraffic.dat"));
 		
 		@SuppressWarnings("unchecked")
-		HashMap<String, Double> oldTraffic = (HashMap<String, Double>) Util.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesOldTraffic.dat"));
+		HashMap<String, Double> oldTraffic = (HashMap<String, Double>) CopyAndSerializationUtils.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesOldTraffic.dat"));
 
 //		@SuppressWarnings("unchecked")
 //		HashMap<String, Double> fastest2 = (HashMap<String, Double>) Util.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest2.dat"));
 		@SuppressWarnings("unchecked")
-		HashMap<String, Double> fastest = (HashMap<String, Double>) Util.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest.dat"));
+		HashMap<String, Double> fastest = (HashMap<String, Double>) CopyAndSerializationUtils.restore(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest.dat"));
 				
 		System.out.println(oldTraffic.size());
 		for(String k:traffic.keySet()){

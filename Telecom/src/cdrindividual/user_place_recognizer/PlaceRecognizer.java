@@ -16,6 +16,7 @@ import org.gps.utils.LatLonPoint;
 
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.FileUtils.HowToDealWithFileHeader;
 import utils.FilterAndCounterUtils;
 import utils.HourDescriptiveStatistics;
 import utils.Logger;
@@ -277,7 +278,7 @@ public class PlaceRecognizer implements WorkerCallbackI<String> {
 		
 		PlaceRecognizer pr = PlaceRecognizer.getInstance();
 		
-		MultiWorker.run(in_file,pr);
+		MultiWorker.run(in_file,HowToDealWithFileHeader.ONE_LINE,pr);
 		
 		
 		

@@ -24,13 +24,19 @@ import cdraggregated.synch.timedensity.TimeDensityTIM;
 public class SynchClustering extends Thread {
 	
 	public static void main(String [] args) throws Exception {
-		//runExperiment(Italy,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
-		runExperiment(Senegal1Month,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
-		//runExperiment(IvoryCoast1Month,TimeDensityTIM.UseResidentType.ALL,24,Feature.I);
+		//runExperiment(Italy,TimeDensityTIM.UseResidentType.ALL,24,Feature.I,"2015-03-31:0:0:0","2015-04-30:23:59:59");
+		
+		runExperiment(Senegal,TimeDensityTIM.UseResidentType.ALL,24,Feature.I, "2013-04-01:0:0:0","2013-04-31:23:59:59");
+		runExperiment(Senegal,TimeDensityTIM.UseResidentType.ALL,24,Feature.I, "2013-06-01:0:0:0","2013-06-31:23:59:59");
+		runExperiment(Senegal,TimeDensityTIM.UseResidentType.ALL,24,Feature.I, "2013-10-01:0:0:0","2013-10-31:23:59:59");
+		
+		runExperiment(IvoryCoast,TimeDensityTIM.UseResidentType.ALL,24,Feature.I,"2012-02-01:0:0:0","2012-02-28:23:59:59");
+		runExperiment(IvoryCoast,TimeDensityTIM.UseResidentType.ALL,24,Feature.I,"2012-03-01:0:0:0","2012-03-31:23:59:59");
+		runExperiment(IvoryCoast,TimeDensityTIM.UseResidentType.ALL,24,Feature.I,"2012-04-01:0:0:0","2012-04-28:23:59:59");
 	}
 	
 
-	public static void runExperiment(Country country, TimeDensityTIM.UseResidentType resType, int time_window, SynchCompute.Feature use_feature) throws Exception {
+	public static void runExperiment(Country country, TimeDensityTIM.UseResidentType resType, int time_window, SynchCompute.Feature use_feature, String startTime, String endTime) throws Exception {
 		
 		System.out.println("RUNNING EXPERIMENT WITH: RESTYPE = "+resType+", TIME WINDOW = "+time_window+", FEATURE = "+use_feature);
 		
@@ -41,10 +47,17 @@ public class SynchClustering extends Thread {
 		List<String> cities = TableNames.getAvailableProvinces(country);
 		//List<String> cities = new ArrayList<>(); cities.add(TableNames.getAvailableProvinces(country).get(0)); cities.add(TableNames.getAvailableProvinces(country).get(1));
 		
+		
+		//cities.remove("Folon");
+		//cities.remove("Bafing");
+		//cities.remove("Worodougou");
+		//cities.remove("Yamoussoukro");
+		
+		
 		List<StatsCollection> city_stats = new ArrayList<>();
 		List<SynchClustering> executors = new ArrayList<>();
 		for(String city: cities) 
-			executors.add(new SynchClustering(city,country));
+			executors.add(new SynchClustering(city,country, startTime, endTime));
 		for(SynchClustering e: executors)
 			e.start();
 		for(SynchClustering e: executors)
@@ -52,7 +65,7 @@ public class SynchClustering extends Thread {
 		for(int i=0; i<executors.size();i++)
 			city_stats.add(executors.get(i).getStats());
 		
-		Evaluation.evaluate(cities, country, city_stats);
+		Evaluation.evaluate(cities, country, startTime, endTime, city_stats);
 		
 		
 		System.out.println("Done");
@@ -62,9 +75,13 @@ public class SynchClustering extends Thread {
 	private Country country;
 	private String city;
 	private StatsCollection result;
-	public SynchClustering(String city, Country country) {
+	private String startTime;
+	private String endTime;
+	public SynchClustering(String city, Country country, String startTime, String endTime) {
 		this.city = city;
 		this.country = country;
+		this.startTime = startTime;
+		this.endTime = endTime;
 	}
 	
 	public void run() {
@@ -75,7 +92,9 @@ public class SynchClustering extends Thread {
 		DescriptiveStatistics intra = new DescriptiveStatistics();
 		DescriptiveStatistics inter = new DescriptiveStatistics();
 		
-		TimeDensity td = TimeDensityFactory.getInstance(city,country);
+		TimeDensity td = TimeDensityFactory.getInstance(city,country,startTime,endTime);
+		
+		
 		RegionMap rm = TableNames.getRegionMap(city, country);
 		
 		Map<String,Integer> assignments = KMLColorMap.toIntAssignments(td.getMapping(rm));

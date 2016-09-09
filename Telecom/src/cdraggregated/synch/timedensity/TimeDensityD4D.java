@@ -1,14 +1,16 @@
 package cdraggregated.synch.timedensity;
 
+import static cdraggregated.synch.TableNames.Country.IvoryCoast;
+import static cdraggregated.synch.TableNames.Country.Senegal;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,19 +23,18 @@ import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
 import region.Placemark;
+import region.Region2Region;
 import region.RegionI;
 import region.RegionMap;
-import utils.Colors;
 import utils.Config;
 import utils.CopyAndSerializationUtils;
+import utils.Mail;
 import utils.StatsUtils;
 import utils.time.TimeConverter;
 import visual.html.GoogleChartGraph;
-import visual.kml.KML;
-import visual.kml.KMLCircle;
+import visual.kml.KMLColorMap;
 import cdraggregated.synch.TableNames;
 import cdraggregated.synch.TableNames.Country;
-import static cdraggregated.synch.TableNames.Country.*;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
@@ -47,13 +48,14 @@ public class TimeDensityD4D implements TimeDensity {
 	
 	
 	private TimeConverter tc = null;
+
+	private RegionMap grid;
 	
-	private RegionMap rm_lvl2; // province
-	private RegionMap rm_lvl3; // comuni
+	private Map<String,String> antenna2grid;
+	private Map<String,String> grid2comuni;
+	private Map<String,String> grid2province;
 	
 	
-	private Map<String,String> antenna2province;
-	private Map<String,String> antenna2comuni;
 	//
 	private Map<String,double[]> antennaLatLonR = new HashMap<>();
 	
@@ -66,58 +68,52 @@ public class TimeDensityD4D implements TimeDensity {
 	private Map<String,double[]> mapz;
 	
 	
-	TimeDensityD4D(String city, Country c) {
-		
-		if(c.equals(IvoryCoast))
-			tc = TimeConverter.getInstance("2011-12-01:0:0:0","2012-04-28:23:59:59");
-		if(c.equals(Senegal))
-			tc = TimeConverter.getInstance("2013-01-01:0:0:0","2013-12-31:23:59:59");
-		if(c.equals(IvoryCoast1Month))
-			tc = TimeConverter.getInstance("2012-02-01:0:0:0","2012-03-11:23:59:59");
-		if(c.equals(Senegal1Month))
-			tc = TimeConverter.getInstance("2013-03-01:0:0:0","2013-03-31:23:59:59");
-		
-		if(c.equals(IvoryCoast) || c.equals(IvoryCoast1Month)) 
+	TimeDensityD4D(String city, Country c, String startTime, String endTime) {
+		tc = TimeConverter.getInstance(startTime,endTime);
+		if(c.equals(IvoryCoast)) {
 			processAntennaLocations("G:/DATASET/D4D_IVORYCOAST/ORIGINAL/data/ANT_POS.TSV",2,1, false); // 1	-4.143452	5.342044
-		if(c.equals(Senegal) || c.equals(Senegal1Month))
+			grid = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivorycoast_grid.ser"));
+			grid2comuni = Region2Region.region2regionOneOnly("G:/DATASET/GEO/ivorycoast/ivorycoast_grid.csv","NAME_5","NAME_4");
+			grid2province = Region2Region.region2regionOneOnly("G:/DATASET/GEO/ivorycoast/ivorycoast_grid.csv","NAME_5","NAME_1");
+		}
+		if(c.equals(Senegal)) {
 			processAntennaLocations("G:/DATASET/D4D_SENEGAL/ContextData/SITE_ARR_LONLAT.CSV",3,2, true); // site_id,arr_id,lon,lat
-		
-		if(c.equals(IvoryCoast) || c.equals(IvoryCoast1Month)) {
-			rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastProvince.ser"));
-			rm_lvl3 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/ivoryCoastComuni.ser"));
-		}
-		if(c.equals(Senegal) || c.equals(Senegal1Month)) {
-			rm_lvl2 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-regioni.ser"));
-			rm_lvl3 = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal-comuni.ser"));
+			grid = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/senegal_grid.ser"));
+			grid2comuni = Region2Region.region2regionOneOnly("G:/DATASET/GEO/senegal/senegal_grid.csv","NAME_5","NAME_4");
+			grid2province = Region2Region.region2regionOneOnly("G:/DATASET/GEO/senegal/senegal_grid.csv","NAME_5","NAME_1");
 		}
 		
-		
-		
-		
-		File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/all/"+c+".ser");	
+		SimpleDateFormat datef = new SimpleDateFormat("yyyy-MM-dd");
+		File f = new File(Config.getInstance().base_folder+"/TIC2015/cache/all/"+c+"_"+datef.format(new Date(tc.startTime))+"_"+datef.format(new Date(tc.endTime))+".ser");	
 		if(!ENABLE_CACHE || !f.exists()) {
 			System.out.println("Cannot use cache info, computing.....");
 			
+			/*
+			for(RegionI r: grid.getRegions())
+				if(grid2province.get(r.getName()) == null) System.out.println(r.getName()); 
 			
-			antenna2province = getAntenna2RegionMapping(antennaLatLonR,rm_lvl2);
-			antenna2comuni = getAntenna2RegionMapping(antennaLatLonR,rm_lvl3);
+			System.exit(0);
+			*/
+			
+			antenna2grid = Region2Region.getMapping(antennaLatLonR,grid);
+			
+			for(RegionI r: grid.getRegions())
+				if(!antenna2grid.values().contains(r.getName())) System.err.println(r.getName()+" have no antennas");
+			
 			
 			//pre-load the allMap with all the provinces.
-			for(RegionI r: rm_lvl2.getRegions())
-				allMap.put(r.getName(), new HashMap<String,double[]>());
+			for(String r: grid2province.values())
+				allMap.put(r, new HashMap<String,double[]>());
 			
 			f.getParentFile().mkdirs();
 			if(c.equals(IvoryCoast)) 
 				processFileOrDir("G:/DATASET/D4D_IVORYCOAST/ORIGINAL/data/SET1TSV.tgz");
 			if(c.equals(Senegal))
 				processFileOrDir("G:/DATASET/D4D_SENEGAL/SET1");
-			if(c.equals(IvoryCoast1Month)) 
-				processFileOrDir("G:/DATASET/D4D_IVORYCOAST/ORIGINAL/data/SET1TSV_SMALL.tgz");
-			if(c.equals(Senegal1Month))
-				processFileOrDir("G:/DATASET/D4D_SENEGAL/SET1_SMALL");
 			
 			
 			// remove towers with not enough data
+			/*
 			for(Map<String,double[]> m: allMap.values()) {
 				List<String> badKeys = new ArrayList<>();
 				for(String k: m.keySet()) {
@@ -130,19 +126,25 @@ public class TimeDensityD4D implements TimeDensity {
 				for(String k: badKeys)
 					m.remove(k);
 			}
+			*/
+	
+			printKML(f.getParentFile()+"/"+c+"_"+datef.format(new Date(tc.startTime))+"_"+datef.format(new Date(tc.endTime))+".kml",grid2province);
 			
-			printKML(f.getParentFile()+"/"+c+".kml",c.name(),antenna2province);
-			
-			CopyAndSerializationUtils.save(f, new Object[]{antenna2province,antenna2comuni,allMap});
+			CopyAndSerializationUtils.save(f, new Object[]{antenna2grid,allMap});
 		}
 		else {
 			System.out.println("resuming from cache.....");
 			Object[] cached = (Object[])CopyAndSerializationUtils.restore(f);
-			antenna2province = (Map<String,String>)cached[0];
-			antenna2comuni = (Map<String,String>)cached[1];
-			allMap = (Map<String,Map<String,double[]>>)cached[2];
+			antenna2grid = (Map<String,String>)cached[0];
+			allMap = (Map<String,Map<String,double[]>>)cached[1];
 		}
+		
 		map = allMap.get(city);
+		
+		if(map == null) {
+			System.out.println(city+" is null!");
+			System.exit(0);
+		}
 		
 		mapz = new HashMap<String,double[]>();
 		for(String k: map.keySet())
@@ -169,7 +171,7 @@ public class TimeDensityD4D implements TimeDensity {
 			if(file.endsWith(".gz")) {
 				System.out.println("Processing "+new File(file).getName());
 				
-				BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file))));
+				BufferedReader br = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file)),"UTF-8"));
 				process(br,new SimpleDateFormat("yyyy-MM-dd HH"));
 				br.close();
 			}
@@ -179,7 +181,7 @@ public class TimeDensityD4D implements TimeDensity {
 				TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
 				while (currentEntry != null) {
 					System.out.println("Processing "+currentEntry.getName());
-					BufferedReader br = new BufferedReader(new InputStreamReader(tarInput)); // Read directly from tarInput
+					BufferedReader br = new BufferedReader(new InputStreamReader(tarInput,"UTF-8")); // Read directly from tarInput
 					process(br,new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 				    currentEntry = tarInput.getNextTarEntry(); 
 				}
@@ -196,6 +198,8 @@ public class TimeDensityD4D implements TimeDensity {
 			String line;
 			String first_time = null;
 			String last_time = null;
+			String grid_cell1=null,province1=null,grid_cell2=null,province2=null;
+			Map<String,double[]> map1=null, map2=null;
 			while((line=br.readLine())!=null) {
 				try {
 					String[] e = line.split("\t|,");
@@ -204,35 +208,53 @@ public class TimeDensityD4D implements TimeDensity {
 					last_time = e[0];
 				
 					long time = sdf.parse(e[0]).getTime();
+					
+					
+					
 					String id1 = e[1];
 					String id2 = e[2];
 					int ncdrs = Integer.parseInt(e[3]);
 					
 					
+					if(1.0*(time - tc.startTime)/(1000l*60*60*24) < -31 || time > tc.endTime) {
+						System.out.println("Skipping file for time restrictions:");
+						System.out.println("Relevant interval: "+new Date(tc.startTime)+" - "+new Date(tc.endTime));
+						System.out.println("File Time: "+new Date(time));
+						return;
+					}
+					
+						
 					if (time < tc.startTime || time > tc.endTime) {
 						skipped_lines++;
 						continue;
 					}
 					
-					
-					String province1 = antenna2province.get(id1);
-					if(province1!=null) {
-						Map<String,double[]> map1 = allMap.get(province1);
-						double[] ts1 = map1.get(id1);
-						if(ts1 == null) ts1 = new double[tc.getTimeSize()];
-						map1.put(id1, ts1);
+					grid_cell1 = antenna2grid.get(id1);
+					province1 = grid2province.get(grid_cell1);
+					if(grid_cell1!=null && province1 != null) {
+						map1 = allMap.get(province1);
+						double[] ts1 = map1.get(grid_cell1);
+						if(ts1 == null) {
+							ts1 = new double[tc.getTimeSize()];
+							map1.put(grid_cell1, ts1);
+						}
 						ts1[tc.time2index(time)] += ncdrs;
 					}
-					String province2 = antenna2province.get(id2);
-					if(province2!=null) {
-						Map<String,double[]> map2 = allMap.get(province2);
-						double[] ts2 = map2.get(id2);
-						if(ts2 == null) ts2 = new double[tc.getTimeSize()];
-						map2.put(id2, ts2);
+					
+					grid_cell2 = antenna2grid.get(id2);
+					province2 = grid2province.get(grid_cell2);
+					if(grid_cell2!=null && province2 != null) {
+						map2 = allMap.get(province2);
+						double[] ts2 = map2.get(grid_cell2);
+						if(ts2 == null) {
+							ts2 = new double[tc.getTimeSize()];
+							map2.put(grid_cell2, ts2);
+						}
 						ts2[tc.time2index(time)] += ncdrs;
 					}
 				} catch(Exception e) {
-					System.out.println("BAD LINE: "+line);
+					System.out.println("BAD LINE: "+line+" "+grid_cell1+" "+province1+" "+map1+" "+grid_cell2+" "+province2+" "+map2);
+					e.printStackTrace();
 				}
 			}
 			if(skipped_lines > 0) System.out.println("skipped "+skipped_lines+" due to time constratins");
@@ -291,57 +313,19 @@ public class TimeDensityD4D implements TimeDensity {
 	}
 	
 	
-	private Map<String,String> getAntenna2RegionMapping(Map<String,double[]> antennas, RegionMap rm) {
-		Map<String,String> result = new HashMap<>();
-				
-		for(String id: antennas.keySet()){
-			double[] latlonr = antennas.get(id);		
-			Placemark r = new Placemark(id,new double[]{latlonr[0],latlonr[1]},latlonr[2]);
-			
-		
-			float[] f = rm.computeAreaIntersection(r);
-			
-			int max = -1;
-			for(int i=0;i<f.length;i++)
-				if(f[i] > 0 && (max == -1 || f[i] > f[max]))
-					max = i;
-		
-			RegionI o = rm.getRegion(max);
-			if(o != null) 
-				result.put(r.getName(), o.getName());
-			else System.err.println("mapping error "+r.getName());	
-		}
-		
-		return result;
-	}
 	
 	
-	private void printKML(String file, String name, Map<String,String> assignments) {
+	
+	private void printKML(String file, Map<String,String> assignments) {
+		
+		Map<String,String> desc = new HashMap<>();
+		for(Map<String,double[]> m: allMap.values()) 
+			for(String r: m.keySet())
+				desc.put(r, GoogleChartGraph.getGraph(tc.getTimeLabels(), m.get(r), "", "date", "cdr"));
+		
 		try {
-			
-			
-			Map<String,String> desc = new HashMap<>();
-			for(Map<String,double[]> m: allMap.values()) 
-				for(String r: m.keySet())
-					desc.put(r, GoogleChartGraph.getGraph(tc.getTimeLabels(), m.get(r), "", "date", "cdr"));
-			
-			
-			
-			PrintWriter out = new PrintWriter(new FileWriter(file));
-			KML kml = new KML();
-			KMLCircle kml_circle = new KMLCircle();
-			kml.printHeaderFolder(out, name);
-			for(String id: desc.keySet()) {
-				double[] latlonr = antennaLatLonR.get(id);
-				String prov = assignments.get(id);
-				String color = "99ffffff";
-				if(prov!=null)
-					color = Colors.RANDOM_COLORS[Math.abs(prov.hashCode())%Colors.RANDOM_COLORS.length];
-				out.println(kml_circle.draw(latlonr[1], latlonr[0], latlonr[2], 10, 0, 360, id, color,color, desc.get(id)));
-			}
-			kml.printFooterFolder(out);
-			out.close();
-		}catch(Exception e){
+			KMLColorMap.drawColorMap(file, KMLColorMap.toIntAssignments(assignments), grid, desc);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -353,7 +337,7 @@ public class TimeDensityD4D implements TimeDensity {
 		
 		Map<String, String> mapping = new HashMap<>();
 		for(String k: map.keySet())
-			mapping.put(k, antenna2comuni.get(k));
+			mapping.put(k, grid2comuni.get(k));
 		
 		return mapping;
 		
@@ -386,9 +370,22 @@ public class TimeDensityD4D implements TimeDensity {
 	}
 	
 	
+	
+	
 	public static void main(String[] args) throws Exception {
-		TimeDensity td1 = TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(Senegal).get(0), Senegal1Month);	
-		//TimeDensity td2 = TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(1), IvoryCoast1Month);	
+		
+		// ivory all time "2011-12-01:0:0:0","2012-04-28:23:59:59");		
+		// senegal all time "2013-01-01:0:0:0","2013-12-31:23:59:59" 
+		
+		TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(Senegal).get(0), Senegal, "2013-04-01:0:0:0","2013-04-31:23:59:59");	
+		TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(Senegal).get(0), Senegal, "2013-06-01:0:0:0","2013-06-31:23:59:59");	
+		TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(Senegal).get(0), Senegal, "2013-10-01:0:0:0","2013-10-31:23:59:59");
+		
+		TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(1), IvoryCoast, "2012-02-01:0:0:0","2012-02-28:23:59:59");
+		TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(1), IvoryCoast, "2012-03-01:0:0:0","2012-03-31:23:59:59");
+		TimeDensityFactory.getInstance(TableNames.getAvailableProvinces(IvoryCoast).get(1), IvoryCoast, "2012-04-01:0:0:0","2012-04-28:23:59:59");	
+		
+		Mail.send("End TimeDensityD4D");
 		System.out.println("Done.");
 	}
 }

@@ -3,16 +3,17 @@ package cdraggregated.densityANDflows.flows;
 import java.io.BufferedWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import utils.mod.CoordinateUtil;
 import utils.mod.Route;
 import utils.mod.Util;
 import utils.mod.Util.Pair;
-import utils.multithread2.WorkerCallbackI;
-import utils.mygraphhopper.MyGHResponse;
+import utils.multithread.WorkerCallbackI;
 import utils.mygraphhopper.MyGraphHopper;
 
 import com.graphhopper.GHRequest;
+import com.graphhopper.GHResponse;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.util.shapes.GHPoint;
 import com.vividsolutions.jts.geom.Geometry;
@@ -30,9 +31,9 @@ public class DoLine implements WorkerCallbackI<String>{
 	private Double analizeTollerance;
 
 
-	private HashMap<String, GHPoint> coord = new HashMap<String, GHPoint>();
-	private HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes = new HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>>();
-	private	HashMap<String,Geometry> polycoord = new HashMap<String,Geometry>();
+	private Map<String, GHPoint> coord = new HashMap<String, GHPoint>();
+	private Map<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes = new HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>>();
+	private	Map<String,Geometry> polycoord = new HashMap<String,Geometry>();
 	private MyGraphHopper gh;
 	private EncodingManager eM;
 	private String weight;
@@ -41,7 +42,7 @@ public class DoLine implements WorkerCallbackI<String>{
 //	private int contb=0;
 	private HashMap<String, Route> routes = new HashMap<String, Route>();
 	
-	public DoLine( BufferedWriter bw, String ci[], double tolleranza, Integer parameterForRandomAssigment, int orario, Double ita, boolean polyMode,Double analizeTollerance, HashMap<String, GHPoint> coord, HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes, HashMap<String,Geometry> polycoord, MyGraphHopper gh, EncodingManager eM, String weight){
+	public DoLine( BufferedWriter bw, String ci[], double tolleranza, Integer parameterForRandomAssigment, int orario, Double ita, boolean polyMode,Double analizeTollerance, Map<String, GHPoint> coord, Map<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes, Map<String,Geometry> polycoord, MyGraphHopper gh, EncodingManager eM, String weight){
 		this.bw=bw;
 		this.ci=ci;
 		this.tolleranza=tolleranza;
@@ -123,12 +124,12 @@ public class DoLine implements WorkerCallbackI<String>{
 							}
 						}
 						cg++;
-						MyGHResponse res = new MyGHResponse();
+						GHResponse res = new GHResponse();
 //						int contFail=0;
 						do{
 							GHRequest req = new GHRequest(da.lat,da.lon, a.lat,a.lon);
 							req.setWeighting(weight);
-							res = gh.route(req, eM, orario, Util.round(f, 4), id);
+							res = gh.route(req, eM, Util.round(f, 4));
 							if(res.hasErrors()||(res.getTime()<120000)){
 //								contFail++;
 								da.lat+=0.001;
@@ -138,10 +139,7 @@ public class DoLine implements WorkerCallbackI<String>{
 							}
 						}while(res.hasErrors()||(res.getTime()<120000));
 						
-						if(res.isDelayed()||res.getTimeTot()==-1){
-							de=true;
-							bw.write(res.getDelayInfo());
-						}
+						
 						else{
 							GHRequest fstReq = new GHRequest(da.lat,da.lon,a.lat,a.lon);
 							Double[] t = new Double[3];
@@ -213,7 +211,7 @@ public class DoLine implements WorkerCallbackI<String>{
 		
 	}
 
-	public HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> getRandomRoutes(){
+	public Map<String,ArrayList<Pair<GHPoint,GHPoint>>> getRandomRoutes(){
 		return this.randomRoutes;
 	}
 	public HashMap<String, Route> getRoutes(){

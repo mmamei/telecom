@@ -252,9 +252,9 @@ public class RegionMap implements Serializable {
 		kml.printHeaderFolder(out, name);
 		int index = 0;
 		for(RegionI r: rm.values()) {
-			out.println(r.toKml(Colors.RANDOM_COLORS[index],Colors.RANDOM_COLORS[index]));
+			out.println(r.toKml(Colors.KML_RANDOM_COLORS[index],Colors.KML_RANDOM_COLORS[index]));
 			index++;
-			if(index >= Colors.RANDOM_COLORS.length) index = 0;
+			if(index >= Colors.KML_RANDOM_COLORS.length) index = 0;
 		}
 		kml.printFooterFolder(out);
 		out.close();
@@ -288,7 +288,7 @@ public class RegionMap implements Serializable {
 		for(RegionI r: rm.values()) {
 			sb.append(r.toKml("01ffffff","ffffffff")+"\n");
 			index++;
-			if(index >= Colors.RANDOM_COLORS.length) index = 0;
+			if(index >= Colors.KML_RANDOM_COLORS.length) index = 0;
 		}
 		return sb.toString();
 	}
@@ -299,7 +299,7 @@ public class RegionMap implements Serializable {
 		for(RegionI r: rm.values()) {
 			sb.append(r.toKml(color,color)+"\n");
 			index++;
-			if(index >= Colors.RANDOM_COLORS.length) index = 0;
+			if(index >= Colors.KML_RANDOM_COLORS.length) index = 0;
 		}
 		return sb.toString();
 	}

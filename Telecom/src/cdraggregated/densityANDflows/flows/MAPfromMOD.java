@@ -6,19 +6,24 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import utils.CopyAndSerializationUtils;
+import utils.FileUtils.HowToDealWithFileHeader;
 import utils.mod.CoordinateUtil;
 import utils.mod.Route;
 import utils.mod.Util;
 import utils.mod.Util.Pair;
 import utils.mod.Write;
-import utils.multithread2.MultiWorker;
-import utils.mygraphhopper.MyGHResponse;
+import utils.multithread.MultiWorker;
 import utils.mygraphhopper.MyGraphHopper;
 import utils.mygraphhopper.WEdge;
+import visual.html.ODMatrixGoogleMaps;
 
 import com.graphhopper.GHRequest;
+import com.graphhopper.GHResponse;
 import com.graphhopper.routing.util.EdgeFilter;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.storage.GraphHopperStorage;
@@ -31,14 +36,14 @@ import com.graphhopper.util.shapes.GHPoint;
 import com.vividsolutions.jts.geom.Geometry;
 
 public class MAPfromMOD{
-//	nome e percorso file della MOD
+	//	nome e percorso file della MOD
 	static String fileMOD = "temp/MatriceOD_per_-_Lombardia__orario_uscita_-_1.csv";
 //	static String fileMOD = "temp/od.csv";
 	
-//	Le province visualizzate nel file html che verrà generato
+	//	Le province visualizzate nel file html che verrà generato
 	static String[] provToVisualize = {"015"};
 	
-//	I comuni visualizzati nel file html che verrà generato
+	//	I comuni visualizzati nel file html che verrà generato
 	static String[] comToVisualize = {};
 	
 	static String percorsoInput = "C:/BASE/Francia";
@@ -124,7 +129,7 @@ public class MAPfromMOD{
 		gh.forDesktop();
 		gh.setEncodingManager(eM);
 		gh.setCHEnable(false);
-		gh.determineStc(stc);
+		gh.setStc(stc);
 		gh.importOrLoad();
 		gh.setWayPointMaxDistance(100);
 		LocationIndex index = gh.getLocationIndex();
@@ -135,34 +140,30 @@ public class MAPfromMOD{
 		int ow=0;
 		
 		
-		HashMap<String, GHPoint> coord = new HashMap<String, GHPoint>();
+		Map<String, GHPoint> coord = new HashMap<String, GHPoint>();
 //		Formato HashMap coord: <String: cod Istat del comune "cc"+"-"+cp, String corrdinate del comune:"lat"+":"+"lon">
 		
-		HashMap<String, WEdge> edges = new HashMap<String, WEdge>();
+		Map<String, WEdge> edges = new HashMap<String, WEdge>();
 //		Formato HashMap edges: <Integer: edge ID, WEdge: tutte le informazioni sul relativo edge>
 		
-		HashMap<String, Double> streets = new HashMap<String, Double>();
+		Map<String, Double> streets = new HashMap<String, Double>();
 //		Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
 		
-		HashMap<String, Double> streetsForecast = new HashMap<String, Double>();
+		Map<String, Double> streetsForecast = new HashMap<String, Double>();
 //		Formato HashMap RouteMatrix: <String: "lat1"+","+"lon1"+":"lat2"+","+"lon2", Double: num tot persone sulla strada>
 		
-		HashMap<String,Geometry> polycoord = new HashMap<String,Geometry>();
+		Map<String,Geometry> polycoord = new HashMap<String,Geometry>();
 //		Formato HashMap polycoord: <String: cod Istat del comune "cc"+"-"+cp, Geometry: area del comune>
 		
-		HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes = new HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> ();
+		Map<String,ArrayList<Pair<GHPoint,GHPoint>>> randomRoutes = new HashMap<String,ArrayList<Pair<GHPoint,GHPoint>>> ();
 //		Formato HashMap randomPoints: <String: cod Istat del comune di partenza "cc"+"-"+cp+":"+"cc"+"-"+"cp" cod Istat del comune d'arrivo, ArrayList<GHPoint[]: [0] GHPoint partenza, [1] GHPoint arrivo>>		
 		
 //		HashMap<String, Double> time = new HashMap<String, Double>();
-		HashMap<String, double[][]> timeM = new HashMap<String, double[][]>();
+		Map<String, double[][]> timeM = new HashMap<String, double[][]>();
 //		Formato HashMap Time: <Pair<String: cod Istat del comune di partenza "cc"+"-"+cp+":",String "cc"+"-"+"cp" cod Istat del comune d'arrivo>,Double[i] # persone che compiono nella fascia oraria i-esima>
 		
-		HashMap<String, Route> hm = new HashMap<String, Route>();
-		
-		
-		ArrayList<Integer> fe = new ArrayList<Integer>();
-		fe = Util.getForbiddenEdge(percorsoInput);
-		gh.determineForbiddenEdges(fe);
+		Map<String, Route> hm = new HashMap<String, Route>();
+	
 		
 		BufferedWriter bw= new BufferedWriter(new FileWriter(new File(percorsoInput+"temp/delay.csv")));
 //		prima di tutto vado a calcolare i tragitti derivanti dalle scorse iterazioni del programma nelle diverse fascie orarie
@@ -181,11 +182,11 @@ public class MAPfromMOD{
 						double daLon = Double.parseDouble(dstt[1]);
 						double aLat = Double.parseDouble(dstt[2]);
 						double aLon = Double.parseDouble(dstt[3]);
-						MyGHResponse res = new MyGHResponse();
+						GHResponse res = new GHResponse();
 						do{
 							GHRequest req = new GHRequest(daLat,daLon, aLat,aLon);
 							req.setWeighting(weight);
-							res = gh.route(req, eM, orario, Util.round(Double.parseDouble(dstt[4]), 4), "");
+							res = gh.route(req, eM, Util.round(Double.parseDouble(dstt[4]), 4));
 	//						da++; a++;
 							if(res.hasErrors()){
 								daLat+=0.001;
@@ -194,7 +195,6 @@ public class MAPfromMOD{
 								aLon+=0.001;
 							}
 						}while(res.hasErrors());
-						if(!res.equals("null"))	bw.write(res.getDelayInfo()+"\n");
 					}
 				}
 			}
@@ -245,7 +245,7 @@ public class MAPfromMOD{
 			System.out.println("Iterazione n° "+(iter+1)+" su "+(ita.length));
 			
 			DoLine dl = new DoLine(bw, ci, tolleranza, parameterForRandomAssigment, orario, ita[iter], polyMode, analizeTollerance, coord, randomRoutes, polycoord, gh, eM, weight);
-			MultiWorker.run(percorsoInput+fileMOD, dl);
+			MultiWorker.run(percorsoInput+fileMOD, HowToDealWithFileHeader.FIFTEEN_LINES, dl);
 			randomRoutes=dl.getRandomRoutes();
 			hm=dl.getRoutes();
 			System.out.println("hm size "+hm.size() );
@@ -270,10 +270,10 @@ public class MAPfromMOD{
 		MultiWorker.run(routes, an);
 		
 		
-		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesTraffic.dat"), an.getResultTimeTraffic());
-		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest.dat"), an.getResultTimeFastest());
-		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesOldTraffic.dat"), an.getResultTimeOldTraffic());
-		Util.save(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest2.dat"), an.getResultTimeOldTraffic());
+		CopyAndSerializationUtils.save(new File(percorsoInput+"/temp/HashMaps/HMtimesTraffic.dat"), an.getResultTimeTraffic());
+		CopyAndSerializationUtils.save(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest.dat"), an.getResultTimeFastest());
+		CopyAndSerializationUtils.save(new File(percorsoInput+"/temp/HashMaps/HMtimesOldTraffic.dat"), an.getResultTimeOldTraffic());
+		CopyAndSerializationUtils.save(new File(percorsoInput+"/temp/HashMaps/HMtimesFastest2.dat"), an.getResultTimeOldTraffic());
 		
 		
 //		System.out.println("tragitti calcolati:"+count+"  tragitti di cui non si è potuto calcolare il percorso:"+countGhostRoute);
@@ -328,9 +328,7 @@ public class MAPfromMOD{
 //		}
 	
 //		QUA
-		if(forecast){
-			MyGraphHopper.addForbiddenEdge(forecastEdge, percorsoInput);
-		}
+		
 		System.out.println("streets size: "+streets.size());
 
 //		Write.advancedHTML(streets, streetsForecast, polycoord, comToVisualize, provToVisualize, percorsoOutput);
@@ -342,7 +340,7 @@ public class MAPfromMOD{
 		
 		System.out.println("Fine av time");	
 		System.out.println("busyEdges size:"+gh.getBusyEdges().size());
-		Util.save(new File(percorsoInput+"/temp/HashMaps/matrixTimeProject.dat"), timeM);
+		CopyAndSerializationUtils.save(new File(percorsoInput+"/temp/HashMaps/matrixTimeProject.dat"), timeM);
 
 		
 		
@@ -372,10 +370,10 @@ public class MAPfromMOD{
 		// inizializzo i pesi di graphopper sulla base del traffico salvato in edges.csv (e caricato in desEdges).
 		// Instradamenti che faccio dopo, tengono conto del traffico assegnato.
 		
-		gh.determineBusyEdge(desEdges);
+		gh.setBusyEdges(desEdges);
 		gh.updateBusyEdge();
 		
-		Write.simpleHTML(streets, streetsForecast, polycoord, comToVisualize, provToVisualize, percorsoOutput);
+		ODMatrixGoogleMaps.simpleHTML(streets, streetsForecast, polycoord, comToVisualize, provToVisualize, percorsoOutput);
 		System.out.println("op= "+op+" ow= "+ow);
 		System.out.println("Fine");
 	}

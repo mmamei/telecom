@@ -22,7 +22,7 @@ public class BatchRun {
 	public static void go(Country country, TimeDensityTIM.UseResidentType res_type) throws Exception {
 		//SynchClustering.runExperiment(country, res_type, 24, Feature.RSQ);
 		//SynchClustering.runExperiment(country, res_type, -1, Feature.RSQ);
-		SynchClustering.runExperiment(country, res_type, 24, Feature.I);
+		//SynchClustering.runExperiment(country, res_type, 24, Feature.I);
 		//SynchClustering.runExperiment(country, res_type, -1, Feature.I);
 	}
 

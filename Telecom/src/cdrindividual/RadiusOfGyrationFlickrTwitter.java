@@ -7,11 +7,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import network.NetworkMapFactoryI;
+
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.gps.utils.LatLonPoint;
 import org.gps.utils.LatLonUtils;
 
-import cdrindividual.dataset.NetworkMapFactoryI;
 import cdrindividual.dataset.impl.DataFactory;
 import region.RegionI;
 import utils.Config;

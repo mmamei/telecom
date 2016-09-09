@@ -237,9 +237,9 @@ public class RPlotter {
             	     + "z <- data.frame(x,y);"
             	     + "ggplot(z,aes(x=x,y=y))"+(opts.contains("geom_point")?"":"+ geom_point()")+ " + theme_bw(base_size = "+FONT_SIZE+") +xlab("+xlab+") + ylab("+ylab+")"+end
             	     + "ggsave('"+file+"');";
-            //System.out.println(printRVector("x",x));
-            //System.out.println(printRVector("y",y));
-            //System.out.println(code.replaceAll(";", ";\n"));
+            System.out.println(printRVector("x",x));
+            System.out.println(printRVector("y",y));
+            System.out.println(code.replaceAll(";", ";\n"));
             c.eval(code);
             c.close();
             if(VIEW) Desktop.getDesktop().open(new File(file));

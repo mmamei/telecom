@@ -43,7 +43,7 @@ public class Voronoi {
 		KML kml = new KML();
 		kml.printHeaderDocument(out, "test");
 		for(int i=0; i<voronoi.getNumGeometries();i++) {
-			String area = geom2Kml(""+i,(Polygon)voronoi.getGeometryN(i),Colors.RANDOM_COLORS[i%Colors.RANDOM_COLORS.length]);
+			String area = geom2Kml(""+i,(Polygon)voronoi.getGeometryN(i),Colors.KML_RANDOM_COLORS[i%Colors.KML_RANDOM_COLORS.length]);
 			out.println(area);
 		}
 		kml.printFooterDocument(out);

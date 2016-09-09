@@ -14,6 +14,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import utils.Config;
+import utils.FileUtils.HowToDealWithFileHeader;
 import utils.multithread.MultiWorker;
 import utils.multithread.WorkerCallbackI;
 
@@ -86,7 +87,7 @@ public class PLSParser implements WorkerCallbackI<File> {
 		this.analyzer = ba;
 		
 		if(MULTITHREAD)
-			MultiWorker.run(directory.getAbsolutePath(), this);
+			MultiWorker.run(directory.getAbsolutePath(), HowToDealWithFileHeader.NO_HEADER,this);
 		else
 			analyzeDirectory(directory);
 		
@@ -141,7 +142,7 @@ public class PLSParser implements WorkerCallbackI<File> {
 			}
 			else if(item.isDirectory())
 				if(MULTITHREAD)
-					MultiWorker.run(item.getAbsolutePath(), this);
+					MultiWorker.run(item.getAbsolutePath(), HowToDealWithFileHeader.NO_HEADER, this);
 				else
 					analyzeDirectory(item);
 		} catch(Exception e) {

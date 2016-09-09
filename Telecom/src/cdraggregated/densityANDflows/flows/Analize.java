@@ -2,43 +2,44 @@ package cdraggregated.densityANDflows.flows;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import utils.mod.Route;
+import utils.mod.Util;
+import utils.multithread.WorkerCallbackI;
+import utils.mygraphhopper.WEdge;
 
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.FlagEncoder;
 
-import utils.mod.Route;
-import utils.mod.Util;
-import utils.multithread2.WorkerCallbackI;
-import utils.mygraphhopper.WEdge;
-
 public class Analize implements WorkerCallbackI<Route>{
 	
-	private HashMap<String, WEdge> wEdges;
+	private Map<String, WEdge> wEdges;
 	private FlagEncoder fEnc;
-	private HashMap<String, Double> resultTimeTraffic = new HashMap<String, Double>();
-	private HashMap<String, Double> resultTimeFastest = new HashMap<String, Double>();
-	private HashMap<String, Double> resultTimeFastest2 = new HashMap<String, Double>();
-	private HashMap<String, Double> resultTimeOldTraffic = new HashMap<String, Double>();
+	private Map<String, Double> resultTimeTraffic = new HashMap<String, Double>();
+	private Map<String, Double> resultTimeFastest = new HashMap<String, Double>();
+	private Map<String, Double> resultTimeFastest2 = new HashMap<String, Double>();
+	private Map<String, Double> resultTimeOldTraffic = new HashMap<String, Double>();
 	private int nIta;
 	
-	public Analize(HashMap<String, WEdge> wEdges, EncodingManager eM, int nIta) {
+	public Analize(Map<String, WEdge> wEdges, EncodingManager eM, int nIta) {
 		this.wEdges=wEdges;
 		this.fEnc=eM.getEncoder("Car");
 		this.nIta=nIta;
 	}
 	
-	public HashMap<String, Double> getResultTimeTraffic(){
+	public Map<String, Double> getResultTimeTraffic(){
 		return this.resultTimeTraffic;
 	}
 	
-	public HashMap<String, Double> getResultTimeOldTraffic(){
+	public Map<String, Double> getResultTimeOldTraffic(){
 		return this.resultTimeOldTraffic;
 	}
 	
-	public HashMap<String, Double> getResultTimeFastest(){
+	public Map<String, Double> getResultTimeFastest(){
 		return this.resultTimeFastest;
 	}
-	public HashMap<String, Double> getResultTimeFastest2(){
+	public Map<String, Double> getResultTimeFastest2(){
 		return this.resultTimeFastest2;
 	}
 

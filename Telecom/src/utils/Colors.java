@@ -1,7 +1,14 @@
 package utils;
 
 public class Colors {
-	public static final String[] RANDOM_COLORS = new String[]{
+	
+	public static final String[] HTML_RANDOM_COLORS = new String[]{
+		"#ff0000","#00ff00","#0000ff","#0ff000","#000ff0",
+		"#990000","#009900","#000099","#099000","#000990",
+		"#440000","#004400","#000044","#044000","#000440",
+	};
+	
+	public static final String[] KML_RANDOM_COLORS = new String[]{
 		"990000ff", "99ff0000", "9900ff00", "99ff00ff", "99ffff00", "9900ffff",
 		"99000077", "99770000", "99007700", "99770077", "99777700", "99007777",
 		"99bb0000", "99330000", "99bb0077", "9977bb33", "9933bb77", "99bb3377",

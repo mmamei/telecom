@@ -1,19 +1,16 @@
 package utils.mod;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import utils.mygraphhopper.MyGraphHopper;
+import utils.mygraphhopper.WEdge;
 
 import com.graphhopper.util.EdgeExplorer;
 import com.graphhopper.util.EdgeIterator;
@@ -22,55 +19,13 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
-import utils.mygraphhopper.MyGraphHopper;
-import utils.mygraphhopper.WEdge;
-
 
 public class Util {
 	
-	public static void save(File file, Object o) {
-		ObjectOutputStream oos = null;
-		try {
-			oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-			oos.writeObject(o);
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		try {
-			oos.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 	
-	public static Object restore(File file) {
-		Object o = new Object();
-		ObjectInputStream ois = null;
-		try{
-			ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
-			o = ois.readObject();
-			ois.close();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		try {
-			ois.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				ois.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return o;
-	}
 	
 //	per riuscire salvare i dati riferiti agli edges
-	public static void serialize(File F, HashMap<String, WEdge> wedges) throws Exception{
+	public static void serialize(File F, Map<String, WEdge> wedges) throws Exception{
 		System.out.println("start serialize");
 		BufferedWriter bw= new BufferedWriter(new FileWriter(F));
 		bw.write("WEDGE_ID\tADJ_NODE\tWEIGHT_B_node\tWEIGHT_A_node\n");
@@ -191,7 +146,7 @@ public class Util {
 		return 0*ta;
 	}
 	
-	public static HashMap<String, Double> reduceMap(String[] comToVisualize, String[] provToVisualize, HashMap<String, Double> streets, HashMap<String, Geometry> geoList){
+	public static Map<String, Double> reduceMap(String[] comToVisualize, String[] provToVisualize, Map<String, Double> streets, Map<String, Geometry> geoList){
 		GeometryFactory gf = new GeometryFactory();
 		for(int i=0; i<provToVisualize.length; i++){
 			if(provToVisualize[i].equals(null))return streets;

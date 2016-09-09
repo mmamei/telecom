@@ -44,6 +44,11 @@ public class ScaleOnResidents {
 		
 		ScaleOnResidents odm = null;
 		
+		odm = new ScaleOnResidents("ODMatrixTime_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odpiemonte_15-06-2015",null,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odpiemonte.csv"),5);
+		odm.scaleAll();
+		
+		
+		/*
 		odm = new ScaleOnResidents("ODMatrixHW_file_pls_lomb_file_pls_lomb_01-03-2014-30-03-2014_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odlombardia",null,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv"),10);
 		odm.scaleAll();
 		
@@ -52,7 +57,7 @@ public class ScaleOnResidents {
 		
 		odm = new ScaleOnResidents("ODMatrixHW_file_pls_er_file_pls_er_01-04-2015-30-04-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odemiliaromagna",null,new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv"),10);
 		odm.scaleAll();
-		
+		*/
 		System.out.println("Done");
 		
 	}
@@ -83,7 +88,9 @@ public class ScaleOnResidents {
 		this.zc = zc;
 		this.threshold = threshold;
 		
-		String file = od_dir.substring("ODMatrixHW_".length(),od_dir.lastIndexOf("_"))+ "-comuni2012-HOME-null.ser";  
+		String file = od_dir.substring(od_dir.indexOf("_")+1,od_dir.lastIndexOf("cellXHour")+9)+ "-comuni2012-HOME-null.ser";  
+		System.out.println(file);
+		
 		
 		//String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_5000_cellXHour-comuni2012-HOME-null.ser";
 		//String file = "file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_400limit_1000_cellXHour-comuni2012-HOME-null.ser";
@@ -91,6 +98,7 @@ public class ScaleOnResidents {
 		istat = IstatCensus2011.getInstance().computeDensity(ISTAT_REF_INDEX, false, false);
 
 		hour_od = new HashMap<>();
+		System.out.println(Config.getInstance().base_folder+"/ODMatrix/"+od_dir);
 		for(File f: new File(Config.getInstance().base_folder+"/ODMatrix/"+od_dir).listFiles(ff)) {
 			if(f.getName().equals("latlon.csv")) continue;
 			int h = f.getName().startsWith("od") ? Integer.parseInt(f.getName().split("-")[2]) : Integer.parseInt(f.getName().split("_")[3].substring(8, 10));

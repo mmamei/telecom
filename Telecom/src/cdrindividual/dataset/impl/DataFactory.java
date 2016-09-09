@@ -1,7 +1,8 @@
 package cdrindividual.dataset.impl;
 
+import network.NetworkMapFactory;
+import network.NetworkMapFactoryI;
 import cdrindividual.dataset.EventFilesFinderI;
-import cdrindividual.dataset.NetworkMapFactoryI;
 import cdrindividual.dataset.PLSCoverageSpaceI;
 import cdrindividual.dataset.PLSCoverageTimeI;
 import cdrindividual.dataset.PLSEventsAroundAPlacemarkI;

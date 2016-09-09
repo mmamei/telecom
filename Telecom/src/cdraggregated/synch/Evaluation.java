@@ -1,10 +1,11 @@
 package cdraggregated.synch;
 
-import static cdraggregated.synch.TableNames.Country.Italy;
+import static cdraggregated.synch.TableNames.Country.*;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,11 +21,10 @@ import otherdata.TIbigdatachallenge2015.MEF_IRPEF;
 import otherdata.TIbigdatachallenge2015.SocialCapital;
 import otherdata.d4d.afrobarometer.AfroBarometer;
 import otherdata.d4d.ophi.Ophi;
+import region.Region2Region;
 import region.RegionI;
 import region.RegionMap;
 import utils.AddMap;
-import utils.Config;
-import utils.CopyAndSerializationUtils;
 import visual.kml.KMLColorMap;
 import visual.kml.KMLHeatMap;
 import visual.r.RHeatMap;
@@ -51,19 +51,23 @@ public class Evaluation {
 		if(SynchCompute.USEF.equals(SynchCompute.Feature.EU)) YLAB_SIMPLE = "EU";
 	}
 	
-	public static void evaluate(List<String> cities, Country country, List<StatsCollection> city_stats) {
+	public static void evaluate(List<String> cities, Country country, String startTime, String endTime, List<StatsCollection> city_stats) {
 		String dir =SynchCompute.getDir();
 		new File(dir).mkdirs();
 		System.err.println(dir);
-		drawBoxPlots(cities,country,city_stats,dir);
-		writeFeatureFile(cities,country,city_stats,dir);
-		drawMap(cities,country,city_stats,dir);
+		try {
+			drawBoxPlots(cities,country,startTime, endTime, city_stats,dir);
+			writeFeatureFile(cities,country,startTime, endTime, city_stats,dir);
+			drawMap(cities,country,startTime, endTime, city_stats,dir);
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 		
 	}
 	
 	
 	
-	private static void drawMap(List<String> cities,  Country country, List<StatsCollection> city_stats, String dir) {
+	private static void drawMap(List<String> cities,  Country country, String startTime, String endTime, List<StatsCollection> city_stats, String dir) throws Exception {
 		for(int i=0; i<cities.size();i++) {
 			String city = cities.get(i);
 			
@@ -75,7 +79,7 @@ public class Evaluation {
 			RegionMap rm = TableNames.getRegionMap(city, country);
 			
 			
-			TimeDensity td = TimeDensityFactory.getInstance(city,country);
+			TimeDensity td = TimeDensityFactory.getInstance(city,country,startTime,endTime);
 			Map<String,String> mapping = td.getMapping(rm); // 2026_3_0_3_1=63073, 
 			Map<String,Integer> assignments = KMLColorMap.toIntAssignments(mapping); // 2026_3_0_3_1=0,
 			
@@ -107,8 +111,11 @@ public class Evaluation {
 			}
 			
 			new File(dir+"/maps").mkdirs();
-			reallyDraw(dir+"/maps",city,"within",trm,comune2assignement,cellXComuneCount,stats.intraXcomune);
-			reallyDraw(dir+"/maps",city,"between",trm,comune2assignement,cellXComuneCount,stats.interXcomune);
+			
+			
+			
+			reallyDraw(dir+"/maps",city,"within-"+startTime.substring(0, startTime.lastIndexOf("-")),trm,comune2assignement,cellXComuneCount,stats.intraXcomune);
+			reallyDraw(dir+"/maps",city,"between-"+startTime.substring(0, startTime.lastIndexOf("-")),trm,comune2assignement,cellXComuneCount,stats.interXcomune);
 		}
 		
 	}
@@ -150,7 +157,7 @@ public class Evaluation {
 	
 	
 	
-	private static void drawBoxPlots(List<String> cities,  Country country, List<StatsCollection> city_stats,String dir) {
+	private static void drawBoxPlots(List<String> cities,  Country country, String startTime, String endTime, List<StatsCollection> city_stats,String dir) throws Exception {
 		List<double[]> intra = new ArrayList<double[]>();
 		List<double[]> inter = new ArrayList<double[]>();	
 		for(StatsCollection sc: city_stats) {
@@ -162,22 +169,21 @@ public class Evaluation {
 			//if(v==null || v.length==0) v = new double[]{0};
 			inter.add(v);
 		}
-		writeCSV(cities,intra,dir+"/within"+country+".csv");
-		writeCSV(cities,inter,dir+"/between"+country+".csv");
-		RPlotterWithinBetweenSynch.drawBoxplot(dir+"/within"+country+".csv", dir+"/between"+country+".csv", "", YLAB_SIMPLE, dir+"/boxplot"+country+".png");
+		writeCSV(cities,intra,dir+"/within"+country+"-"+startTime.substring(0, startTime.lastIndexOf("-"))+".csv");
+		writeCSV(cities,inter,dir+"/between"+country+"-"+startTime.substring(0, startTime.lastIndexOf("-"))+".csv");
+		RPlotterWithinBetweenSynch.drawBoxplot(dir+"/within"+country+"-"+startTime.substring(0, startTime.lastIndexOf("-"))+".csv", dir+"/between"+country+"-"+startTime.substring(0, startTime.lastIndexOf("-"))+".csv", "", YLAB_SIMPLE, dir+"/boxplot"+country+"-"+startTime.substring(0, startTime.lastIndexOf("-"))+".png");
 	}
 	
 	
 	
 	static boolean MEAN = false; // false = MEDIAN
 	
-	private static void writeFeatureFile(List<String> cities,  Country country, List<StatsCollection> city_stats, String dir) {
+	private static void writeFeatureFile(List<String> cities,  Country country, String startTime, String endTime, List<StatsCollection> city_stats, String dir) {
 		try {
 			
 			
 			Map<String,Map<String,Double>> socioeconomicV = getSocioEconomicVariables(country);
-			
-			PrintWriter out = new PrintWriter(new FileWriter(dir+"/features-data"+country+".csv"));
+			PrintWriter out = new PrintWriter(new FileWriter(dir+"/features-data"+country+"-"+startTime.substring(0, startTime.lastIndexOf("-"))+".csv"));
 			out.print("city,regione,avg_intra,avg_inter,sd_intra,sd_inter,avg,sd");
 			for(String k: socioeconomicV.keySet())
 				out.print(","+k);
@@ -233,18 +239,26 @@ public class Evaluation {
 			socioeconomicV.put("referendum", sc.getReferendum());
 			socioeconomicV.put("soccap", sc.getSocCap());
 		}
-		if(country.equals(Country.IvoryCoast) || country.equals(Country.IvoryCoast1Month) ) {
-			Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-ivorycoast.csv");
-			AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-ivorycoast.csv");
+		if(country.equals(IvoryCoast)) {
+			//Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-ivorycoast-province.csv");
+			Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-ivorycoast-province.csv",Region2Region.region2region("G:/DATASET/GEO/ivorycoast/ivorycoast_subpref.csv","NAME_2","NAME_1"));
+			
+			//AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-ivorycoast.csv");
+			AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-ivorycoast.csv",Region2Region.region2region("G:/DATASET/GEO/ivorycoast/ivorycoast_subpref.csv","NAME_2","NAME_1"));
+			
 			socioeconomicV.put("ophi", ophi.getDepriv());
 			socioeconomicV.put("assoc", ab.proportion("Q19B", new String[]{"Official Leader","Active Member"}));
 			socioeconomicV.put("meeting", ab.proportion("Q20A", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));
 			socioeconomicV.put("join2raise", ab.proportion("Q20B", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));
 			socioeconomicV.put("vote", ab.proportion("Q21", new String[]{"You voted in the elections"}));
 		}
-		if(country.equals(Country.Senegal) || country.equals(Country.Senegal1Month) ) {
-			Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-senegal.csv");
+		if(country.equals(Senegal)) {
+			//AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-senegal.csv",Region2Region.region2region("G:/DATASET/GEO/senegal/senegal_subpref.csv","NAME_1","NAME_2"));
 			AfroBarometer ab = new AfroBarometer("G:/DATASET/CENSUS/afrobarometer/afrobar-senegal.csv");
+			
+			//Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-senegal-regioni.csv",Region2Region.region2region("G:/DATASET/GEO/senegal/senegal_subpref.csv","NAME_1","NAME_2"));
+			Ophi ophi = new Ophi("G:/DATASET/CENSUS/ophi/ophi-senegal-regioni.csv");
+			
 			socioeconomicV.put("ophi", ophi.getDepriv());
 			socioeconomicV.put("assoc", ab.proportion("Q19B", new String[]{"Official Leader","Active Member"}));
 			socioeconomicV.put("meeting", ab.proportion("Q20A", new String[]{"Yes, once or twice","Yes, several times","Yes, often"}));

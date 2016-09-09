@@ -9,7 +9,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -38,7 +40,21 @@ public class CreatorRegionMapFromGIS {
 	
 	public static void main(String[] args) throws Exception {
 		
-		new CreatorRegionMapFromGISGUI();
+		//new CreatorRegionMapFromGISGUI();
+		
+		
+		//processWTK("ivorycoast_regioni","G:/DATASET/GEO/ivorycoast/ivorycoast_regioni.csv",Config.getInstance().base_folder+"/RegionMap/ivorycoast_regioni.ser",new int[]{5});
+		//processWTK("ivorycoast_province","G:/DATASET/GEO/ivorycoast/ivorycoast_province.csv",Config.getInstance().base_folder+"/RegionMap/ivorycoast_province.ser",new int[]{7});
+		//processWTK("ivorycoast_comuni","G:/DATASET/GEO/ivorycoast/ivorycoast_comuni.csv",Config.getInstance().base_folder+"/RegionMap/ivorycoast_comuni.ser",new int[]{9});
+		//processWTK("ivorycoast_subpref","G:/DATASET/GEO/ivorycoast/ivorycoast_subpref.csv",Config.getInstance().base_folder+"/RegionMap/ivorycoast_subpref.ser",new int[]{11});
+		processWTK("ivorycoast_grid","G:/DATASET/GEO/ivorycoast/ivorycoast_grid.csv",Config.getInstance().base_folder+"/RegionMap/ivorycoast_grid.ser",new int[]{17});
+		
+		
+		//processWTK("senegal_regioni","G:/DATASET/GEO/senegal/senegal_regioni.csv",Config.getInstance().base_folder+"/RegionMap/senegal_regioni.ser",new int[]{5});
+		//processWTK("senegal_province","G:/DATASET/GEO/senegal/senegal_province.csv",Config.getInstance().base_folder+"/RegionMap/senegal_province.ser",new int[]{7});
+		//processWTK("senegalt_comuni","G:/DATASET/GEO/senegal/senegal_comuni.csv",Config.getInstance().base_folder+"/RegionMap/senegal_comuni.ser",new int[]{9});
+		//processWTK("senegal_subpref","G:/DATASET/GEO/senegal/senegal_subpref.csv",Config.getInstance().base_folder+"/RegionMap/senegal_subpref.ser",new int[]{11});
+		processWTK("senegal_grid","G:/DATASET/GEO/senegal/senegal_grid.csv",Config.getInstance().base_folder+"/RegionMap/senegal_grid.ser",new int[]{17});
 		
 		/****************************************************************************************************************/
 		/*											MAIN TELECOM DATA CHALLENGE 2015 									*/
@@ -145,8 +161,7 @@ public class CreatorRegionMapFromGIS {
 			
 		
 		RegionMap rm = new RegionMap(name);
-		
-		BufferedReader br = new BufferedReader(new FileReader(input_file));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(input_file), "UTF8"));
 		String line;
 		br.readLine(); // skip header
 		while((line=br.readLine())!=null) {

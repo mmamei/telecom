@@ -42,7 +42,6 @@ public class ODDrawLine {
 		String subdir = null;
 		
 		
-		
 		//*************************************************************************************
 		//									SMOD OD MATRICES 		 						
 		//*************************************************************************************
@@ -73,7 +72,7 @@ public class ODDrawLine {
 		subdir = "20150416_calabrese-emilia-"+rm.getName()+"-LINE";
 		zc = null;
 		run(basedir,ff,rm,subdir,zc);
-		*/
+		
 		
 		//String scaled = "";
 		String scaled = "-scaled-on-tot-population";
@@ -88,6 +87,23 @@ public class ODDrawLine {
 		subdir = "20150504_calabrese-lombardia"+scaled+"-"+rm.getName()+"-LINE";
 		zc = null;
 		run(basedir,ff,rm,subdir,zc);
+		*/
+		
+		
+		//*************************************************************************************
+		//										TIME OD MATRICES 		 						
+		//*************************************************************************************
+		String scaled = "-scaled-on-residents";
+		basedir = new File(Config.getInstance().base_folder+"/ODMatrix/ODMatrixTime_file_pls_piem_file_pls_piem_01-06-2015-01-07-2015_minH_0_maxH_25_ABOVE_8limit_20000_cellXHour_odpiemonte_15-06-2015"+scaled);
+		System.out.println(basedir);
+		ff = null;
+		rm = (RegionMap)CopyAndSerializationUtils.restore(new File(Config.getInstance().base_folder+"/RegionMap/odpiemonte.ser"));
+		subdir = basedir.getName().replaceAll("_", "-")+"-LINE";
+		//ZoneConverter zc = new Francia2IstatCode();
+		zc = new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odpiemonte.csv");
+		THRESHOLD = 10;
+		run(basedir,ff,rm,subdir,zc);
+		
 		
 		/*
 		//*************************************************************************************
@@ -100,7 +116,6 @@ public class ODDrawLine {
 		subdir = basedir.getName().replaceAll("_", "-")+"-LINE";
 		//ZoneConverter zc = new Francia2IstatCode();
 		zc = new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odlombardia.csv");
-		SCALE = true;
 		THRESHOLD = 1;
 		run(basedir,ff,rm,subdir,zc);
 		
@@ -111,7 +126,6 @@ public class ODDrawLine {
 		subdir = basedir.getName().replaceAll("_", "-")+"-LINE";
 		//ZoneConverter zc = new Francia2IstatCode();
 		zc = new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odpiemonte.csv");
-		SCALE = true;
 		THRESHOLD = 1;
 		run(basedir,ff,rm,subdir,zc);
 		
@@ -122,7 +136,6 @@ public class ODDrawLine {
 		subdir = basedir.getName().replaceAll("_", "-")+"-LINE";
 		//ZoneConverter zc = new Francia2IstatCode();
 		zc = new ObjectID2IstatCode("G:/DATASET/GEO/telecom-2015-od/odemilia-romagna.csv");
-		SCALE = true;
 		THRESHOLD = 1;
 		run(basedir,ff,rm,subdir,zc);
 		*/
@@ -272,7 +285,7 @@ public class ODDrawLine {
 		
 		
 		outdir = outdir.replaceAll("\\\\", "/");
-		String imgFile = outdir+"/"+tm.get("name")+"-LINE.png";
+		String imgFile = outdir+"/"+h+".png";
 		tm.put("img", imgFile.substring(Config.getInstance().paper_folder.length()+1));
 		
 		String label = ((String)tm.get("Istante di inizio")).replaceAll(" ", ":")+" - "+((String)tm.get("Istante di fine")).replaceAll(" ", ":");
