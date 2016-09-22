@@ -28,7 +28,7 @@ public class MyGraphHopper extends GraphHopper {
 	private TranslationMap trMap = new TranslationMap().doImport();
 	private Map<String, WEdge> busyEdges=new HashMap<>();
 	private Map<String, WEdge> busyEdgesTemp=new HashMap<>();
-	private double stc=0.0;
+	private double stc;
 	
 	public void updateBusyEdge(){
 		for(String k:busyEdgesTemp.keySet()){
@@ -67,7 +67,7 @@ public class MyGraphHopper extends GraphHopper {
 	public Map<String, WEdge> getBusyEdges (){
 		return busyEdges;
 	}
-	
+	/*
 	public GHResponse route(GHRequest req, EncodingManager eM){
 		if(req.getWeighting().equalsIgnoreCase("FASTEST")){
 			FlagEncoder fEnc=eM.getEncoder("car");
@@ -86,10 +86,10 @@ public class MyGraphHopper extends GraphHopper {
 		}
 		else return super.route(req);
 	}
-	
+	*/
 	
 	public GHResponse route( GHRequest request, EncodingManager eM, double f){
-		GHResponse response = new GHResponse();
+		MyGHResponse response = new MyGHResponse();
 		List<Path> paths = getPaths(request, response);
 		
 		if(paths.size() > 1) System.err.println("Warning MyGraphHopper: paths.size() > 1");
@@ -97,17 +97,36 @@ public class MyGraphHopper extends GraphHopper {
 
 		List<EdgeIteratorState> thisPath = paths.get(0).calcEdges();
 		if (thisPath.size() > 2) {
-			Integer[][] p = new Integer[thisPath.size() - 2][2];
-
+			//Integer[][] p = new Integer[thisPath.size() - 2][2];
+			
+			double tot_dist = paths.get(0).getDistance() / 1000; // km
+			double tot_dist_cum = 0;
 			for (int j = 1; j < thisPath.size() - 1; j++) {
-				p[j - 1][0] = thisPath.get(j).getEdge();
-				p[j - 1][1] = thisPath.get(j).getBaseNode();
-				String e = String.valueOf(thisPath.get(j).getEdge());
+				//p[j - 1][0] = thisPath.get(j).getEdge();
+				//p[j - 1][1] = thisPath.get(j).getBaseNode();
+				
+				EdgeIteratorState edge = thisPath.get(j);
+				
+				double e_dist = edge.getDistance() / 1000;
+				tot_dist_cum += e_dist;
+				
+				double flux_in_segment = f/tot_dist*e_dist;
+				
+				String e = String.valueOf(edge.getEdge());
 				if (busyEdgesTemp.containsKey(e))
-					busyEdgesTemp.get(e).addFlux(thisPath.get(j).getBaseNode(), f);
+					busyEdgesTemp.get(e).addFlux(edge.getBaseNode(), flux_in_segment);
 				else
-					busyEdgesTemp.put(e,new WEdge(thisPath.get(j), f, stc, false));
+					busyEdgesTemp.put(e,new WEdge(edge, flux_in_segment, stc, false));
+				
+				
+				
+				
+				double speed = eM.getEncoder("CAR").getSpeed(edge.getFlags());
+				response.mytime += TrafficModel.getTime(e_dist, speed, busyEdgesTemp.get(e).getFlux(edge.getBaseNode()));
 			}
+			
+			
+			//System.out.println((int)tot_dist+" km VS. "+(int)tot_dist_cum+" km");
 		}
 		
 		boolean tmpEnableInstructions = request.getHints().getBool("instructions", false);
@@ -122,6 +141,12 @@ public class MyGraphHopper extends GraphHopper {
 			setEnableInstructions(tmpEnableInstructions).
 			setSimplifyResponse(true && wayPointMaxDistance > 0).//simplifyResponse
 			doWork(response, paths, trMap.getWithFallBack(locale));
+		
+		
+		
+		
+		response.mytime = (long)response.getRouteWeight();
+		
 		return response;
 	}
 }

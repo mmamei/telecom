@@ -2,8 +2,45 @@ package utils.mygraphhopper;
 
 public class TrafficModel {
 
+	/*
+	 * Data la distanza, la velocità di percorreneza della strada e il flusso di macchine.
+	 * Restituisce il tempo necessario per percorrere la strada.
+	 * 
+	 * distance in meters
+	 * speed in Km/h
+	 * flux in veich / hour
+	 * 
+	 */
+	
 	
 	public static double getTime(double distance, double speed, double flux) {
+		
+		double speed_limit;
+		if(speed<=30)	speed_limit=30;
+		else if(speed<=50)	speed_limit=50;
+		else if(speed<=70)	speed_limit=70;
+		else if(speed<=90)	speed_limit=90;
+		else if(speed<=110)	speed_limit=110;
+		else speed_limit=130;
+		
+		int lanes = 1;
+		if(speed_limit > 90) lanes = 2;
+		if(speed_limit > 120) lanes = 3;
+		
+		int capacity = 2000 * lanes; // max flux
+		
+		
+		double time_freeStreet = (distance/1000)/speed_limit;
+		
+		double alpha = 0.15;
+		double beta = 4;
+		double time_busyStreet = time_freeStreet * (1 + alpha * Math.pow(flux/capacity, beta));
+		
+		return time_busyStreet;
+		
+	}
+	
+	public static double getTime2(double distance, double speed, double flux) {
 		double[] abc = TrafficModel.computeABC(speed);
 		double a = abc[0];
 		double b = abc[1];
@@ -22,7 +59,7 @@ public class TrafficModel {
 		else if(speed<=70)	limit=70;
 		else if(speed<=90)	limit=90;
 		else if(speed<=110)	limit=110;
-		else	limit=130;
+		else limit=130;
 		limit/=2;
 		
 		double a=0.7;

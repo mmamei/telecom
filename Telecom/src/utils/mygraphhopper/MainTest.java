@@ -49,35 +49,34 @@ public class MainTest {
 		
 		//GHResponse res = gh.route(req, eM);
 		
+		int[] num_cars = new int[]{100000,10,3000};
+		for(int k=0; k<num_cars.length;k++) {
+			GHResponse res = gh.route(req, eM, num_cars[k]);
+			System.out.println("ROUTING SEGMENT "+k+" WITH "+num_cars[k]+" CARS, TRIP TIME "+res.getTime()/(1000*60)+" mins");
+			gh.updateBusyEdge();
+		}
 		
 		List<double[][]> segments = new ArrayList<>();
 		List<Double> w = new ArrayList<Double>();
 		List<String> colors = new ArrayList<String>();
-		
-		int[] num_cars = new int[]{2,3000,20};
-		for(int k=0; k<num_cars.length;k++) {
-			System.out.println("ROUTING SEGMENT "+k);
-			GHResponse res = gh.route(req, eM, num_cars[k]);
-			gh.updateBusyEdge();
-		}
-		
 		Map<String, WEdge> be = gh.getBusyEdges();
 		for(WEdge e: be.values()) {
 			PointList pl =e.getPoints();
 			for(int i=1;i<pl.getSize();i++) {
 				segments.add(new double[][]{{pl.getLatitude(i-1), pl.getLongitude(i-1)},{pl.getLatitude(i), pl.getLongitude(i)}});
 				w.add(2.0);
-				colors.add(calcColorGoogle(e.getFluxBothDirections()/e.getDistance()));
+				colors.add(calcColorGoogle(e.getFluxBothDirections()));
 			}
 		}
 		
-		printFluxDistribution(be);
+		//printFluxDistribution(be);
 	
 		ArrowsGoogleMaps.draw(Config.getInstance().base_folder+"/GraphHopperTest.html","GraphHopperTest",segments,w,colors,true);
 		
 		System.out.println("Done");
 	}
 	
+	// voc = volume over capacity
 	private static String calcColorGoogle(Double voc) {
 		// Verde: non ci sono ritardi dovuti al traffico.
 		String color = "#84CA50";

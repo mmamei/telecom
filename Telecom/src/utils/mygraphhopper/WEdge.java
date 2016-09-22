@@ -11,9 +11,9 @@ public class WEdge {
 	private EdgeIteratorState edge;
 
 	public WEdge(EdgeIteratorState edge, double flow, double stc, boolean allDirections){
-		this.edge=edge;
-		this.weight1=flow+stc*edge.getDistance();
-		if(allDirections) this.weight2=weight1;
+		this.edge = edge;
+		this.weight1 = flow + stc * edge.getDistance();
+		if(allDirections) this.weight2 = weight1;
 		
 	}
 	public WEdge(EdgeIteratorState edge, double flowB, double flowA){
