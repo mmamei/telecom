@@ -1,21 +1,6 @@
 package cdrindividual.tourist;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
 import region.Placemark;
 import region.RegionI;
 import region.RegionMap;
@@ -26,6 +11,12 @@ import utils.kdtree.KDTree;
 import visual.r.RHeatMap;
 import visual.r.RPlotter;
 import visual.text.TextPlotter;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /*

@@ -3,7 +3,7 @@ package utils.mygraphhopper;
 public class TrafficModel {
 
 	/*
-	 * Data la distanza, la velocità di percorreneza della strada e il flusso di macchine.
+	 * Data la distanza, la velocitï¿½ di percorreneza della strada e il flusso di macchine.
 	 * Restituisce il tempo necessario per percorrere la strada.
 	 * 
 	 * distance in meters
@@ -48,7 +48,7 @@ public class TrafficModel {
 		return ((distance/(speed/3.6))*(1+a*Math.pow((flux/c),b)));
 	}
 	
-//	c=massimo flusso orario di macchine = secondi in un ora/((distanza di sicurezza + lunghezza di un auto)/velocità(metri al sec))
+//	c=massimo flusso orario di macchine = secondi in un ora/((distanza di sicurezza + lunghezza di un auto)/velocitï¿½(metri al sec))
 //	distanza di sicurezza= (vel(metri al sec)*3/10)
 //	double c=3600*(speed/3.6)/(4.2+(speed*3/3.6)/10);
 	
